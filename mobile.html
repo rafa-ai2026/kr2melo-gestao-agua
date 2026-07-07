@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+  <meta name="theme-color" content="#111111">
+  <meta name="description" content="KR²MELO Mobile · Leitura de hidrômetros em campo.">
+  <title>KR²MELO Mobile · Leiturista v5.1.6</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="assets/logo.png">
+  <link rel="stylesheet" href="mobile.css">
+</head>
+<body>
+  <header class="m-top">
+    <img src="assets/logo.png" alt="KR²MELO">
+    <div><strong>KR²MELO Mobile</strong><small>Modo leiturista · v5.1.6</small></div>
+    <a href="index.html" title="Voltar ao painel administrativo">Admin</a>
+  </header>
+  <main id="mobileApp"></main>
+  <input id="cameraInput" type="file" accept="image/*" capture="environment" hidden>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="mobile.js"></script>
+</body>
+</html>

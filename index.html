@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#111111">
+  <meta name="description" content="KR²MELO Gestão de Água — leituras, rateio, boletos, isenções e descontos.">
+  <title>KR²MELO · Gestão de Água v5.1.6</title>
+  <link rel="icon" href="assets/logo.png">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar">
+      <a class="brand" href="#dashboard" aria-label="KR²MELO início">
+        <img src="assets/logo.png" alt="Logotipo KR²MELO">
+        <span><strong>KR²MELO</strong><small>Gestão de água · v5.1.6</small></span>
+      </a>
+      <nav aria-label="Navegação principal">
+        <a href="#dashboard" data-route="dashboard"><span>⌂</span> Visão geral</a>
+        <a href="#leituras" data-route="leituras"><span>◫</span> Leituras</a>
+        <a href="#regras" data-route="regras"><span>≋</span> Regras e descontos</a>
+        <a href="#fechamento" data-route="fechamento"><span>◷</span> Fechamento</a>
+        <a href="#historico" data-route="historico"><span>▤</span> Histórico e auditoria</a>
+        <a href="#unidades" data-route="unidades"><span>◉</span> Unidades e hidrômetros</a>
+        <a href="#excecoes" data-route="excecoes"><span>⚠</span> Exceções do mês</a>
+        <a href="#relatorios" data-route="relatorios"><span>▧</span> Relatórios</a>
+        <a href="#financeiro" data-route="financeiro"><span>◉</span> Financeiro</a>
+        <a href="#recibos" data-route="recibos"><span>▣</span> Recibos</a>
+        <a href="#boletos" data-route="boletos"><span>▥</span> Boletos</a>
+        <a href="#configuracoes" data-route="configuracoes"><span>⚙</span> Configurações</a>
+        <a href="#ajuda" data-route="ajuda"><span>?</span> Ajuda</a>
+        <a href="mobile.html"><span>📱</span> Modo leiturista</a>
+      </nav>
+      <div class="sidebar-foot"><span class="status-dot"></span> Dados neste dispositivo</div>
+    </aside>
+
+    <div class="main-area">
+      <header class="topbar">
+        <button class="menu-btn" id="menuBtn" aria-label="Abrir menu">☰</button>
+        <div class="page-heading"><p class="eyebrow" id="pageEyebrow">PAINEL</p><h1 id="pageTitle">Visão geral</h1></div>
+        <div class="top-actions">
+          <label class="block-picker"><span>Condomínio</span><select id="blockSelect" aria-label="Selecionar condomínio"></select></label>
+          <button class="icon-btn" id="exportBtn" title="Baixar backup" aria-label="Baixar backup">⇩</button>
+          <button class="secondary" id="importBackupBtn" type="button">Importar backup</button>
+          <button class="primary" id="newBlockBtn" type="button">+ Novo condomínio</button>
+        </div>
+      </header>
+      <main id="app" tabindex="-1"></main>
+    </div>
+  </div>
+
+  <dialog id="modal"><form method="dialog" id="modalForm"><div id="modalContent"></div></form></dialog>
+  <input type="file" id="importInput" accept="application/json" hidden>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="app.js"></script>
+</body>
+</html>
