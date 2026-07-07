@@ -2,7 +2,7 @@
   'use strict';
 
   const KEY = 'kr2melo.hidrometro.v1';
-  const APP_VERSION = '5.2.0';
+  const APP_VERSION = '5.2.2';
   const DEFAULT_TARIFF = { minimum: 64.6, tier1: 8.94, tier2: 13.82 };
   const money = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
   const monthFmt = new Intl.DateTimeFormat('pt-BR', { month: 'long', year: 'numeric' });
@@ -479,7 +479,7 @@ Esta ação remove os apartamentos da competência atual. O histórico já fecha
   }
   function renderReceipts(block) {
     const draft = receiptDraft(block);
-    return `<section class="receipt-layout"><form class="card form-grid" id="receiptForm"><div class="card-head field full"><h3>Recibo de serviço</h3></div><div class="field full"><label>Recebi de</label><input name="payer" value="${esc(draft.payer)}"></div><div class="field"><label>Valor (R$)</label><input name="amount" type="number" min="0" step="0.01" value="${draft.amount || ''}"></div><div class="field"><label>Valor por extenso</label><input name="amountWords" value="${esc(draft.amountWords)}"></div><div class="field full"><label>Referente a</label><input name="service" value="${esc(draft.service)}"></div><div class="field"><label>Data</label><input name="issueDate" type="date" value="${esc(draft.issueDate)}"></div><div class="field"><label>Cidade</label><input name="city" value="${esc(draft.city)}"></div><div class="field"><label>Nome para assinatura</label><input name="issuer" value="${esc(draft.issuer)}"></div><div class="field"><label>Telefone</label><input name="phone" value="${esc(draft.phone)}"></div><div class="field full"><label>Observação</label><textarea name="notes" rows="3">${esc(draft.notes)}</textarea></div><div class="form-foot"><button class="secondary" data-clear-receipt type="button">Limpar</button><button class="primary" type="submit">Salvar recibo</button></div></form><section class="card"><div class="card-head"><h3>Pré-visualização</h3><button class="secondary" data-print-service-receipt type="button">Imprimir</button></div><div id="receiptPreview">${receiptHtml(draft)}</div></section></section><section class="card"><div class="card-head"><h3>Recibos emitidos</h3></div><div class="table-wrap"><table><thead><tr><th>Data</th><th>Recebi de</th><th>Referente</th><th>Valor</th><th></th></tr></thead><tbody>${(block.serviceReceipts || []).slice(0, 20).map(item => `<tr><td>${dateBr(item.issueDate)}</td><td>${esc(item.payer)}</td><td>${esc(item.service)}</td><td>${money.format(n(item.amount))}</td><td><button class="danger" data-delete-service-receipt="${item.id}" type="button">Excluir</button></td></tr>`).join('') || '<tr><td colspan="5" class="empty">Nenhum recibo salvo.</td></tr>'}</tbody></table></div></section>`;
+    return `<section class="receipt-layout"><form class="card form-grid" id="receiptForm"><div class="card-head field full"><h3>Recibo de serviço</h3></div><div class="field full"><label>Recebi de</label><input name="payer" value="${esc(draft.payer)}"></div><div class="field"><label>Valor (R$)</label><input name="amount" type="number" min="0" step="0.01" value="${draft.amount || ''}"></div><div class="field"><label>Valor por extenso</label><input name="amountWords" value="${esc(draft.amountWords)}"></div><div class="field full"><label>Referente a</label><input name="service" value="${esc(draft.service)}"></div><div class="field"><label>Data</label><input name="issueDate" type="date" value="${esc(draft.issueDate)}"></div><div class="field"><label>Cidade</label><input name="city" value="${esc(draft.city)}"></div><div class="field"><label>Nome para assinatura</label><input name="issuer" value="${esc(draft.issuer)}"></div><div class="field"><label>Telefone</label><input name="phone" value="${esc(draft.phone)}"></div><div class="field full"><label>Observação</label><textarea name="notes" rows="3">${esc(draft.notes)}</textarea></div><div class="form-foot"><button class="secondary" data-clear-receipt type="button">Limpar</button><button class="primary" type="submit">Salvar recibo</button></div></form><section class="card"><div class="card-head"><h3>Pré-visualização</h3><button class="secondary" data-print-service-receipt type="button">Imprimir meia A4 retrato</button></div><div id="receiptPreview">${receiptHtml(draft)}</div></section></section><section class="card"><div class="card-head"><h3>Recibos emitidos</h3></div><div class="table-wrap"><table><thead><tr><th>Data</th><th>Recebi de</th><th>Referente</th><th>Valor</th><th></th></tr></thead><tbody>${(block.serviceReceipts || []).slice(0, 20).map(item => `<tr><td>${dateBr(item.issueDate)}</td><td>${esc(item.payer)}</td><td>${esc(item.service)}</td><td>${money.format(n(item.amount))}</td><td><button class="danger" data-delete-service-receipt="${item.id}" type="button">Excluir</button></td></tr>`).join('') || '<tr><td colspan="5" class="empty">Nenhum recibo salvo.</td></tr>'}</tbody></table></div></section>`;
   }
   function chunk(items, size) { const result = []; for (let i = 0; i < items.length; i += size) result.push(items.slice(i, i + size)); return result; }
   function blockLetter(index) { let n = index + 1, out = ''; while (n > 0) { const r = (n - 1) % 26; out = String.fromCharCode(65 + r) + out; n = Math.floor((n - 1) / 26); } return out; }
@@ -1434,6 +1434,178 @@ Esta ação remove os apartamentos da competência atual. O histórico já fecha
   handleSubmit = async function(event) {
     if (event.target.id === 'syncConfigForm') { event.preventDefault(); await saveSyncConfigV52(event.target); return; }
     return handleSubmitV52Base(event);
+  };
+
+
+
+  // ===================== KR²MELO v5.2.1 — Relatórios históricos e recibos A4 retrato =====================
+  // O seletor abaixo usa exatamente o retrato financeiro salvo no fechamento mensal.
+  // Nenhum valor do mês atual é recalculado quando uma competência histórica é escolhida.
+  const reportPeriodByBlockV521 = new Map();
+
+  function selectedHistoricalReportV521(block) {
+    const id = reportPeriodByBlockV521.get(block?.id || '') || '';
+    return (block?.history || []).find(entry => entry.id === id) || null;
+  }
+
+  function reportContextV521(block) {
+    const entry = selectedHistoricalReportV521(block);
+    const archived = Boolean(entry);
+    const period = archived ? entry.month : block.month;
+    const billing = archived ? normalizeBilling(entry.billing || {}, period) : block.billing;
+    const tariff = archived ? { ...DEFAULT_TARIFF, ...(entry.tariff || {}) } : block.tariff;
+    const units = archived ? entryUnits(entry) : block.units;
+    const snapshot = { month: period, billing, tariff, units };
+    const snapshotCharges = archived ? entryCharges(entry) : [];
+    const chargeById = new Map();
+    snapshotCharges.forEach(charge => {
+      if (charge?.unitId) chargeById.set(String(charge.unitId), charge);
+      if (charge?.number) chargeById.set(`number:${normalizedHeader(charge.number)}`, charge);
+    });
+    const rows = units.map(unit => {
+      const saved = chargeById.get(String(unit.id)) || chargeById.get(`number:${normalizedHeader(unit.number)}`);
+      const calculated = saved || unitCharges(unit, snapshot);
+      return {
+        number: String(saved?.number || unit.number || '—'),
+        resident: String(saved?.resident || unit.resident || '—'),
+        previous: unit.previous,
+        current: unit.current,
+        m3: n(saved?.m3 ?? unit.m3),
+        water: n(saved?.water ?? calculated.water),
+        grossCondo: n(saved?.grossCondo ?? calculated.grossCondo),
+        condoDiscount: n(saved?.condoDiscount ?? calculated.condoDiscount),
+        condo: n(saved?.condo ?? calculated.condo),
+        service: n(saved?.service ?? calculated.service),
+        fine: n(saved?.fine ?? calculated.fine),
+        total: n(saved?.total ?? calculated.total),
+        paid: Boolean(saved?.paid ?? unit.paid),
+        paymentDate: String(saved?.paymentDate ?? unit.paymentDate ?? '')
+      };
+    });
+    const totals = rows.reduce((sum, row) => {
+      sum.m3 += row.m3; sum.water += row.water; sum.grossCondo += row.grossCondo;
+      sum.discount += row.condoDiscount; sum.condo += row.condo; sum.service += row.service;
+      sum.fine += row.fine; sum.total += row.total;
+      if (row.paid) { sum.paid += row.total; sum.paidCount++; }
+      return sum;
+    }, { m3: 0, water: 0, grossCondo: 0, discount: 0, condo: 0, service: 0, fine: 0, total: 0, paid: 0, paidCount: 0 });
+    const bill = n(billing?.waterBill);
+    const diff = totals.water - bill;
+    return { entry, archived, period, billing, rows, totals, bill, diff, coverage: bill ? totals.water / bill * 100 : 0 };
+  }
+
+  function reportPeriodOptionsV521(block, selectedEntry) {
+    const entries = [...(block.history || [])].sort((a, b) => b.month.localeCompare(a.month) || n(b.version) - n(a.version));
+    const current = `<option value="" ${selectedEntry ? '' : 'selected'}>Competência atual · ${esc(monthLabel(block.month))}</option>`;
+    const historic = entries.map(entry => `<option value="${esc(entry.id)}" ${selectedEntry?.id === entry.id ? 'selected' : ''}>Histórico · ${esc(monthLabel(entry.month))} · ${esc(entryTitle(entry))}</option>`).join('');
+    return current + historic;
+  }
+
+  // Atalhos visíveis para que o operador encontre facilmente os relatórios salvos.
+  function reportPeriodQuickListV522(block, selectedEntry) {
+    const entries = [...(block.history || [])].sort((a, b) => b.month.localeCompare(a.month) || n(b.version) - n(a.version));
+    const currentActive = selectedEntry ? '' : ' active';
+    const current = `<button class="report-period-choice${currentActive}" data-report-period-open="" type="button"><span class="report-choice-tag">ATUAL</span><strong>${esc(monthLabel(block.month))}</strong><small>Competência em edição</small></button>`;
+    const history = entries.map(entry => {
+      const active = selectedEntry?.id === entry.id ? ' active' : '';
+      const closed = entry.closedAt ? auditDate(entry.closedAt) : 'data não registrada';
+      return `<button class="report-period-choice${active}" data-report-period-open="${esc(entry.id)}" type="button"><span class="report-choice-tag">HISTÓRICO</span><strong>${esc(monthLabel(entry.month))}</strong><small>${esc(entryTitle(entry))} · fechado em ${esc(closed)}</small></button>`;
+    }).join('');
+    const empty = entries.length ? '' : `<div class="report-history-empty"><strong>Nenhum mês fechado ainda.</strong><span>Ao confirmar o fechamento mensal, o período aparecerá aqui para impressão.</span></div>`;
+    return `<section class="report-period-picker no-print"><div class="report-period-picker-head"><div><p class="eyebrow">ESCOLHA O PERÍODO</p><h3>Relatórios salvos do bloco</h3><p>Selecione a competência atual ou abra um mês já encerrado no Histórico mensal.</p></div><label class="field report-period-field"><span>Período do relatório</span><select data-report-period-select aria-label="Período do relatório">${reportPeriodOptionsV521(block, selectedEntry)}</select></label></div><div class="report-period-choices">${current}${history}</div>${empty}</section>`;
+  }
+
+  function reportCoverageCardV521(context) {
+    const stateClass = !context.bill ? 'neutral' : context.diff >= 0 ? 'ok' : 'bad';
+    const status = !context.bill ? 'Conta global não informada' : context.diff >= 0 ? 'Conta de água coberta' : 'Conta de água não coberta';
+    return `<section class="card water-rate-card report-coverage-static"><div class="card-head"><div><h3>Rateio da conta global de água</h3><span class="muted">${context.archived ? 'Valores preservados no fechamento do período selecionado.' : 'Condomínio, serviço, multas e descontos não entram nesta conferência.'}</span></div><span class="pill ${context.diff >= 0 && context.bill ? 'ok' : context.bill ? 'danger' : 'info'}">${status}</span></div><div class="water-rate-grid"><div><small>Conta global</small><strong>${money.format(context.bill)}</strong></div><div><small>Soma da água</small><strong>${money.format(context.totals.water)}</strong></div><div><small>${context.diff >= 0 ? 'Saldo' : 'Falta'}</small><strong class="${stateClass}">${money.format(Math.abs(context.diff))}</strong></div><div><small>Cobertura</small><strong class="${stateClass}">${context.bill ? `${context.coverage.toFixed(1)}%` : '0,0%'}</strong></div></div></section>`;
+  }
+
+  renderReports = function(block) {
+    const context = reportContextV521(block);
+    const { entry, archived, period, billing, rows, totals } = context;
+    const periodLabel = monthLabel(period);
+    const origin = archived ? `${entryTitle(entry)} · fechado em ${entry.closedAt ? auditDate(entry.closedAt) : 'data não registrada'}` : 'Competência em edição · valores atuais do bloco';
+    const tableRows = rows.map(row => `<tr><td><strong>${esc(row.number)}</strong></td><td>${esc(row.resident || '—')}</td><td>${fmtM3(row.m3)} m³</td><td>${money.format(row.water)}</td><td>${money.format(row.condo)}</td><td class="adjustment">${row.condoDiscount ? `− ${money.format(row.condoDiscount)}` : '—'}</td><td>${money.format(row.service)}</td><td>${money.format(row.fine)}</td><td class="value">${money.format(row.total)}</td></tr>`).join('') || '<tr><td colspan="9">Nenhum apartamento disponível neste período.</td></tr>';
+    return `${reportPeriodQuickListV522(block, entry)}<section class="monthly-report" id="monthlyReportPrint" data-report-period="${esc(period)}" data-report-archived="${archived ? 'true' : 'false'}"><div class="section-actions no-print"><div><h2>Relatório mensal</h2><span class="muted">Período aberto: <strong>${esc(periodLabel)}</strong></span></div><div class="button-row"><button class="secondary" data-export-report-csv type="button">Exportar CSV</button><button class="primary" data-print-report type="button">Imprimir A4 retrato</button></div></div><div class="report-context-note ${archived ? 'archived' : 'current'}"><strong>${archived ? 'Relatório do histórico mensal' : 'Relatório da competência atual'}</strong><span>${esc(origin)}</span></div><header class="report-print-header"><div><p class="eyebrow">KR²MELO · GESTÃO DE ÁGUA</p><h2>Relatório mensal</h2><p>${esc(block.name)} · Referência: <strong>${esc(periodLabel)}</strong></p></div><div class="report-print-meta"><span>Unidades: <b>${rows.length}</b></span><span>${archived ? 'Fechado em' : 'Emitido em'}: <b>${archived && entry?.closedAt ? auditDate(entry.closedAt) : dateBr(today())}</b></span></div></header><div class="report-coverage">${reportCoverageCardV521(context)}</div><section class="finance-summary report-finance-summary"><div><small>Água</small><strong>${money.format(totals.water)}</strong></div><div><small>Condomínio bruto</small><strong>${money.format(totals.grossCondo)}</strong></div><div><small>Isenções / descontos</small><strong>${money.format(totals.discount)}</strong></div><div><small>Condomínio líquido</small><strong>${money.format(totals.condo)}</strong></div><div><small>Serviço + outros</small><strong>${money.format(totals.service + totals.fine)}</strong></div><div><small>Total mensal</small><strong>${money.format(totals.total)}</strong></div></section><div class="report-dates"><span><b>Leitura anterior:</b> ${dateBr(billing.previousReadDate)}</span><span><b>Leitura atual:</b> ${dateBr(billing.currentReadDate)}</span><span><b>Vencimento:</b> ${dateBr(billing.dueDate)}</span><span><b>Próxima leitura:</b> ${dateBr(billing.nextReadDate)}</span></div><div class="table-wrap report-table-wrap"><table class="monthly-report-table"><thead><tr><th>Apto</th><th>Responsável</th><th>Consumo</th><th>Água</th><th>Condomínio</th><th>Desconto</th><th>Serviço</th><th>Outros</th><th>Total</th></tr></thead><tbody>${tableRows}</tbody><tfoot><tr><td colspan="3">TOTAL</td><td>${money.format(totals.water)}</td><td>${money.format(totals.condo)}</td><td>− ${money.format(totals.discount)}</td><td>${money.format(totals.service)}</td><td>${money.format(totals.fine)}</td><td>${money.format(totals.total)}</td></tr></tfoot></table></div><footer class="report-print-footer">KR²MELO · ${archived ? 'Relatório histórico preservado no fechamento mensal' : 'Relatório para conferência do síndico'}</footer></section>`;
+  };
+
+  exportReportCsv = function() {
+    const block = selected(); if (!block) return;
+    const context = reportContextV521(block);
+    const rows = [['Bloco', block.name], ['Competência', context.period], ['Origem', context.archived ? 'Histórico mensal' : 'Competência atual'], ['Vencimento', context.billing.dueDate], [], ['Apto', 'Responsável', 'Consumo m³', 'Água', 'Condomínio', 'Desconto condomínio', 'Serviço', 'Multas/Outros', 'Total', 'Pago', 'Data pagamento']];
+    context.rows.forEach(row => rows.push([row.number, row.resident, row.m3, row.water.toFixed(2), row.condo.toFixed(2), row.condoDiscount.toFixed(2), row.service.toFixed(2), row.fine.toFixed(2), row.total.toFixed(2), row.paid ? 'Sim' : 'Não', row.paymentDate]));
+    rows.push(['', 'TOTAL', context.totals.m3.toFixed(3), context.totals.water.toFixed(2), context.totals.condo.toFixed(2), context.totals.discount.toFixed(2), context.totals.service.toFixed(2), context.totals.fine.toFixed(2), context.totals.total.toFixed(2)]);
+    const blob = new Blob(['\ufeff' + rows.map(row => row.map(csvValue).join(';')).join('\n')], { type: 'text/csv;charset=utf-8' });
+    const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = `relatorio-${normalizedHeader(block.name)}-${context.period}${context.archived ? '-historico' : ''}.csv`; link.click(); setTimeout(() => URL.revokeObjectURL(link.href), 1000); toast('Relatório CSV exportado');
+  };
+
+  printMonthlyReport = function() {
+    const report = $('#monthlyReportPrint');
+    if (!report) return toast('Relatório não disponível para impressão.', true);
+    const archived = report.dataset.reportArchived === 'true';
+    const win = window.open('', '_blank');
+    if (!win) return toast('Permita pop-ups para imprimir o relatório.', true);
+    const css = new URL('styles.css', location.href).href;
+    const title = archived ? 'Relatório histórico KR²MELO' : 'Relatório mensal KR²MELO';
+    win.document.write(`<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><base href="${esc(location.href)}"><title>${title}</title><link rel="stylesheet" href="${css}"><style>@page{size:A4 portrait;margin:8mm}body{margin:0;padding:0;background:#fff}.print-toolbar{position:sticky;top:0;z-index:5;background:#111;color:#fff;padding:10px;display:flex;align-items:center;justify-content:center;gap:12px;font-family:Arial,sans-serif}.print-toolbar button{background:#ff1100;color:#fff;border:0;border-radius:7px;padding:9px 15px;font-weight:800;cursor:pointer}@media print{.print-toolbar,.report-period-controls,.report-context-note{display:none!important}body{padding:0!important}.monthly-report{width:194mm!important;min-height:281mm!important;margin:0!important}}</style></head><body><div class="print-toolbar"><span>${archived ? 'Relatório histórico preservado, configurado para A4 em retrato.' : 'Relatório configurado para uma página A4 em retrato.'}</span><button onclick="window.print()">Imprimir agora</button></div>${report.outerHTML}</body></html>`);
+    win.document.close();
+  };
+
+  function printReceiptHalfPortraitV521(title, receiptMarkup) {
+    const win = window.open('', '_blank');
+    if (!win) return toast('Permita pop-ups para imprimir o recibo.', true);
+    const css = new URL('styles.css', location.href).href;
+    win.document.write(`<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><base href="${esc(location.href)}"><title>${esc(title)}</title><link rel="stylesheet" href="${css}"><style>@page{size:A4 portrait;margin:10mm}*{box-sizing:border-box}html,body{margin:0;padding:0;background:#fff;color:#111;font-family:Arial,sans-serif}.receipt-toolbar{position:sticky;top:0;z-index:5;background:#111;color:#fff;padding:10px;display:flex;gap:12px;align-items:center;justify-content:center;font-family:Arial,sans-serif}.receipt-toolbar button{background:#ff1100;color:#fff;border:0;border-radius:7px;padding:9px 15px;font-weight:800;cursor:pointer}.receipt-half-page{width:190mm;height:138.5mm;margin:0 auto;display:block;page-break-inside:avoid}.receipt-half-page .receipt-preview{width:100%;height:100%;min-height:0!important;margin:0!important;padding:10mm 13mm 8mm!important;border:1.3pt solid #111!important;box-shadow:none!important;display:flex!important;flex-direction:column!important;background:#fff!important}.receipt-half-page .receipt-preview h2{font-size:17pt!important;letter-spacing:.12em!important;margin:0 0 7mm!important;text-align:center}.receipt-half-page .receipt-preview p{font-size:10.5pt!important;line-height:1.48!important;margin:0 0 4mm!important}.receipt-half-page .receipt-preview footer{margin-top:auto!important;text-align:center!important}.receipt-half-page .receipt-signature{display:block!important;max-height:22mm!important;max-width:65mm!important;object-fit:contain!important;margin:2mm auto 1mm!important}.receipt-half-page .receipt-preview footer div{border-bottom:1pt solid #111!important;max-width:82mm!important;margin:0 auto 2mm!important}.receipt-half-page .receipt-preview footer b{font-size:9.5pt!important}.receipt-half-page .receipt-preview footer small{font-size:8pt!important}@media print{.receipt-toolbar{display:none!important}html,body{width:100%!important;height:auto!important;background:#fff!important}.receipt-half-page{width:190mm!important;height:138.5mm!important;margin:0!important;break-inside:avoid!important;page-break-inside:avoid!important}.receipt-half-page .receipt-preview{width:100%!important;height:138.5mm!important;min-height:0!important;overflow:hidden!important;color:#111!important;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}}</style></head><body><div class="receipt-toolbar"><span>Recibo em meia folha A4 · retrato</span><button onclick="window.print()">Imprimir agora</button></div><main class="receipt-half-page">${receiptMarkup}</main></body></html>`);
+    win.document.close();
+  }
+
+  function printPaymentReceiptPortraitV521(id) {
+    const block = selected(); const unit = findUnit(block, id); if (!unit) return;
+    const c = unitCharges(unit, block);
+    printReceiptHalfPortraitV521(`Recibo Apto ${unit.number}`, `<article class="receipt-preview"><h2>RECIBO DE PAGAMENTO</h2><p>Recebemos de <strong>${esc(unit.resident || '—')}</strong>, referente ao apartamento <strong>${esc(unit.number)}</strong>, o valor de <strong>${money.format(c.total)}</strong> referente a água, condomínio e demais lançamentos de ${esc(monthLabel(block.month))}.</p><p>Pagamento registrado em: <strong>${dateBr(unit.paymentDate || today())}</strong>.</p><footer><img class="receipt-signature" src="assets/assinatura.png" alt="Assinatura"><div></div><b>${esc(block.manager || 'Síndico responsável')}</b></footer></article>`);
+  }
+
+  const handleChangeV521Base = handleChange;
+  handleChange = function(event) {
+    if (event.target.matches('[data-report-period-select]')) {
+      const block = selected();
+      if (!block) return;
+      const id = String(event.target.value || '');
+      if (id) reportPeriodByBlockV521.set(block.id, id); else reportPeriodByBlockV521.delete(block.id);
+      render();
+      return;
+    }
+    return handleChangeV521Base(event);
+  };
+
+  const handleClickV521Base = handleClick;
+  handleClick = async function(event) {
+    const target = event.target;
+    if (target.closest('[data-print-service-receipt]')) {
+      printReceiptHalfPortraitV521('Recibo KR²MELO', $('#receiptPreview')?.innerHTML || '');
+      return;
+    }
+    const paymentReceipt = target.closest('[data-payment-receipt]');
+    if (paymentReceipt) {
+      printPaymentReceiptPortraitV521(paymentReceipt.dataset.paymentReceipt);
+      return;
+    }
+    return handleClickV521Base(event);
+  };
+
+  const handleClickV522Base = handleClick;
+  handleClick = async function(event) {
+    const periodButton = event.target.closest('[data-report-period-open]');
+    if (periodButton) {
+      const block = selected();
+      if (!block) return;
+      const id = String(periodButton.dataset.reportPeriodOpen || '');
+      if (id) reportPeriodByBlockV521.set(block.id, id); else reportPeriodByBlockV521.delete(block.id);
+      render();
+      return;
+    }
+    return handleClickV522Base(event);
   };
 
   setTimeout(bootstrapCloudV52, 250);

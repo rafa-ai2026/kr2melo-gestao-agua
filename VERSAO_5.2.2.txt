@@ -1,0 +1,7 @@
+KR²MELO v5.2.2 — Seletor de Relatórios do Histórico
+
+- Caixa visível “Relatórios salvos do bloco” no topo do módulo Relatórios.
+- Seleção por lista e por cartões de competência.
+- Competência atual e cada mês fechado no Histórico mensal.
+- Aviso claro quando ainda não existe mês encerrado.
+- Cache atualizado para v5.2.2.
