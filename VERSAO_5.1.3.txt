@@ -1,0 +1,6 @@
+KR²MELO v5.1.3 — Cadastro inicial por planilha
+
+Inclui modelo e importação inicial com as colunas:
+Apt; Leitura Anterior; Leitura Atual; Responsável
+
+Formato recomendado: CSV UTF-8 separado por ponto e vírgula.
