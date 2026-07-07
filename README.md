@@ -1,12 +1,28 @@
-# KR²MELO v5.1.8 — Cobrança de condomínio mais clara
+# KR²MELO v5.2 — Reset seguro, sincronização e dashboard anual
 
-Esta atualização remove a linha **“CONDOMÍNIO BRUTO”** das vias impressas dos boletos.
+## Novidades
 
-O boleto passa a exibir apenas **“CONDOMÍNIO A PAGAR”**, evitando a impressão de que o mesmo condomínio deve ser pago duas vezes.
+- **Reset total seguro:** baixa um backup JSON antes de apagar dados locais, fotos, históricos, recibos, regras e condomínios. A confirmação exige a frase `RESETAR TODOS OS DADOS`.
+- **Dashboard anual:** consolida consumo, água, condomínio, descontos, serviço, outros e cobrança total por competência; inclui gráfico, tabela, CSV e impressão A4 retrato.
+- **Sincronização real entre computador e celular:** integrada a Supabase, com login por e-mail, cópia remota protegida por RLS e sincronização automática opcional.
 
-- O cálculo interno de descontos e isenções permanece preservado.
-- Relatórios administrativos continuam detalhando valores brutos e descontos para conferência do síndico.
-- O layout, a grade de corte e as demais linhas do boleto foram mantidos.
-- O cache do PWA foi atualizado para a versão 5.1.8.
+## Ativar sincronização
 
-Para instalar, substitua todos os arquivos da versão anterior e recarregue o site com Ctrl + F5.
+1. Crie um projeto Supabase.
+2. Ative o provedor de autenticação por e-mail.
+3. Abra **SQL Editor** e execute o conteúdo de `supabase-setup.sql`.
+4. No site, abra **Sincronização** e informe a URL do projeto e a chave **anon/publishable**.
+5. Crie uma conta e entre com o mesmo e-mail/senha no computador e no celular.
+6. No aparelho que contém os dados atuais, clique **Enviar para nuvem**.
+7. No segundo aparelho, clique **Baixar da nuvem** antes de fazer qualquer alteração.
+
+### Segurança
+
+- Nunca informe a chave `service_role` no sistema.
+- A cópia na nuvem contém leituras, moradores, valores, regras e históricos. Use uma senha forte.
+- Fotos tiradas pelo modo leiturista permanecem armazenadas apenas no aparelho que as capturou.
+- Quando dois dispositivos alteram os mesmos dados sem baixar a versão mais recente, prevalece a última gravação enviada. Para reduzir risco, use **Baixar da nuvem** antes de iniciar uma nova rodada de leituras em outro aparelho.
+
+## Atualização no GitHub Pages
+
+Envie todos os arquivos internos desta pasta para a raiz do repositório, incluindo `sync.js`, `supabase-setup.sql` e a pasta `assets`.

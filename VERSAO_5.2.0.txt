@@ -1,0 +1,2 @@
+KR²MELO v5.2.0
+Reset seguro + sincronização Supabase + dashboard anual.

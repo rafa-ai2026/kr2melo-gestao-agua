@@ -13,8 +13,9 @@
 <body>
   <header class="m-top">
     <img src="assets/logo.png" alt="KR²MELO">
-    <div><strong>KR²MELO Mobile</strong><small>Modo leiturista · v5.1.7</small></div>
+    <div><strong>KR²MELO Mobile</strong><small>Modo leiturista · v5.2</small></div>
     <nav class="m-links" aria-label="Atalhos">
+      <a href="./index.html#sincronizacao" title="Sincronizar dados">Sync</a>
       <a href="./index.html#ajuda" title="Abrir ajuda">Ajuda</a>
       <a href="./index.html" title="Voltar ao painel administrativo">Admin</a>
     </nav>
@@ -22,6 +23,7 @@
   <main id="mobileApp"></main>
   <input id="cameraInput" type="file" accept="image/*" capture="environment" hidden>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="sync.js"></script>
   <script src="mobile.js"></script>
 </body>
 </html>

@@ -1,5 +1,5 @@
-const CACHE_NAME = 'kr2melo-v5.1.8';
-const CORE = ['./', 'index.html', 'mobile.html', 'styles.css', 'mobile.css', 'app.js', 'mobile.js', 'manifest.webmanifest', 'assets/logo.png', 'assets/assinatura.png'];
+const CACHE_NAME = 'kr2melo-v5.2.0';
+const CORE = ['./', 'index.html', 'mobile.html', 'styles.css', 'mobile.css', 'sync.js', 'app.js', 'mobile.js', 'manifest.webmanifest', 'assets/logo.png', 'assets/assinatura.png'];
 const FRESH_FILES = /(?:\.html$|\.js$|\.css$|manifest\.webmanifest$)/i;
 
 self.addEventListener('install', event => event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(CORE)).then(() => self.skipWaiting())));
@@ -8,16 +8,11 @@ self.addEventListener('fetch', event => {
   const request = event.request;
   if (request.method !== 'GET') return;
   const url = new URL(request.url);
+  if (url.origin !== self.location.origin) return;
   const isFresh = request.mode === 'navigate' || FRESH_FILES.test(url.pathname);
   if (isFresh) {
-    event.respondWith(fetch(request).then(response => {
-      if (response && response.ok) caches.open(CACHE_NAME).then(cache => cache.put(request, response.clone()));
-      return response;
-    }).catch(() => caches.match(request).then(hit => hit || (request.mode === 'navigate' ? caches.match('index.html') : Response.error()))));
+    event.respondWith(fetch(request).then(response => { if (response?.ok) caches.open(CACHE_NAME).then(cache => cache.put(request, response.clone())); return response; }).catch(() => caches.match(request).then(hit => hit || (request.mode === 'navigate' ? caches.match('index.html') : Response.error()))));
     return;
   }
-  event.respondWith(caches.match(request).then(cached => cached || fetch(request).then(response => {
-    if (response && response.ok) caches.open(CACHE_NAME).then(cache => cache.put(request, response.clone()));
-    return response;
-  })));
+  event.respondWith(caches.match(request).then(cached => cached || fetch(request).then(response => { if (response?.ok) caches.open(CACHE_NAME).then(cache => cache.put(request, response.clone())); return response; })));
 });

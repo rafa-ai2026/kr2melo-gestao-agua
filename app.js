@@ -2,7 +2,7 @@
   'use strict';
 
   const KEY = 'kr2melo.hidrometro.v1';
-  const APP_VERSION = '5.1.5';
+  const APP_VERSION = '5.2.0';
   const DEFAULT_TARIFF = { minimum: 64.6, tier1: 8.94, tier2: 13.82 };
   const money = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
   const monthFmt = new Intl.DateTimeFormat('pt-BR', { month: 'long', year: 'numeric' });
@@ -233,10 +233,12 @@
     clearTimeout(toast.timer);
     toast.timer = setTimeout(() => { el.className = 'toast'; }, 3000);
   }
+  let suspendCloudSyncV52 = false;
   function save(message = '') {
     try {
       state.version = APP_VERSION;
       localStorage.setItem(KEY, JSON.stringify(state));
+      if (!suspendCloudSyncV52 && window.KR2Sync?.autoEnabled?.()) window.KR2Sync.queuePush(deepClone(state));
       if (message) toast(message);
       return true;
     } catch (error) {
@@ -1194,7 +1196,7 @@ Esta ação remove os apartamentos da competência atual. O histórico já fecha
     $$('[data-route]').forEach(link => link.classList.toggle('active', link.dataset.route === route));
     const app = $('#app'), block = selected();
     if (!block && route !== 'ajuda') { app.innerHTML = emptyState(); app.focus({ preventScroll:true }); return; }
-    const pages = { dashboard: () => renderDashboard(block), leituras: () => renderReadings(block), regras: () => renderRules(block), fechamento: () => renderClosing(block), historico: () => renderHistoryV51(block), relatorios: () => renderReports(block), financeiro: () => renderFinanceV51(block), recibos: () => renderReceipts(block), boletos: () => renderBills(block), configuracoes: () => renderSettingsV51(block), unidades: () => renderUnitsV51(block), excecoes: () => renderExceptionsV51(block), ajuda: () => renderHelpV51() };
+    const pages = { dashboard: () => renderDashboard(block), leituras: () => renderReadings(block), regras: () => renderRules(block), fechamento: () => renderClosing(block), historico: () => renderHistoryV51(block), relatorios: () => renderReports(block), financeiro: () => renderFinanceV51(block), recibos: () => renderReceipts(block), boletos: () => renderBills(block), configuracoes: () => renderSettingsV52(block), unidades: () => renderUnitsV51(block), excecoes: () => renderExceptionsV51(block), ajuda: () => renderHelpV51() };
     app.innerHTML = pages[route](); app.focus({ preventScroll:true });
   };
 
@@ -1246,6 +1248,195 @@ Esta ação remove os apartamentos da competência atual. O histórico já fecha
     if (event.target.id === 'billingForm') { const block = selected(); audit(block, 'Configuração de boletos alterada', `Competência ${monthLabel(block.month)}`); }
     return originalHandleSubmitV51(event);
   };
+
+
+
+  // ===================== KR²MELO v5.2 — Reset seguro, sincronização e painel anual =====================
+  Object.assign(routes, {
+    anual: ['ANÁLISE', 'Dashboard anual'],
+    sincronizacao: ['NUVEM', 'Sincronização entre dispositivos']
+  });
+
+  function yearOptionsV52(block) {
+    const years = new Set([String(block?.month || currentMonth()).slice(0, 4), String(currentMonth()).slice(0, 4)]);
+    (block?.history || []).forEach(entry => years.add(String(entry.month || '').slice(0, 4)));
+    return [...years].filter(year => /^\d{4}$/.test(year)).sort((a, b) => b.localeCompare(a));
+  }
+  let annualYearV52 = '';
+  function annualRowsV52(block, year) {
+    if (!block) return [];
+    const byMonth = new Map();
+    (block.history || []).forEach(entry => {
+      if (!String(entry.month || '').startsWith(`${year}-`)) return;
+      const previous = byMonth.get(entry.month);
+      if (!previous || n(entry.version) >= n(previous.version)) byMonth.set(entry.month, entry);
+    });
+    const rows = [...byMonth.values()].map(entry => {
+      const charges = entryCharges(entry);
+      const total = charges.reduce((sum, charge) => {
+        sum.m3 += n(charge.m3); sum.water += n(charge.water); sum.grossCondo += n(charge.grossCondo); sum.discount += n(charge.condoDiscount); sum.condo += n(charge.condo); sum.service += n(charge.service); sum.fine += n(charge.fine); sum.total += n(charge.total);
+        return sum;
+      }, { m3: 0, water: 0, grossCondo: 0, discount: 0, condo: 0, service: 0, fine: 0, total: 0 });
+      return { month: entry.month, source: entry.source || 'fechado', status: entry.status || 'bloqueado', version: n(entry.version) || 1, ...total };
+    });
+    if (String(block.month || '').startsWith(`${year}-`) && !byMonth.has(block.month)) {
+      const current = chargeTotals(block);
+      rows.push({ month: block.month, source: 'em_aberto', status: 'atual', version: 0, m3: current.m3, water: current.water, grossCondo: current.grossCondo, discount: current.discount, condo: current.condo, service: current.service, fine: current.fine, total: current.total });
+    }
+    return rows.sort((a, b) => a.month.localeCompare(b.month));
+  }
+  function annualTotalsV52(rows) {
+    return rows.reduce((sum, row) => {
+      ['m3','water','grossCondo','discount','condo','service','fine','total'].forEach(key => sum[key] += n(row[key]));
+      return sum;
+    }, { m3: 0, water: 0, grossCondo: 0, discount: 0, condo: 0, service: 0, fine: 0, total: 0 });
+  }
+  function annualSourceV52(source) {
+    return ({ fechado: 'Fechado', importado: 'Importado', manual: 'Manual', revisado: 'Revisado', em_aberto: 'Em aberto' })[source] || 'Registro';
+  }
+  function renderAnnualDashboardV52(block) {
+    if (!block) return emptyState();
+    const years = yearOptionsV52(block); const year = annualYearV52 && years.includes(annualYearV52) ? annualYearV52 : years[0]; annualYearV52 = year;
+    const rows = annualRowsV52(block, year); const totals = annualTotalsV52(rows); const maxM3 = Math.max(1, ...rows.map(row => n(row.m3)));
+    const average = rows.length ? totals.m3 / rows.length : 0;
+    return `<section class="hero annual-hero"><div><p class="eyebrow">VISÃO CONSOLIDADA</p><h2>Dashboard anual · ${esc(year)}</h2><p>${esc(block.name)} · meses fechados, importados e a competência em aberto.</p></div><div class="button-row"><button class="secondary" data-print-annual type="button">Imprimir A4 retrato</button><button class="primary" data-export-annual type="button">Exportar CSV</button></div></section>
+      <section class="card annual-controls no-print"><label class="field"><span>Ano analisado</span><select data-annual-year>${years.map(item => `<option value="${item}" ${item === year ? 'selected' : ''}>${item}</option>`).join('')}</select></label><p class="muted">O mês atual aparece como <strong>Em aberto</strong> enquanto ainda não foi fechado.</p></section>
+      <section class="metrics annual-metrics"><article class="metric red"><span class="label">Consumo anual</span><strong>${fmtM3(totals.m3)} m³</strong><small>Média de ${fmtM3(average)} m³ por mês</small></article><article class="metric"><span class="label">Água</span><strong>${money.format(totals.water)}</strong><small>Soma dos rateios individuais</small></article><article class="metric"><span class="label">Cobrança total</span><strong>${money.format(totals.total)}</strong><small>Água, condomínio, serviço e outros</small></article><article class="metric"><span class="label">Descontos</span><strong>${money.format(totals.discount)}</strong><small>Benefícios de condomínio</small></article></section>
+      <section class="grid-2 annual-grid"><article class="card"><div class="card-head"><h3>Consumo mês a mês</h3><span class="muted">${rows.length} competência(s)</span></div><div class="annual-bars">${rows.length ? rows.map(row => `<div class="annual-bar-row"><strong>${esc(monthLabel(row.month).slice(0, 3))}</strong><div class="annual-bar"><i style="width:${Math.max(2, n(row.m3) / maxM3 * 100)}%"></i></div><b>${fmtM3(row.m3)} m³</b></div>`).join('') : '<p class="empty">Ainda não há histórico para este ano.</p>'}</div></article><article class="card"><div class="card-head"><h3>Resumo financeiro</h3></div><dl class="annual-summary"><div><dt>Condomínio líquido</dt><dd>${money.format(totals.condo)}</dd></div><div><dt>Serviço de leitura</dt><dd>${money.format(totals.service)}</dd></div><div><dt>Multas / outros</dt><dd>${money.format(totals.fine)}</dd></div><div><dt>Meses registrados</dt><dd>${rows.length}</dd></div></dl></article></section>
+      <section class="card annual-table-card"><div class="card-head"><h3>Demonstrativo anual</h3><small class="muted">Valores em reais, por competência.</small></div><div class="table-wrap"><table class="annual-table"><thead><tr><th>Mês</th><th>Status</th><th>Consumo</th><th>Água</th><th>Condomínio</th><th>Desconto</th><th>Serviço</th><th>Outros</th><th>Total</th></tr></thead><tbody>${rows.map(row => `<tr><td><strong>${esc(monthLabel(row.month))}</strong></td><td><span class="pill ${row.source === 'em_aberto' ? 'warn' : 'ok'}">${esc(annualSourceV52(row.source))}</span></td><td>${fmtM3(row.m3)} m³</td><td>${money.format(row.water)}</td><td>${money.format(row.condo)}</td><td class="adjustment">${row.discount ? `− ${money.format(row.discount)}` : '—'}</td><td>${money.format(row.service)}</td><td>${money.format(row.fine)}</td><td><strong>${money.format(row.total)}</strong></td></tr>`).join('') || '<tr><td colspan="9">Nenhuma competência registrada neste ano.</td></tr>'}</tbody><tfoot><tr><td colspan="2">TOTAL DO ANO</td><td>${fmtM3(totals.m3)} m³</td><td>${money.format(totals.water)}</td><td>${money.format(totals.condo)}</td><td>− ${money.format(totals.discount)}</td><td>${money.format(totals.service)}</td><td>${money.format(totals.fine)}</td><td>${money.format(totals.total)}</td></tr></tfoot></table></div></section>`;
+  }
+  function exportAnnualCsvV52() {
+    const block = selected(); if (!block) return;
+    const year = annualYearV52 || yearOptionsV52(block)[0] || String(currentMonth()).slice(0, 4); const rows = annualRowsV52(block, year); const totals = annualTotalsV52(rows);
+    const csv = [['Ano','Competência','Status','Consumo m³','Água','Condomínio líquido','Desconto','Serviço','Outros','Total'], ...rows.map(row => [year, row.month, annualSourceV52(row.source), row.m3.toFixed(3), row.water.toFixed(2), row.condo.toFixed(2), row.discount.toFixed(2), row.service.toFixed(2), row.fine.toFixed(2), row.total.toFixed(2)]), ['', 'TOTAL', '', totals.m3.toFixed(3), totals.water.toFixed(2), totals.condo.toFixed(2), totals.discount.toFixed(2), totals.service.toFixed(2), totals.fine.toFixed(2), totals.total.toFixed(2)]];
+    downloadBlob(new Blob(['\ufeff' + csv.map(row => row.map(csvValue).join(';')).join('\n')], { type: 'text/csv;charset=utf-8' }), `dashboard-anual-${normalizedHeader(block.name)}-${year}.csv`);
+    toast('Dashboard anual exportado');
+  }
+  function printAnnualV52() {
+    const content = $('#app')?.innerHTML || ''; if (!content) return;
+    const win = window.open('', '_blank');
+    if (!win) return toast('Permita pop-ups para imprimir o dashboard anual.', true);
+    const cssUrl = new URL('styles.css', location.href).href;
+    win.document.open();
+    win.document.write(`<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>Dashboard anual KR²MELO</title><link rel="stylesheet" href="${cssUrl}"><style>@page{size:A4 portrait;margin:8mm}@media print{.annual-print-document .hero{display:block!important;background:#fff!important;color:#111!important;border:1px solid #111!important;padding:5mm!important}.annual-print-document .hero:after{display:none!important}.annual-print-document .hero p{color:#444!important}.annual-print-document .button-row,.annual-print-document .annual-controls,.annual-print-document .no-print{display:none!important}.annual-print-document .metrics{grid-template-columns:repeat(4,1fr)!important}.annual-print-document .metric{padding:3mm!important}.annual-print-document .annual-table{min-width:0!important;font-size:7pt!important}.annual-print-document .annual-table th,.annual-print-document .annual-table td{padding:1.7mm 1mm!important}.annual-print-document .annual-table-card{margin-top:3mm!important}.annual-print-document .table-wrap{overflow:visible!important}}</style></head><body><main class="annual-print-document">${content}</main><script>window.addEventListener('load',()=>setTimeout(()=>window.print(),350));<\/script></body></html>`);
+    win.document.close();
+  }
+  function syncConfigV52() { return window.KR2Sync?.getConfig?.() || {}; }
+  function syncStatusV52(config) {
+    if (!window.KR2Sync?.configured?.()) return '<span class="pill warn">Não configurada</span>';
+    if (!window.KR2Sync?.connected?.()) return '<span class="pill warn">Conexão configurada · entre na conta</span>';
+    return `<span class="pill ok">Conectado como ${esc(config.user?.email || 'usuário')}</span>`;
+  }
+  function renderSyncV52() {
+    const c = syncConfigV52(); const connected = window.KR2Sync?.connected?.();
+    return `<section class="hero sync-hero"><div><p class="eyebrow">DADOS NA NUVEM</p><h2>Sincronização computador + celular</h2><p>Use a mesma conta nos dois aparelhos. Leituras e cadastros são sincronizados; fotos permanecem no aparelho onde foram tiradas.</p></div><div>${syncStatusV52(c)}</div></section>
+      <section class="grid-2 sync-grid"><article class="card"><div class="card-head"><h3>Conexão Supabase</h3><span class="muted">Uma configuração por dispositivo</span></div><form class="form-grid" id="syncConfigForm"><div class="field full"><label>URL do projeto</label><input name="url" type="url" placeholder="https://seu-projeto.supabase.co" value="${esc(c.url || '')}" required></div><div class="field full"><label>Chave pública anon/publishable</label><input name="anonKey" type="password" autocomplete="off" placeholder="Cole somente a chave pública" value="${esc(c.anonKey || '')}" required><small class="muted">Nunca informe a chave service_role.</small></div><div class="field"><label>E-mail</label><input name="email" type="email" autocomplete="email" value="${esc(c.user?.email || '')}" required></div><div class="field"><label>Senha</label><input name="password" type="password" autocomplete="current-password" placeholder="Sua senha" ${connected ? '' : 'required'}></div><div class="field full"><label><input name="autoSync" type="checkbox" ${c.autoSync ? 'checked' : ''}> Sincronizar automaticamente após salvar uma alteração</label><small class="muted">Em alterações feitas simultaneamente, prevalece a última gravação enviada.</small></div><div class="form-foot"><button class="secondary" data-sync-signup type="button">Criar conta</button><button class="secondary" data-sync-login type="button">Entrar</button><button class="primary" type="submit">Salvar conexão</button></div></form></article>
+      <article class="card"><div class="card-head"><h3>Operações de sincronização</h3>${syncStatusV52(c)}</div><div class="notice-list"><div class="info-box">Último envio: <strong>${c.lastPushAt ? auditDate(c.lastPushAt) : '—'}</strong></div><div class="info-box">Último recebimento: <strong>${c.lastPullAt ? auditDate(c.lastPullAt) : '—'}</strong></div><div class="warning-box">Antes de usar outro aparelho pela primeira vez, entre na mesma conta e use <strong>Baixar da nuvem</strong>. Isso evita substituir dados mais novos.</div></div><div class="button-row" style="margin-top:14px"><button class="primary" data-sync-push type="button" ${connected ? '' : 'disabled'}>☁ Enviar para nuvem</button><button class="secondary" data-sync-pull type="button" ${connected ? '' : 'disabled'}>⇩ Baixar da nuvem</button><button class="secondary" data-sync-signout type="button" ${connected ? '' : 'disabled'}>Sair desta conta</button></div><div class="danger-zone" style="margin-top:16px"><strong>Apagar cópia na nuvem</strong><p>Remove a cópia remota desta conta, sem apagar os dados locais.</p><button class="danger" data-sync-delete-cloud type="button" ${connected ? '' : 'disabled'}>Apagar cópia na nuvem</button></div></article></section>
+      <section class="card sync-setup-card"><h3>Primeira configuração</h3><ol><li>Crie um projeto Supabase e habilite login por e-mail.</li><li>Execute o arquivo <code>supabase-setup.sql</code> que acompanha esta versão.</li><li>Copie a URL do projeto e a chave pública anon/publishable para a tela acima.</li><li>Crie a conta e entre com o mesmo e-mail e senha no computador e no celular.</li></ol></section>`;
+  }
+
+  const renderSettingsV52Base = renderSettingsV51;
+  function renderSettingsV52(block) {
+    const base = renderSettingsV52Base(block);
+    const resetCard = `<article class="card reset-total-card"><div class="card-head"><h3>Reset total do sistema</h3><span class="pill danger">Irreversível</span></div><p class="muted">Baixa um backup automático e apaga leituras, históricos, recibos, fotos locais, regras, condomínios e configurações deste navegador.</p><div class="warning-box">Use apenas para reiniciar completamente o sistema neste aparelho.</div><div class="form-foot"><button class="danger" data-reset-total type="button">Resetar todos os dados</button></div></article>`;
+    return base.replace('</section>', `</section>${resetCard}`);
+  }
+
+  function countResetV52() {
+    const blocks = state.blocks.length; const units = state.blocks.reduce((sum, block) => sum + block.units.length, 0); const history = state.blocks.reduce((sum, block) => sum + block.history.length, 0); const receipts = state.blocks.reduce((sum, block) => sum + block.serviceReceipts.length, 0); const photos = state.blocks.reduce((sum, block) => sum + block.units.filter(unit => unit.photo || unit.photoKey).length, 0);
+    return { blocks, units, history, receipts, photos };
+  }
+  function requestTotalResetV52() {
+    const c = countResetV52(); const cloud = window.KR2Sync?.connected?.();
+    openModal(`<h2>Reset total do sistema</h2><p>Esta ação apaga os dados deste navegador após baixar um backup automático.</p><div class="danger-zone"><strong>Serão apagados neste aparelho:</strong><ul><li>${c.blocks} condomínio(s)</li><li>${c.units} unidade(s)</li><li>${c.history} histórico(s)</li><li>${c.receipts} recibo(s)</li><li>${c.photos} foto(s) de hidrômetro</li></ul></div><div class="field full"><label>Digite exatamente <strong>RESETAR TODOS OS DADOS</strong></label><input name="confirmation" autocomplete="off" required></div>${cloud ? '<div class="field full"><label><input type="checkbox" name="deleteCloud"> Também apagar minha cópia na nuvem</label><small class="muted">Essa opção apaga o backup remoto da conta conectada.</small></div>' : ''}`, 'Executar reset total', data => {
+      if (String(data.confirmation || '').trim() !== 'RESETAR TODOS OS DADOS') return toast('A frase de confirmação não confere. Nenhum dado foi apagado.', true);
+      performTotalResetV52(data.deleteCloud === 'on');
+    });
+  }
+  function deleteIndexedDbV52(name) { return new Promise(resolve => { if (!('indexedDB' in window)) return resolve(); const request = indexedDB.deleteDatabase(name); request.onsuccess = request.onerror = request.onblocked = () => resolve(); }); }
+  async function performTotalResetV52(deleteCloud) {
+    const cloud = window.KR2Sync;
+    exportData();
+    try { if (deleteCloud && cloud?.connected?.()) await cloud.deleteRemote(); } catch (error) { toast(`Backup baixado, mas a cópia na nuvem não foi apagada: ${error.message}`, true); return; }
+    suspendCloudSyncV52 = true;
+    await deleteIndexedDbV52('kr2melo-v5-photos');
+    localStorage.removeItem(KEY); localStorage.removeItem(V51_SNAPSHOT_KEY); localStorage.removeItem('kr2melo.sync.supabase.v1');
+    selectedReadingIds.clear(); closingRefreshAt = ''; annualYearV52 = '';
+    state = normalizeState({ blocks: [] });
+    suspendCloudSyncV52 = false;
+    location.hash = 'dashboard'; render(); toast('Reset total concluído. O backup foi baixado antes da limpeza.');
+  }
+  async function saveSyncConfigV52(form) {
+    const data = Object.fromEntries(new FormData(form));
+    window.KR2Sync?.setConfig?.({ url: data.url, anonKey: data.anonKey, autoSync: data.autoSync === 'on' });
+    toast('Conexão salva neste dispositivo'); render();
+  }
+  function getSyncFormV52() { return $('#syncConfigForm'); }
+  async function syncLoginV52(signUp = false) {
+    const form = getSyncFormV52(); if (!form) return; const data = Object.fromEntries(new FormData(form));
+    window.KR2Sync?.setConfig?.({ url: data.url, anonKey: data.anonKey, autoSync: data.autoSync === 'on' });
+    try {
+      const result = signUp ? await window.KR2Sync.signUp(data.email, data.password) : await window.KR2Sync.signIn(data.email, data.password);
+      if (signUp && result?.confirmationRequired) { toast('Conta criada. Confirme o e-mail e depois use “Entrar”.'); render(); return; }
+      toast(signUp ? 'Conta criada e conectada' : 'Conta conectada'); render();
+    } catch (error) { toast(error.message || 'Não foi possível entrar.', true); }
+  }
+  async function uploadCloudV52() { try { await window.KR2Sync.pushState(deepClone(state)); toast('Dados enviados para a nuvem'); render(); } catch (error) { toast(error.message || 'Falha no envio.', true); } }
+  async function downloadCloudV52() {
+    try {
+      const remote = await window.KR2Sync.pullState();
+      if (!remote || !Array.isArray(remote.blocks)) { toast('Nenhuma cópia encontrada para esta conta.'); render(); return; }
+      if (state.blocks.length && !confirm('Baixar a nuvem substituirá os dados locais deste aparelho. Você já possui backup local?')) { render(); return; }
+      suspendCloudSyncV52 = true; state = normalizeState(remote); state.blocks.forEach(ensureV51); localStorage.setItem(KEY, JSON.stringify(state)); suspendCloudSyncV52 = false; selectedReadingIds.clear(); toast('Dados baixados da nuvem'); render();
+    } catch (error) { toast(error.message || 'Falha ao baixar dados.', true); }
+  }
+  async function bootstrapCloudV52() {
+    if (!window.KR2Sync?.connected?.() || state.blocks.length) return;
+    try {
+      const remote = await window.KR2Sync.pullState();
+      if (remote && Array.isArray(remote.blocks) && remote.blocks.length) { suspendCloudSyncV52 = true; state = normalizeState(remote); state.blocks.forEach(ensureV51); localStorage.setItem(KEY, JSON.stringify(state)); suspendCloudSyncV52 = false; render(); toast('Dados sincronizados da nuvem'); }
+    } catch { /* o uso offline continua disponível */ }
+  }
+
+  const renderV52Base = render;
+  render = function() {
+    state.blocks.forEach(ensureV51);
+    refreshPicker();
+    const route = currentRoute(), meta = routes[route];
+    $('#pageEyebrow').textContent = meta[0]; $('#pageTitle').textContent = meta[1];
+    $$('[data-route]').forEach(link => link.classList.toggle('active', link.dataset.route === route));
+    const app = $('#app'), block = selected();
+    if (!block && !['ajuda','sincronizacao'].includes(route)) { app.innerHTML = emptyState(); app.focus({ preventScroll: true }); return; }
+    const pages = { dashboard: () => renderDashboard(block), leituras: () => renderReadings(block), regras: () => renderRules(block), fechamento: () => renderClosing(block), historico: () => renderHistoryV51(block), relatorios: () => renderReports(block), financeiro: () => renderFinanceV51(block), recibos: () => renderReceipts(block), boletos: () => renderBills(block), configuracoes: () => renderSettingsV52(block), unidades: () => renderUnitsV51(block), excecoes: () => renderExceptionsV51(block), ajuda: () => renderHelpV51(), anual: () => renderAnnualDashboardV52(block), sincronizacao: () => renderSyncV52() };
+    app.innerHTML = pages[route](); app.focus({ preventScroll: true });
+  };
+
+  const handleClickV52Base = handleClick;
+  handleClick = async function(event) {
+    const target = event.target;
+    if (target.closest('[data-reset-total]')) { requestTotalResetV52(); return; }
+    if (target.closest('[data-print-annual]')) { printAnnualV52(); return; }
+    if (target.closest('[data-export-annual]')) { exportAnnualCsvV52(); return; }
+    if (target.closest('[data-sync-signup]')) { await syncLoginV52(true); return; }
+    if (target.closest('[data-sync-login]')) { await syncLoginV52(false); return; }
+    if (target.closest('[data-sync-push]')) { await uploadCloudV52(); return; }
+    if (target.closest('[data-sync-pull]')) { await downloadCloudV52(); return; }
+    if (target.closest('[data-sync-signout]')) { window.KR2Sync?.signOut?.(); toast('Sessão removida deste dispositivo'); render(); return; }
+    if (target.closest('[data-sync-delete-cloud]')) { if (!confirm('Apagar a cópia na nuvem? Os dados locais não serão apagados.')) return; try { await window.KR2Sync.deleteRemote(); toast('Cópia na nuvem apagada'); render(); } catch (error) { toast(error.message || 'Não foi possível apagar a cópia.', true); } return; }
+    return handleClickV52Base(event);
+  };
+  const handleChangeV52Base = handleChange;
+  handleChange = function(event) {
+    if (event.target.matches('[data-annual-year]')) { annualYearV52 = event.target.value; render(); return; }
+    return handleChangeV52Base(event);
+  };
+  const handleSubmitV52Base = handleSubmit;
+  handleSubmit = async function(event) {
+    if (event.target.id === 'syncConfigForm') { event.preventDefault(); await saveSyncConfigV52(event.target); return; }
+    return handleSubmitV52Base(event);
+  };
+
+  setTimeout(bootstrapCloudV52, 250);
 
   maybeWeeklySnapshot();
 
