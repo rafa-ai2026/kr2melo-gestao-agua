@@ -1,4 +1,4 @@
-const CACHE_NAME = 'kr2melo-v5.1.7';
+const CACHE_NAME = 'kr2melo-v5.1.8';
 const CORE = ['./', 'index.html', 'mobile.html', 'styles.css', 'mobile.css', 'app.js', 'mobile.js', 'manifest.webmanifest', 'assets/logo.png', 'assets/assinatura.png'];
 const FRESH_FILES = /(?:\.html$|\.js$|\.css$|manifest\.webmanifest$)/i;
 

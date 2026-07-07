@@ -1,12 +1,12 @@
-# KR²MELO Gestão de Água v5.1.7
+# KR²MELO v5.1.8 — Cobrança de condomínio mais clara
 
-## Acesso aos módulos no celular
+Esta atualização remove a linha **“CONDOMÍNIO BRUTO”** das vias impressas dos boletos.
 
-Esta atualização corrige o acesso aos módulos **Ajuda** e **Modo leiturista** em telas de celular.
+O boleto passa a exibir apenas **“CONDOMÍNIO A PAGAR”**, evitando a impressão de que o mesmo condomínio deve ser pago duas vezes.
 
-- A barra lateral agora é rolável no celular, portanto todos os módulos ficam acessíveis mesmo em telas baixas.
-- O painel administrativo ganhou um atalho fixo no rodapé com **Ajuda** e **Leiturista**.
-- O Modo leiturista ganhou atalhos visíveis para **Ajuda** e **Admin**.
-- O cache do PWA foi atualizado para `kr2melo-v5.1.7`.
+- O cálculo interno de descontos e isenções permanece preservado.
+- Relatórios administrativos continuam detalhando valores brutos e descontos para conferência do síndico.
+- O layout, a grade de corte e as demais linhas do boleto foram mantidos.
+- O cache do PWA foi atualizado para a versão 5.1.8.
 
-Após publicar ou substituir os arquivos, feche as abas antigas do sistema e atualize o celular. Em caso de PWA instalado, encerre-o e abra novamente.
+Para instalar, substitua todos os arquivos da versão anterior e recarregue o site com Ctrl + F5.

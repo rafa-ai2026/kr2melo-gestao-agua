@@ -1,0 +1,1 @@
+KR²MELO v5.1.8 — Boleto simplificado: removida a linha CONDOMÍNIO BRUTO da impressão.
