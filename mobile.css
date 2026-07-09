@@ -12,16 +12,25 @@ main{padding:14px;max-width:620px;margin:auto}
 .hero h1,.card h2,.card h3{margin:0 0 8px}
 .muted{color:var(--muted)}
 input,select,button{width:100%;font:inherit;border-radius:12px}
-select,input{border:1px solid var(--line);padding:13px;background:#fff}
+select,input,textarea{border:1px solid var(--line);padding:13px;background:#fff}
+textarea{width:100%;font:inherit;border-radius:12px;resize:vertical;min-height:76px}
 button{border:0;padding:15px 16px;font-weight:900;cursor:pointer}
 .primary{background:var(--red);color:#fff}
 .secondary{background:#fff;border:1px solid var(--line)}
 .row{display:flex;gap:9px}
 .row>*{flex:1}
 .compact-card{padding:12px 14px}
+.route-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:12px}
+.route-summary div{background:#fafafa;border:1px solid var(--line);border-radius:12px;padding:10px 6px;text-align:center}
+.route-summary small{display:block;color:var(--muted);font-size:10px;font-weight:900;text-transform:uppercase}
+.route-summary strong{display:block;margin-top:3px;font-size:24px}
+.mobile-tools{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;padding:12px}
+.mobile-tools input{min-width:0}
+.pending-button{white-space:nowrap;padding-left:14px;padding-right:14px}
 .unit-head{display:flex;justify-content:space-between;align-items:center;gap:12px}
 .unit-number{font-size:54px;font-weight:950;letter-spacing:.03em}
 .resident-line{margin-top:-4px}
+.saved-line{margin:-4px 0 10px;color:var(--ok);font-size:12px;font-weight:800}
 .pill{display:inline-block;border-radius:999px;padding:6px 10px;font-size:12px;font-weight:900;background:#eee}
 .pill.ok{background:#e5f8ef;color:#08724e}
 .pill.warn{background:#fff3d8;color:#8a5b00}
@@ -33,13 +42,18 @@ button{border:0;padding:15px 16px;font-weight:900;cursor:pointer}
 .read-kpis strong{display:block;margin-top:4px;font-size:23px}
 .reading-big label{font-size:12px;color:var(--muted);font-weight:800}
 .reading-big input{font-size:36px;font-weight:900;text-align:center;margin-top:6px}
+.note-field{display:block;margin-top:10px;color:var(--muted);font-size:12px;font-weight:900}
+.note-field textarea{display:block;margin-top:6px;color:var(--ink);font-size:16px;font-weight:600;line-height:1.35}
 .save-reading{margin-top:12px}
-.no-access{margin-top:9px}
+.no-access-row{display:grid;grid-template-columns:1fr 104px;gap:8px;margin-top:9px}
+.no-access{padding-left:10px;padding-right:10px}
+.reopen{margin-top:9px}
 .nav-row{margin-top:9px}
 .apt-list{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
 .apt-list button{padding:12px 6px;background:#fff;border:1px solid var(--line)}
 .apt-list button.done{background:#e9f8f1;border-color:#b7e6cf;color:#08724e}
 .apt-list button.active{outline:3px solid #ff110033;border-color:var(--red)}
+.empty-list{grid-column:1/-1;text-align:center;margin:10px 0}
 .alert{border-left:4px solid var(--warn);background:#fff8e8;padding:12px;border-radius:12px;font-size:13px;line-height:1.45}
 .alert.danger{border-left-color:var(--red);background:#fff0ef;color:#7b150d}
 .alert.ok{border-left-color:var(--ok)}
@@ -47,4 +61,5 @@ button{border:0;padding:15px 16px;font-weight:900;cursor:pointer}
 .toast.show{transform:none;opacity:1}
 .toast.error{background:var(--red-dark)}
 @media(min-width:520px){.apt-list{grid-template-columns:repeat(6,1fr)}}
+@media(max-width:430px){.route-summary{grid-template-columns:repeat(2,1fr)}.mobile-tools{grid-template-columns:1fr}.pending-button{white-space:normal}.no-access-row{grid-template-columns:1fr}.apt-list{grid-template-columns:repeat(3,1fr)}}
 @media(max-width:390px){.m-top{gap:8px;padding:10px 11px}.m-top img{width:35px;height:42px}.m-top strong{font-size:13px}.m-top small{font-size:10px}.unit-number{font-size:48px}.reading-big input{font-size:32px}}

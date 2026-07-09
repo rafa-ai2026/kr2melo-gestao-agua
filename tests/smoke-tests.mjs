@@ -10,9 +10,9 @@ const manifest = readFileSync(new URL('../manifest.webmanifest', import.meta.url
 const sw = readFileSync(new URL('../sw.js', import.meta.url), 'utf8');
 const css = readFileSync(new URL('../styles.css', import.meta.url), 'utf8');
 
-assert.match(app, /const APP_VERSION = '5\.3\.5'/, 'APP_VERSION deve estar em v5.3.5');
+assert.match(app, /const APP_VERSION = '5\.3\.6'/, 'APP_VERSION deve estar em v5.3.6');
 for (const file of [html, mobile, manifest, sw]) {
-  assert.match(file, /5\.3\.5/, 'todos os arquivos publicados devem carregar a versao nova');
+  assert.match(file, /5\.3\.6/, 'todos os arquivos publicados devem carregar a versao nova');
 }
 
 assert.match(app, /billingNote_/, 'boletos devem salvar observacao individual por unidade');
@@ -44,5 +44,11 @@ assert.match(mobile, /Leitura in loco/, 'mobile deve ser dedicado a leitura in l
 assert.doesNotMatch(mobile, /syncMobile|photoBtn|gpsBtn|exportMobile/, 'mobile simplificado nao deve mostrar sincronizacao, fotos, GPS ou backup');
 assert.match(mobileJs, /event\.key === 'Enter'/, 'mobile deve salvar com Enter');
 assert.match(mobileJs, /markNoAccess/, 'mobile deve permitir marcar sem acesso');
+assert.match(mobileJs, /id="aptSearch"/, 'mobile deve ter busca rapida de apartamento');
+assert.match(mobileJs, /id="mobileNote"/, 'mobile deve permitir observacao em campo');
+assert.match(mobileJs, /id="routeSummary"/, 'mobile deve mostrar resumo da rota');
+assert.match(mobileJs, /jumpPending/, 'mobile deve pular para proximo pendente');
+assert.match(mobileJs, /reopenReading/, 'mobile deve permitir reabrir leitura salva');
+assert.match(mobileJs, /id="noAccessReason"/, 'mobile deve registrar motivo do sem acesso');
 
-console.log('Smoke tests KR2MELO v5.3.5: OK');
+console.log('Smoke tests KR2MELO v5.3.6: OK');

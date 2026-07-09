@@ -1,4 +1,4 @@
-# Checklist de teste - KR2MELO v5.3.5
+# Checklist de teste - KR2MELO v5.3.6
 
 ## Boletos
 
@@ -48,4 +48,4 @@
 
 ## Versao
 
-- Conferir `index.html`, `mobile.html`, manifesto e cache mostrando `v5.3.5`.
+- Conferir `index.html`, `mobile.html`, manifesto e cache mostrando `v5.3.6`.

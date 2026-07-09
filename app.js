@@ -2,7 +2,7 @@
   'use strict';
 
   const KEY = 'kr2melo.hidrometro.v1';
-  const APP_VERSION = '5.3.5';
+  const APP_VERSION = '5.3.6';
   const DEFAULT_TARIFF = { minimum: 64.6, tier1: 8.94, tier2: 13.82 };
   const money = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
   const monthFmt = new Intl.DateTimeFormat('pt-BR', { month: 'long', year: 'numeric' });
@@ -1808,7 +1808,7 @@ Esta ação remove os apartamentos da competência atual. O histórico já fecha
   uploadCloudV52 = uploadCloudV53;
   downloadCloudV52 = downloadCloudV53;
 
-  // ===================== KR2MELO v5.3.5 =====================
+  // ===================== KR2MELO v5.3.6 =====================
   delete routes.financeiro;
 
   function extraChargeItems(unit) {
