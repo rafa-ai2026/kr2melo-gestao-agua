@@ -2,7 +2,7 @@
   'use strict';
 
   const KEY = 'kr2melo.hidrometro.v1';
-  const APP_VERSION = '5.3.4';
+  const APP_VERSION = '5.3.5';
   const DEFAULT_TARIFF = { minimum: 64.6, tier1: 8.94, tier2: 13.82 };
   const money = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
   const monthFmt = new Intl.DateTimeFormat('pt-BR', { month: 'long', year: 'numeric' });
@@ -148,6 +148,10 @@
       photo: String(u.photo || ''),
       extraChargeLabel: String(u.extraChargeLabel || 'VALOR ADICIONAL'),
       extraCharge: Math.max(0, n(u.extraCharge)),
+      extraCharges: Array.isArray(u.extraCharges) ? u.extraCharges.map(item => ({
+        label: String(item?.label || 'VALOR ADICIONAL'),
+        value: Math.max(0, n(item?.value))
+      })).filter(item => item.label || item.value) : [],
       billingFineLabel: String(u.billingFineLabel || 'MULTAS / OUTROS'),
       billingFine: Math.max(0, n(u.billingFine)),
       condoRule: normalizeRule(migratedRule),
@@ -287,7 +291,8 @@
     }
     const condo = Math.max(0, grossCondo - condoDiscount);
     const service = billing.chargeService !== false && String(billing.serviceLabel || '').trim() ? Math.max(0, n(billing.serviceFee)) : 0;
-    const extraCharge = Math.max(0, n(options.extraCharge ?? unit.extraCharge));
+    const extraList = Array.isArray(unit.extraCharges) ? unit.extraCharges : [];
+    const extraCharge = extraList.reduce((sum, item) => sum + Math.max(0, n(item?.value)), Math.max(0, n(options.extraCharge ?? unit.extraCharge)));
     const fine = Math.max(0, n(options.fine ?? unit.billingFine));
     return { water, grossCondo, condoDiscount, condo, service, extraCharge, fine, total: water + condo + service + extraCharge + fine, rule };
   }
@@ -1802,6 +1807,148 @@ Esta ação remove os apartamentos da competência atual. O histórico já fecha
   }
   uploadCloudV52 = uploadCloudV53;
   downloadCloudV52 = downloadCloudV53;
+
+  // ===================== KR2MELO v5.3.5 =====================
+  delete routes.financeiro;
+
+  function extraChargeItems(unit) {
+    const items = Array.isArray(unit.extraCharges) ? unit.extraCharges.map(item => ({
+      label: String(item?.label || '').trim() || 'VALOR ADICIONAL',
+      value: Math.max(0, n(item?.value))
+    })).filter(item => item.value > 0 || item.label !== 'VALOR ADICIONAL') : [];
+    if (n(unit.extraCharge) > 0) items.unshift({ label: String(unit.extraChargeLabel || 'VALOR ADICIONAL'), value: Math.max(0, n(unit.extraCharge)) });
+    return items;
+  }
+  function extraChargesText(unit) {
+    return extraChargeItems(unit).map(item => `${item.label}; ${item.value.toFixed(2).replace('.', ',')}`).join('\n');
+  }
+  function parseExtraCharges(text) {
+    return String(text || '').split(/\r?\n/).map(line => {
+      const parts = line.split(/[;|]/);
+      const valueText = parts.length > 1 ? parts.pop() : line.replace(/[^\d,.-]/g, '');
+      const label = (parts.join(';').trim() || 'VALOR ADICIONAL').slice(0, 60);
+      const value = Math.max(0, Number(String(valueText).replace(/[^\d,.-]/g, '').replace(',', '.')) || 0);
+      return { label, value };
+    }).filter(item => item.value > 0);
+  }
+  function billGroupSize(block) {
+    return Math.min(64, Math.max(2, n(block.billing?.groupSize) || 16));
+  }
+  function coverBackOnly(block, units, index) {
+    return `<section class="cover-sheet cover-sheet-v531 cover-back-only"><article class="cover-half cover-back cover-back-inverted"><header><img src="assets/logo.png" alt="KR²MELO"><div><p class="eyebrow">CONTRACAPA</p><h1>KR²MELO</h1><p>${esc(block.name)} · ${monthLabel(block.month)}</p></div></header><div class="provider-services"><span>Leitura mensal dos hidrômetros</span><span>Cálculo individual de consumo</span><span>Rateio de água</span><span>Boletos e recibos</span></div><footer>Prestador responsável pelo serviço de leitura</footer></article></section>`;
+  }
+  function billPrintContent(block, mode = 'complete') {
+    const groups = chunk(block.units, billGroupSize(block));
+    return groups.map((units, index) => {
+      const title = `<div class="bill-group-title no-print">Bloco ${blockLetter(index)} · ${units.length} apartamento(s)</div>`;
+      if (mode === 'cover') return title + coverSheet(block, units, index);
+      if (mode === 'back') return title + coverBackOnly(block, units, index);
+      if (mode === 'bills') return title + billPages(block, units, index);
+      return title + coverSheet(block, units, index) + billPages(block, units, index);
+    }).join('');
+  }
+  function printBillsPart(mode) {
+    const block = selected(); if (!block) return;
+    const titles = { complete: 'Bloco completo de boletos', cover: 'Capas dos boletos', bills: 'Boletos sem capas', back: 'Contracapas dos boletos' };
+    printHtml(titles[mode] || 'Boletos KR²MELO', billPrintContent(block, mode));
+  }
+  function printCheckPanel() {
+    const block = selected(); if (!block) return;
+    const cover = $('.cover-sheet'), lastCoverField = $('.cover-simple-kv span:last-child');
+    let clearance = 'Prévia disponível após abrir Boletos.';
+    if (cover && lastCoverField) {
+      const coverBox = cover.getBoundingClientRect(), fieldBox = lastCoverField.getBoundingClientRect();
+      clearance = `${Math.round((coverBox.top + coverBox.height / 2) - fieldBox.bottom)} px de folga antes da linha central`;
+    }
+    openModal(`<h2>Conferir impressão</h2><p>Use esta conferência antes de imprimir e cortar os blocos.</p><div class="notice-list"><div class="info-box"><strong>Capa frontal:</strong> ${esc(clearance)}</div><div class="info-box"><strong>Capas:</strong> ${$('.cover-sheet') ? 'geradas' : 'não encontradas'}</div><div class="info-box"><strong>Folhas de boletos:</strong> ${$$('.bill-page-with-cuts').length}</div><div class="info-box"><strong>Fichas técnicas:</strong> ${$$('.block-summary-page').length ? 'ainda existem na prévia' : 'não serão impressas no conjunto'}</div></div><div class="button-row"><button class="secondary" type="button" data-print-bill-part="cover">Capa</button><button class="secondary" type="button" data-print-bill-part="bills">Boletos</button><button class="secondary" type="button" data-print-bill-part="back">Contracapa</button></div>`, 'Fechar');
+  }
+
+  renderRules = function(block) {
+    const totals = chargeTotals(block);
+    const exempt = block.units.filter(unit => ruleActive(unit.condoRule, block.month) && unit.condoRule.mode === 'isento').length;
+    const discounted = block.units.filter(unit => ruleActive(unit.condoRule, block.month) && unit.condoRule.mode.startsWith('desconto')).length;
+    return `<section class="hero"><div><p class="eyebrow">REGRAS POR APARTAMENTO</p><h2>Isenções, descontos e lançamentos individuais</h2><p>Os descontos afetam somente o valor do condomínio; a água permanece calculada normalmente.</p></div><div><button class="secondary" data-go="boletos">Conferir boletos →</button></div></section><div class="rule-summary"><span class="pill ok">${exempt} isenção(ões) ativa(s)</span><span class="pill info">${discounted} desconto(s) ativo(s)</span><span class="pill warn">${money.format(totals.discount)} abatido no mês</span><span class="pill info">${money.format(totals.extraCharge || 0)} adicionais</span></div><div class="info-box"><strong>Adicionais:</strong> escreva um por linha no formato <b>Descrição; valor</b>. Ex.: 2ª via; 10,00</div><div class="table-wrap"><table class="rule-table"><thead><tr><th>Apto</th><th>Responsável</th><th>Função</th><th>Regra</th><th>Valor</th><th>Motivo / benefício</th><th>Início</th><th>Fim</th><th>Autorizado por</th><th>Valores adicionais</th><th>Multas / outros</th><th>Valor</th><th>Resultado</th></tr></thead><tbody>${block.units.map(unit => { const r = normalizeRule(unit.condoRule), c = unitCharges(unit, block); return `<tr data-rule-row="${unit.id}"><td><strong>${esc(unit.number)}</strong></td><td>${esc(unit.resident || '—')}</td><td><select data-rule-field="role">${Object.entries(roleLabels).map(([value, label]) => `<option value="${value}" ${r.role === value ? 'selected' : ''}>${label}</option>`).join('')}</select></td><td><select data-rule-field="mode">${Object.entries(ruleLabels).map(([value, label]) => `<option value="${value}" ${r.mode === value ? 'selected' : ''}>${label}</option>`).join('')}</select></td><td><input data-rule-field="value" type="number" min="0" step="0.01" value="${r.value || ''}" placeholder="R$ ou %"></td><td><input data-rule-field="reason" value="${esc(r.reason)}" placeholder="Ex.: Internet das câmeras"></td><td><input data-rule-field="startsAt" type="month" value="${esc(r.startsAt)}"></td><td><input data-rule-field="endsAt" type="month" value="${esc(r.endsAt)}"></td><td><input data-rule-field="authorizedBy" value="${esc(r.authorizedBy)}" placeholder="Síndico / ata"></td><td><textarea class="extra-charge-editor" data-rule-field="extraChargesText" rows="3" placeholder="Descrição; valor">${esc(extraChargesText(unit))}</textarea></td><td><input data-rule-field="billingFineLabel" value="${esc(unit.billingFineLabel)}"></td><td><input data-rule-field="billingFine" type="number" min="0" step="0.01" value="${unit.billingFine || ''}"></td><td><strong>${money.format(c.total)}</strong>${c.extraCharge ? `<br><small>Adicionais: ${money.format(c.extraCharge)}</small>` : ''}${c.condoDiscount ? `<br><small class="adjustment">− ${money.format(c.condoDiscount)}</small>` : ''}</td></tr>`; }).join('')}</tbody></table></div>`;
+  };
+
+  const unitChargesV535Base = unitCharges;
+  unitCharges = function(unit, block, options = {}) {
+    const c = unitChargesV535Base(unit, block, options);
+    const listTotal = extraChargeItems(unit).reduce((sum, item) => sum + n(item.value), 0);
+    if (listTotal !== c.extraCharge) {
+      c.total += listTotal - c.extraCharge;
+      c.extraCharge = listTotal;
+    }
+    return c;
+  };
+
+  billCopy = function(unit, block, copy) {
+    const c = unitCharges(unit, block); const billing = block.billing; const managerCopy = copy === 'SÍNDICO';
+    const ruleText = adjustmentText(c);
+    const discountLine = c.condoDiscount ? `<div class="bill-charge-line bill-adjustment"><span>${esc(ruleText || 'Desconto de condomínio')}</span><b>− ${money.format(c.condoDiscount)}</b></div>` : '';
+    const serviceLine = c.service ? `<div class="bill-charge-line"><span>${esc(billing.serviceLabel)}</span><b>${money.format(c.service)}</b></div>` : '';
+    const extraLine = extraChargeItems(unit).map(item => `<div class="bill-charge-line"><span>${esc(item.label)}</span><b>${money.format(item.value)}</b></div>`).join('');
+    const notes = billingNoteLines(unit, billing);
+    const footer = managerCopy ? `<footer class="bill-signature"><div></div><small>RECEBIDO POR / ASSINATURA DO MORADOR</small></footer>` : `<section class="bill-notes"><strong>OBS.</strong><div>${noteParagraphs(notes)}</div></section>`;
+    return `<article class="bill-copy ${managerCopy ? 'bill-copy-manager' : 'bill-copy-resident'}"><div class="bill-copy-tag">VIA DO ${copy}</div><header class="bill-head"><strong>${esc(unit.number)}</strong><b>Vencimento · ${dateBr(billing.dueDate)}</b></header><div class="bill-party"><span>RESPONSÁVEL</span><strong>${esc(unit.resident || '—')}</strong><small>REFERÊNCIA · ${monthLabel(block.month).toUpperCase().replace(' DE ', ' / ')}</small></div><section class="bill-reading-grid"><div><span>LEITURA ANTERIOR</span><small>${dateBr(billing.previousReadDate)}</small><b>${fmtInt(unit.previous)}</b></div><div><span>LEITURA ATUAL</span><small>${dateBr(billing.currentReadDate)}</small><b>${unit.current === '' ? '—' : fmtInt(unit.current)}</b></div><div><span>CONSUMO</span><small>METROS CÚBICOS</small><b>${fmtM3(unit.m3)} m³</b></div></section><section class="bill-charge-list"><div class="bill-charge-line"><span>ÁGUA</span><b>${money.format(c.water)}</b></div>${discountLine}<div class="bill-charge-line bill-condo-net"><span>CONDOMÍNIO A PAGAR</span><b>${money.format(c.condo)}</b></div>${serviceLine}${extraLine}<div class="bill-charge-line"><span>${esc(unit.billingFineLabel || 'MULTAS / OUTROS')}</span><b>${money.format(c.fine)}</b></div></section><div class="bill-total"><strong>TOTAL</strong><span>VALOR A PAGAR</span><b>${money.format(c.total)}</b></div>${footer}</article>`;
+  };
+
+  renderBills = function(block) {
+    ensureV53(block);
+    const content = billPrintContent(block, 'complete');
+    const b = block.billing;
+    const unitNotes = `<section class="card billing-unit-notes"><div class="card-head"><h3>Observações individuais nos boletos</h3><span class="muted">Aparecem somente no boleto do respectivo apartamento.</span></div><div class="table-wrap"><table><thead><tr><th>Apto</th><th>Responsável</th><th>Observação individual</th></tr></thead><tbody>${block.units.map(unit => `<tr><td><strong>${esc(unit.number)}</strong></td><td>${esc(unit.resident || '—')}</td><td><textarea name="billingNote_${esc(unit.id)}" rows="2" placeholder="Ex.: Acordo, aviso, orientação específica">${esc(unit.billingNote || '')}</textarea></td></tr>`).join('')}</tbody></table></div></section>`;
+    return `<section class="billing-controls no-print"><div class="section-actions"><div><h2>Boletos mensais</h2><span class="muted">Monte o bloco, confira a impressão e imprima por partes se preferir.</span></div><div class="button-row"><button class="secondary" data-print-check type="button">Conferir impressão</button><button class="primary" data-print-bill-part="complete" type="button">Imprimir bloco completo</button></div></div><section class="card bill-builder"><div class="card-head"><h3>Gerar bloco de boletos</h3><span class="muted">Útil para impressão manual</span></div><div class="button-row"><button class="secondary" data-print-bill-part="cover" type="button">Só capa</button><button class="secondary" data-print-bill-part="bills" type="button">Só boletos</button><button class="secondary" data-print-bill-part="back" type="button">Só contracapa</button></div></section><form class="card form-grid" id="billingForm"><div class="field"><label>Vencimento</label><input name="dueDate" type="date" value="${esc(b.dueDate)}" required></div><div class="field"><label>Conta global de água (R$)</label><input name="waterBill" type="number" min="0" step="0.01" value="${b.waterBill || ''}"></div><div class="field"><label>Data da leitura anterior</label><input name="previousReadDate" type="date" value="${esc(b.previousReadDate)}"></div><div class="field"><label>Data da leitura atual</label><input name="currentReadDate" type="date" value="${esc(b.currentReadDate)}"></div><div class="field"><label>Próxima leitura</label><input name="nextReadDate" type="date" value="${esc(b.nextReadDate)}"></div><div class="field"><label>Apartamentos por bloco</label><input name="groupSize" type="number" min="2" max="64" step="1" value="${billGroupSize(block)}"></div><div class="field"><label>Condomínio bruto (R$)</label><input name="condoFee" type="number" min="0" step="0.01" value="${b.condoFee}"></div><div class="field"><label>Serviço de leitura (R$)</label><input name="serviceFee" type="number" min="0" step="0.01" value="${b.serviceFee}"></div><div class="field"><label>Descrição do serviço</label><input name="serviceLabel" value="${esc(b.serviceLabel)}"></div><div class="field full"><label><input name="chargeService" type="checkbox" ${b.chargeService !== false ? 'checked' : ''}> Cobrar serviço de leitura neste mês</label></div><div class="field full"><label>Observações gerais — uma por linha</label><textarea name="notes" rows="5" placeholder="Cada linha aparece no boleto. Linhas em branco são ignoradas.">${esc(b.notes)}</textarea></div><div class="field full">${unitNotes}</div><div class="form-foot"><button class="primary" type="submit">Salvar e atualizar boletos</button></div></form></section><div class="billing-preview">${content || '<div class="card empty">Cadastre apartamentos antes de gerar boletos.</div>'}</div>`;
+  };
+
+  const saveBillingV535Base = saveBilling;
+  saveBilling = function(form) {
+    const block = selected(); if (!block) return;
+    const data = Object.fromEntries(new FormData(form));
+    block.billing = normalizeBilling({ ...block.billing, ...data, groupSize: Math.min(64, Math.max(2, n(data.groupSize) || 16)), chargeService: data.chargeService === 'on', waterBill: n(data.waterBill), serviceFee: n(data.serviceFee), condoFee: n(data.condoFee) }, block.month);
+    block.units.forEach(unit => { unit.billingNote = String(data[`billingNote_${unit.id}`] || ''); });
+    save('Configuração de boletos atualizada'); render();
+  };
+
+  function managerReportMarkup(block) {
+    const totals = chargeTotals(block);
+    const rows = block.units.map(unit => { const c = unitCharges(unit, block); return `<tr><td>${esc(unit.number)}</td><td>${esc(unit.resident || '—')}</td><td>${fmtM3(unit.m3)} m³</td><td>${money.format(c.water)}</td><td>${money.format(c.condo)}</td><td>${money.format(c.extraCharge)}</td><td>${money.format(c.fine)}</td><td><strong>${money.format(c.total)}</strong></td></tr>`; }).join('');
+    return `<section class="monthly-report manager-report" id="managerReportPrint"><header class="report-print-header"><div><p class="eyebrow">KR²MELO · RELATÓRIO DO SÍNDICO</p><h2>${esc(block.name)}</h2><p>Referência: <strong>${monthLabel(block.month)}</strong></p></div><div class="report-print-meta"><span>Unidades: <b>${block.units.length}</b></span><span>Emitido em: <b>${dateBr(today())}</b></span></div></header><section class="finance-summary report-finance-summary"><div><small>Água</small><strong>${money.format(totals.water)}</strong></div><div><small>Condomínio</small><strong>${money.format(totals.condo)}</strong></div><div><small>Descontos</small><strong>${money.format(totals.discount)}</strong></div><div><small>Adicionais</small><strong>${money.format(totals.extraCharge || 0)}</strong></div><div><small>Outros</small><strong>${money.format(totals.fine)}</strong></div><div><small>Total</small><strong>${money.format(totals.total)}</strong></div></section><div class="table-wrap report-table-wrap"><table class="monthly-report-table"><thead><tr><th>Apto</th><th>Responsável</th><th>Consumo</th><th>Água</th><th>Condomínio</th><th>Adicionais</th><th>Outros</th><th>Total</th></tr></thead><tbody>${rows}</tbody><tfoot><tr><td colspan="3">TOTAL</td><td>${money.format(totals.water)}</td><td>${money.format(totals.condo)}</td><td>${money.format(totals.extraCharge || 0)}</td><td>${money.format(totals.fine)}</td><td>${money.format(totals.total)}</td></tr></tfoot></table></div><footer class="report-print-footer">KR²MELO · Relatório do síndico</footer></section>`;
+  }
+  function printManagerReport() {
+    const block = selected(); if (!block) return;
+    printHtml('Relatório do síndico KR²MELO', managerReportMarkup(block));
+  }
+  const renderReportsV535Base = renderReports;
+  renderReports = function(block) {
+    return `<section class="section-actions no-print"><div><h2>Relatório do síndico</h2><span class="muted">Resumo limpo para conferência e entrega.</span></div><button class="primary" data-print-manager-report type="button">Imprimir relatório do síndico</button></section>${renderReportsV535Base(block)}`;
+  };
+
+  const executeMonthlyCloseV535Base = executeMonthlyClose;
+  executeMonthlyClose = function(block) {
+    if (block) exportData();
+    return executeMonthlyCloseV535Base(block);
+  };
+
+  const handleChangeV535Base = handleChange;
+  handleChange = function(event) {
+    const field = event.target.closest('[data-rule-field="extraChargesText"]');
+    if (field) {
+      const row = event.target.closest('[data-rule-row]'); const block = selected(); const unit = findUnit(block, row?.dataset.ruleRow); if (!unit) return;
+      unit.extraCharge = 0; unit.extraChargeLabel = 'VALOR ADICIONAL'; unit.extraCharges = parseExtraCharges(event.target.value);
+      save('Valores adicionais atualizados'); render(); return;
+    }
+    return handleChangeV535Base(event);
+  };
+
+  const handleClickV535Base = handleClick;
+  handleClick = async function(event) {
+    const target = event.target;
+    const part = target.closest('[data-print-bill-part]');
+    if (part) { printBillsPart(part.dataset.printBillPart || 'complete'); return; }
+    if (target.closest('[data-print-check]')) { printCheckPanel(); return; }
+    if (target.closest('[data-print-manager-report]')) { printManagerReport(); return; }
+    return handleClickV535Base(event);
+  };
 
   const renderV53Base = render;
   render = function() {

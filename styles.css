@@ -589,3 +589,7 @@
   content:none!important;
   display:none!important;
 }
+.extra-charge-editor{width:100%;min-width:180px;resize:vertical;border:1px solid var(--line);border-radius:8px;padding:8px;background:#fff;font:inherit}
+.bill-builder{margin-bottom:14px}
+.cover-back-only{grid-template-rows:1fr!important}
+.cover-back-only .cover-back{height:100%!important}

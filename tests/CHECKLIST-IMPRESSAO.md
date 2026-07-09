@@ -1,8 +1,10 @@
-# Checklist de teste - KR2MELO v5.3.4
+# Checklist de teste - KR2MELO v5.3.5
 
 ## Boletos
 
 - Abrir `index.html#boletos`.
+- Clicar em `Conferir impressão`.
+- Testar os botões de impressão: capa, boletos, contracapa e bloco completo.
 - Em `Regras por apartamento`, preencher um Valor adicional em um apartamento.
 - Conferir se o valor adicional aparece separado no boleto e soma no total.
 - Preencher observacoes gerais com 3 a 5 linhas, incluindo uma linha nova criada com Enter.
@@ -41,7 +43,9 @@
 - Conferir se a tela mostra somente a rotina de leitura in loco.
 - Conferir se nao aparecem botoes de foto, GPS, backup, ajuda, admin ou sincronizacao manual.
 - Registrar uma leitura, salvar e conferir se o sistema avanca para a proxima unidade pendente.
+- Conferir se Enter salva a leitura.
+- Conferir se o botao Sem acesso marca a unidade como feita.
 
 ## Versao
 
-- Conferir `index.html`, `mobile.html`, manifesto e cache mostrando `v5.3.4`.
+- Conferir `index.html`, `mobile.html`, manifesto e cache mostrando `v5.3.5`.

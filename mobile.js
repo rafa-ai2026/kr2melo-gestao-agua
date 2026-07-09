@@ -22,7 +22,7 @@
       if (message) toast(message);
       return true;
     } catch {
-      toast('Não foi possível salvar. Libere espaço no navegador.', true);
+      toast('Nao foi possivel salvar. Libere espaco no navegador.', true);
       return false;
     }
   }
@@ -41,7 +41,7 @@
   }
   function currentBlock() { return state.blocks.find(block => block.id === state.selected) || state.blocks[blockIndex] || state.blocks[0] || null; }
   function currentUnit() { return currentBlock()?.units?.[unitIndex] || null; }
-  function isDone(unit) { return unit && unit.current !== '' && unit.current !== null && unit.current !== undefined; }
+  function isDone(unit) { return unit && (unit.mobileDone || (unit.current !== '' && unit.current !== null && unit.current !== undefined)); }
   function doneCount(block) { return block.units.filter(isDone).length; }
   function initIndexes() {
     const selectedIndex = state.blocks.findIndex(block => block.id === state.selected);
@@ -52,10 +52,10 @@
   }
   function issueFor(unit, current) {
     const previous = n(unit.previous), diff = current - previous;
-    if (current < previous) return { level: 'danger', text: 'A leitura atual está menor que a anterior.' };
-    if (diff > 30) return { level: 'danger', text: 'Consumo acima de 30 m³. Confira antes de salvar.' };
-    if (diff > 20) return { level: 'warn', text: 'Consumo entre 21 e 30 m³. Confira o hidrômetro.' };
-    if (diff > 15) return { level: 'warn', text: 'Consumo acima de 15 m³.' };
+    if (current < previous) return { level: 'danger', text: 'A leitura atual esta menor que a anterior.' };
+    if (diff > 30) return { level: 'danger', text: 'Consumo acima de 30 m3. Confira antes de salvar.' };
+    if (diff > 20) return { level: 'warn', text: 'Consumo entre 21 e 30 m3. Confira o hidrometro.' };
+    if (diff > 15) return { level: 'warn', text: 'Consumo acima de 15 m3.' };
     return null;
   }
   function nextPendingIndex(block, start) {
@@ -67,7 +67,7 @@
   function render() {
     const app = $('#mobileApp');
     if (!state.blocks.length) {
-      app.innerHTML = `<section class="card hero"><h1>Nenhum condomínio disponível</h1><p>Cadastre o condomínio e as unidades no painel administrativo antes da leitura em campo.</p></section>`;
+      app.innerHTML = `<section class="card hero"><h1>Nenhum condominio disponivel</h1><p>Cadastre o condominio e as unidades no painel administrativo antes da leitura em campo.</p></section>`;
       return;
     }
     const block = currentBlock(); const unit = currentUnit();
@@ -77,10 +77,11 @@
     }
     const done = doneCount(block), percent = block.units.length ? Math.round(done / block.units.length * 100) : 0;
     const consumption = unit.current === '' ? 0 : Math.max(0, n(unit.current) - n(unit.previous));
-    app.innerHTML = `<section class="card hero"><p>Leitura in loco</p><h1>${esc(block.name)}</h1><p>${monthLabel(block.month)} · ${done}/${block.units.length} leituras</p><div class="progress"><i style="width:${percent}%"></i></div></section>
-      <section class="card compact-card"><label class="muted"><b>Condomínio</b></label><select id="blockPick">${state.blocks.map((item, index) => `<option value="${index}" ${item.id === block.id ? 'selected' : ''}>${esc(item.name)}</option>`).join('')}</select></section>
-      <section class="card reading-card"><div class="unit-head"><div><span class="muted">Apartamento</span><div class="unit-number">${esc(unit.number)}</div></div><span class="pill ${isDone(unit) ? 'ok' : 'warn'}">${isDone(unit) ? 'Salvo' : 'Pendente'}</span></div><p class="muted resident-line">${esc(unit.resident || 'Responsável não informado')}</p><div class="read-kpis"><div><small>Anterior</small><strong>${fmt(unit.previous)}</strong></div><div><small>Consumo</small><strong>${fmt(consumption)} m³</strong></div></div><div class="reading-big"><label>Leitura atual</label><input id="currentReading" inputmode="decimal" autocomplete="off" value="${unit.current === '' ? '' : esc(unit.current)}" placeholder="Digite a leitura"></div><div id="alertBox"></div><button class="primary save-reading" id="saveBtn">Salvar e próximo</button><div class="row nav-row"><button class="secondary" id="prevBtn">Anterior</button><button class="secondary" id="nextBtn">Próximo</button></div></section>
-      <section class="card apt-card"><h3>Apartamentos</h3><div class="apt-list">${block.units.map((item, index) => `<button data-jump="${index}" class="${index === unitIndex ? 'active' : ''} ${isDone(item) ? 'done' : ''}">${esc(item.number)}</button>`).join('')}</div></section>`;
+    const orderedUnits = [...block.units].map((item, index) => ({ item, index })).sort((a, b) => Number(isDone(a.item)) - Number(isDone(b.item)) || String(a.item.number).localeCompare(String(b.item.number), 'pt-BR', { numeric: true }));
+    app.innerHTML = `<section class="card hero"><p>Leitura in loco</p><h1>${esc(block.name)}</h1><p>${monthLabel(block.month)} - ${done}/${block.units.length} leituras</p><div class="progress"><i style="width:${percent}%"></i></div></section>
+      <section class="card compact-card"><label class="muted"><b>Condominio</b></label><select id="blockPick">${state.blocks.map((item, index) => `<option value="${index}" ${item.id === block.id ? 'selected' : ''}>${esc(item.name)}</option>`).join('')}</select></section>
+      <section class="card reading-card"><div class="unit-head"><div><span class="muted">Apartamento</span><div class="unit-number">${esc(unit.number)}</div></div><span class="pill ${isDone(unit) ? 'ok' : 'warn'}">${isDone(unit) ? 'Salvo' : 'Pendente'}</span></div><p class="muted resident-line">${esc(unit.resident || 'Responsavel nao informado')}</p><div class="read-kpis"><div><small>Anterior</small><strong>${fmt(unit.previous)}</strong></div><div><small>Consumo</small><strong>${fmt(consumption)} m3</strong></div></div><div class="reading-big"><label>Leitura atual</label><input id="currentReading" inputmode="decimal" autocomplete="off" value="${unit.current === '' ? '' : esc(unit.current)}" placeholder="Digite e aperte Enter"></div><div id="alertBox"></div><button class="primary save-reading" id="saveBtn">Salvar e proximo</button><button class="secondary no-access" id="noAccessBtn">Sem acesso</button><div class="row nav-row"><button class="secondary" id="prevBtn">Anterior</button><button class="secondary" id="nextBtn">Proximo</button></div></section>
+      <section class="card apt-card"><h3>Pendentes primeiro</h3><div class="apt-list">${orderedUnits.map(({ item, index }) => `<button data-jump="${index}" class="${index === unitIndex ? 'active' : ''} ${isDone(item) ? 'done' : ''}">${esc(item.number)}</button>`).join('')}</div></section>`;
     bind();
     checkAlert($('#currentReading').value);
     setTimeout(() => $('#currentReading')?.focus(), 50);
@@ -89,7 +90,9 @@
     const block = currentBlock();
     $('#blockPick').onchange = event => { blockIndex = n(event.target.value); state.selected = state.blocks[blockIndex].id; unitIndex = 0; save(); render(); };
     $('#currentReading').oninput = event => checkAlert(event.target.value);
+    $('#currentReading').onkeydown = event => { if (event.key === 'Enter') { event.preventDefault(); saveReading(); } };
     $('#saveBtn').onclick = saveReading;
+    $('#noAccessBtn').onclick = markNoAccess;
     $('#prevBtn').onclick = () => { unitIndex = Math.max(0, unitIndex - 1); render(); };
     $('#nextBtn').onclick = () => { unitIndex = Math.min(block.units.length - 1, unitIndex + 1); render(); };
     document.querySelectorAll('[data-jump]').forEach(button => { button.onclick = () => { unitIndex = n(button.dataset.jump); render(); }; });
@@ -100,7 +103,7 @@
     const raw = String(value).replace(',', '.').trim();
     if (raw === '') { box.innerHTML = ''; return; }
     const current = Number(raw);
-    if (!Number.isFinite(current) || current < 0) { box.innerHTML = '<p class="alert danger">Digite uma leitura válida.</p>'; return; }
+    if (!Number.isFinite(current) || current < 0) { box.innerHTML = '<p class="alert danger">Digite uma leitura valida.</p>'; return; }
     const issue = issueFor(unit, current);
     box.innerHTML = issue ? `<p class="alert ${issue.level === 'danger' ? 'danger' : ''}">${issue.text}</p>` : '<p class="alert ok">Leitura dentro da faixa.</p>';
   }
@@ -109,17 +112,33 @@
     const raw = String(input.value).replace(',', '.').trim();
     if (raw === '') return toast('Digite a leitura atual.', true);
     const current = Number(raw);
-    if (!Number.isFinite(current) || current < 0) return toast('Digite uma leitura válida.', true);
+    if (!Number.isFinite(current) || current < 0) return toast('Digite uma leitura valida.', true);
     const issue = issueFor(unit, current);
     if (issue && !confirm(`${issue.text}\n\nDeseja manter esta leitura?`)) return;
     unit.current = current;
     unit.readingType = 'real';
+    unit.estimatedReason = '';
     unit.m3 = Math.max(0, current - n(unit.previous));
     unit.value = cost(unit.m3, block.tariff);
     unit.mobileDone = true;
     unit.mobileSavedAt = new Date().toISOString();
     state.selected = block.id;
     if (!save(`Apto ${unit.number} salvo`)) return;
+    unitIndex = nextPendingIndex(block, unitIndex);
+    render();
+  }
+  function markNoAccess() {
+    const block = currentBlock(), unit = currentUnit();
+    if (!block || !unit) return;
+    unit.current = '';
+    unit.readingType = 'estimated';
+    unit.estimatedReason = 'Sem acesso';
+    unit.m3 = 0;
+    unit.value = 0;
+    unit.mobileDone = true;
+    unit.mobileSavedAt = new Date().toISOString();
+    state.selected = block.id;
+    if (!save(`Apto ${unit.number} marcado sem acesso`)) return;
     unitIndex = nextPendingIndex(block, unitIndex);
     render();
   }
