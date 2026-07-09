@@ -2,7 +2,7 @@
   'use strict';
 
   const KEY = 'kr2melo.hidrometro.v1';
-  const APP_VERSION = '5.2.2';
+  const APP_VERSION = '5.3.4';
   const DEFAULT_TARIFF = { minimum: 64.6, tier1: 8.94, tier2: 13.82 };
   const money = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
   const monthFmt = new Intl.DateTimeFormat('pt-BR', { month: 'long', year: 'numeric' });
@@ -146,6 +146,8 @@
       gps: u.gps || null,
       photoKey: String(u.photoKey || ''),
       photo: String(u.photo || ''),
+      extraChargeLabel: String(u.extraChargeLabel || 'VALOR ADICIONAL'),
+      extraCharge: Math.max(0, n(u.extraCharge)),
       billingFineLabel: String(u.billingFineLabel || 'MULTAS / OUTROS'),
       billingFine: Math.max(0, n(u.billingFine)),
       condoRule: normalizeRule(migratedRule),
@@ -285,8 +287,9 @@
     }
     const condo = Math.max(0, grossCondo - condoDiscount);
     const service = billing.chargeService !== false && String(billing.serviceLabel || '').trim() ? Math.max(0, n(billing.serviceFee)) : 0;
+    const extraCharge = Math.max(0, n(options.extraCharge ?? unit.extraCharge));
     const fine = Math.max(0, n(options.fine ?? unit.billingFine));
-    return { water, grossCondo, condoDiscount, condo, service, fine, total: water + condo + service + fine, rule };
+    return { water, grossCondo, condoDiscount, condo, service, extraCharge, fine, total: water + condo + service + extraCharge + fine, rule };
   }
   function adjustmentText(charges) {
     if (!charges.condoDiscount) return '';
@@ -300,10 +303,10 @@
     return block.units.reduce((sum, unit) => {
       const c = unitCharges(unit, block, options);
       sum.m3 += n(unit.m3); sum.water += c.water; sum.grossCondo += c.grossCondo; sum.discount += c.condoDiscount;
-      sum.condo += c.condo; sum.service += c.service; sum.fine += c.fine; sum.total += c.total;
+      sum.condo += c.condo; sum.service += c.service; sum.extraCharge += c.extraCharge; sum.fine += c.fine; sum.total += c.total;
       if (unit.paid) { sum.paid += c.total; sum.paidCount++; }
       return sum;
-    }, { m3: 0, water: 0, grossCondo: 0, discount: 0, condo: 0, service: 0, fine: 0, total: 0, paid: 0, paidCount: 0 });
+    }, { m3: 0, water: 0, grossCondo: 0, discount: 0, condo: 0, service: 0, extraCharge: 0, fine: 0, total: 0, paid: 0, paidCount: 0 });
   }
   function waterCoverage(block) {
     const totals = chargeTotals(block);
@@ -375,7 +378,7 @@
     const coverage = waterCoverage(block);
     const alerts = allAlerts(block);
     const max = Math.max(1, ...block.units.map(unit => n(unit.m3)));
-    return `<section class="hero"><div><p class="eyebrow">KR²MELO v5.1.6</p><h2>${esc(block.name)}</h2><p>${esc(block.address || 'Endereço não informado')} · ${monthLabel(block.month)}</p></div><div><button class="secondary" data-go="leituras">Lançar leituras →</button></div></section>
+    return `<section class="hero"><div><p class="eyebrow">KR²MELO ${VERSION_LABEL}</p><h2>${esc(block.name)}</h2><p>${esc(block.address || 'Endereço não informado')} · ${monthLabel(block.month)}</p></div><div><button class="secondary" data-go="leituras">Lançar leituras →</button></div></section>
       <section class="metrics"><article class="metric red"><span class="label">Consumo do mês</span><strong>${fmtM3(totals.m3)} m³</strong><small>${block.units.length} unidade(s) cadastrada(s)</small></article><article class="metric"><span class="label">Cobrança total</span><strong>${money.format(totals.total)}</strong><small>Água, condomínio, serviço e outros</small></article><article class="metric ${coverage.bill && !coverage.covered ? 'red' : 'green'}"><span class="label">Cobertura da água</span><strong>${coverage.bill ? `${coverage.percent.toFixed(1)}%` : '—'}</strong><small>${coverage.bill ? (coverage.covered ? 'Conta global coberta' : `Faltam ${money.format(Math.abs(coverage.diff))}`) : 'Informe a conta global'}</small></article><article class="metric"><span class="label">Descontos concedidos</span><strong>${money.format(totals.discount)}</strong><small>Somente no condomínio</small></article></section>
       <section class="grid-2"><article class="card"><div class="card-head"><h3>Consumo por apartamento</h3><button class="secondary" data-go="leituras">Ver leituras</button></div><div class="bar-list">${block.units.slice(0, 8).map(unit => `<div class="bar-row"><strong>${esc(unit.number)}</strong><div class="bar"><i style="width:${Math.min(100, n(unit.m3) / max * 100)}%"></i></div><span>${fmtM3(unit.m3)} m³</span></div>`).join('') || '<p class="empty">Sem apartamentos.</p>'}</div></article><article class="card"><div class="card-head"><h3>Alertas operacionais</h3><span class="pill ${alerts.length ? 'warn' : 'ok'}">${alerts.length}</span></div><div class="alert-list">${alerts.slice(0, 5).map(alert => `<div class="alert-item ${alert.type}"><strong>Apto ${esc(alert.unit)} · ${esc(alert.title)}</strong><small>${esc(alert.text)}</small></div>`).join('') || '<div class="alert-item ok"><strong>Sem pendências críticas</strong><small>As leituras atuais estão em situação normal.</small></div>'}</div></article></section>
       <section class="card search-card"><div class="card-head"><h3>Pesquisa rápida</h3><span class="muted">Apto, morador ou condomínio</span></div><input id="globalSearch" data-global-search placeholder="Ex.: 01, Maria ou nome do condomínio"><div id="globalSearchResult" class="notice-list" style="margin-top:12px"></div></section>`;
@@ -435,7 +438,7 @@ Esta ação remove os apartamentos da competência atual. O histórico já fecha
     const totals = chargeTotals(block);
     const exempt = block.units.filter(unit => ruleActive(unit.condoRule, block.month) && unit.condoRule.mode === 'isento').length;
     const discounted = block.units.filter(unit => ruleActive(unit.condoRule, block.month) && unit.condoRule.mode.startsWith('desconto')).length;
-    return `<section class="hero"><div><p class="eyebrow">REGRAS POR APARTAMENTO</p><h2>Isenções, descontos e outros lançamentos</h2><p>Os descontos afetam somente o valor do condomínio; a água permanece calculada normalmente.</p></div><div><button class="secondary" data-go="boletos">Conferir boletos →</button></div></section><div class="rule-summary"><span class="pill ok">${exempt} isenção(ões) ativa(s)</span><span class="pill info">${discounted} desconto(s) ativo(s)</span><span class="pill warn">${money.format(totals.discount)} abatido no mês</span></div><div class="info-box"><strong>Exemplo:</strong> para o apartamento 01 que fornece internet às câmeras, escolha “Desconto fixo”, informe o valor e descreva “Internet das câmeras do condomínio”. Para síndico ou tesoureiro, escolha “Isento de condomínio” e identifique a função.</div><div class="table-wrap"><table class="rule-table"><thead><tr><th>Apto</th><th>Responsável</th><th>Função</th><th>Regra</th><th>Valor</th><th>Motivo / benefício</th><th>Início</th><th>Fim</th><th>Autorizado por</th><th>Multas / outros</th><th>Valor</th><th>Resultado</th></tr></thead><tbody>${block.units.map(unit => { const r = normalizeRule(unit.condoRule), c = unitCharges(unit, block); return `<tr data-rule-row="${unit.id}"><td><strong>${esc(unit.number)}</strong></td><td>${esc(unit.resident || '—')}</td><td><select data-rule-field="role">${Object.entries(roleLabels).map(([value, label]) => `<option value="${value}" ${r.role === value ? 'selected' : ''}>${label}</option>`).join('')}</select></td><td><select data-rule-field="mode">${Object.entries(ruleLabels).map(([value, label]) => `<option value="${value}" ${r.mode === value ? 'selected' : ''}>${label}</option>`).join('')}</select></td><td><input data-rule-field="value" type="number" min="0" step="0.01" value="${r.value || ''}" placeholder="R$ ou %"></td><td><input data-rule-field="reason" value="${esc(r.reason)}" placeholder="Ex.: Internet das câmeras"></td><td><input data-rule-field="startsAt" type="month" value="${esc(r.startsAt)}"></td><td><input data-rule-field="endsAt" type="month" value="${esc(r.endsAt)}"></td><td><input data-rule-field="authorizedBy" value="${esc(r.authorizedBy)}" placeholder="Síndico / ata"></td><td><input data-rule-field="billingFineLabel" value="${esc(unit.billingFineLabel)}"></td><td><input data-rule-field="billingFine" type="number" min="0" step="0.01" value="${unit.billingFine || ''}"></td><td><strong>${money.format(c.condo)}</strong>${c.condoDiscount ? `<br><small class="adjustment">− ${money.format(c.condoDiscount)}</small>` : ''}</td></tr>`; }).join('')}</tbody></table></div>`;
+    return `<section class="hero"><div><p class="eyebrow">REGRAS POR APARTAMENTO</p><h2>Isenções, descontos e lançamentos individuais</h2><p>Os descontos afetam somente o valor do condomínio; a água permanece calculada normalmente.</p></div><div><button class="secondary" data-go="boletos">Conferir boletos →</button></div></section><div class="rule-summary"><span class="pill ok">${exempt} isenção(ões) ativa(s)</span><span class="pill info">${discounted} desconto(s) ativo(s)</span><span class="pill warn">${money.format(totals.discount)} abatido no mês</span></div><div class="info-box"><strong>Valor adicional:</strong> use os campos “Valor adicional” quando quiser somar um valor individual ao total do apartamento sem lançar como multa/outros.</div><div class="table-wrap"><table class="rule-table"><thead><tr><th>Apto</th><th>Responsável</th><th>Função</th><th>Regra</th><th>Valor</th><th>Motivo / benefício</th><th>Início</th><th>Fim</th><th>Autorizado por</th><th>Descrição adicional</th><th>Valor adicional</th><th>Multas / outros</th><th>Valor</th><th>Resultado</th></tr></thead><tbody>${block.units.map(unit => { const r = normalizeRule(unit.condoRule), c = unitCharges(unit, block); return `<tr data-rule-row="${unit.id}"><td><strong>${esc(unit.number)}</strong></td><td>${esc(unit.resident || '—')}</td><td><select data-rule-field="role">${Object.entries(roleLabels).map(([value, label]) => `<option value="${value}" ${r.role === value ? 'selected' : ''}>${label}</option>`).join('')}</select></td><td><select data-rule-field="mode">${Object.entries(ruleLabels).map(([value, label]) => `<option value="${value}" ${r.mode === value ? 'selected' : ''}>${label}</option>`).join('')}</select></td><td><input data-rule-field="value" type="number" min="0" step="0.01" value="${r.value || ''}" placeholder="R$ ou %"></td><td><input data-rule-field="reason" value="${esc(r.reason)}" placeholder="Ex.: Internet das câmeras"></td><td><input data-rule-field="startsAt" type="month" value="${esc(r.startsAt)}"></td><td><input data-rule-field="endsAt" type="month" value="${esc(r.endsAt)}"></td><td><input data-rule-field="authorizedBy" value="${esc(r.authorizedBy)}" placeholder="Síndico / ata"></td><td><input data-rule-field="extraChargeLabel" value="${esc(unit.extraChargeLabel || 'VALOR ADICIONAL')}"></td><td><input data-rule-field="extraCharge" type="number" min="0" step="0.01" value="${unit.extraCharge || ''}"></td><td><input data-rule-field="billingFineLabel" value="${esc(unit.billingFineLabel)}"></td><td><input data-rule-field="billingFine" type="number" min="0" step="0.01" value="${unit.billingFine || ''}"></td><td><strong>${money.format(c.total)}</strong>${c.extraCharge ? `<br><small>${esc(unit.extraChargeLabel || 'Valor adicional')}: ${money.format(c.extraCharge)}</small>` : ''}${c.condoDiscount ? `<br><small class="adjustment">− ${money.format(c.condoDiscount)}</small>` : ''}</td></tr>`; }).join('')}</tbody></table></div>`;
   }
   function closeChecks(block) {
     const checks = [];
@@ -489,9 +492,8 @@ Esta ação remove os apartamentos da competência atual. O histórico já fecha
     return totalM3 ? n(block.billing.waterBill) * groupM3 / totalM3 : 0;
   }
   function coverSheet(block, units, index) {
-    const t = units.reduce((sum, unit) => { const c = unitCharges(unit, block); sum.m3 += n(unit.m3); sum.total += c.total; sum.water += c.water; return sum; }, { m3: 0, total: 0, water: 0 });
     const groupName = `Bloco ${blockLetter(index)}`;
-    return `<section class="cover-sheet"><div class="cut-line-horizontal"></div><article class="cover-half"><header><img src="assets/logo.png" alt="KR²MELO"><div><p class="eyebrow">CAPA DOS BOLETOS</p><h1>${esc(groupName)}</h1><p>${esc(block.name)} · ${monthLabel(block.month)}</p></div></header><div><h2>Dados do bloco e do mês</h2><div class="cover-kv"><span><b>Condomínio</b>${esc(block.name)}</span><span><b>Apartamentos</b>${units.length}</span><span><b>Vencimento</b>${dateBr(block.billing.dueDate)}</span><span><b>Leitura</b>${dateBr(block.billing.currentReadDate)}</span><span><b>Próxima leitura</b>${dateBr(block.billing.nextReadDate)}</span><span><b>Consumo</b>${fmtM3(t.m3)} m³</span><span><b>Água rateada</b>${money.format(t.water)}</span><span><b>Cobrança total</b>${money.format(t.total)}</span></div></div><div class="cover-stamp"><span>Conta de água estimada deste bloco</span><strong>${money.format(groupShareWaterBill(block, units))}</strong></div></article><article class="cover-half"><header><img src="assets/logo.png" alt="KR²MELO"><div><p class="eyebrow">CONTRACAPA</p><h1>KR²MELO</h1><p>Leitura de hidrômetros · Rateio · Boletos · Relatórios</p></div></header><div class="provider-services"><span>✓ Leitura mensal dos hidrômetros</span><span>✓ Cálculo individual de consumo</span><span>✓ Regras por apartamento</span><span>✓ Isenções e descontos auditáveis</span><span>✓ Emissão de boletos</span><span>✓ Alertas de consumo elevado</span></div><div class="resident-note"><strong>Conferência:</strong> a conta global é comparada somente com a cobrança de água. Condomínio, descontos, serviço e outros aparecem separadamente.</div><footer>Prestador responsável pelo serviço de leitura</footer></article></section>`;
+    return `<section class="cover-sheet cover-sheet-v531"><div class="cut-line-horizontal"></div><article class="cover-half cover-front"><header><img src="assets/logo.png" alt="KR²MELO"><div><p class="eyebrow">CAPA DOS BOLETOS</p><h1>${esc(groupName)}</h1></div></header><div class="cover-simple-kv"><span><b>Condomínio</b>${esc(block.name)}</span><span><b>Vencimento</b>${dateBr(block.billing.dueDate)}</span><span><b>Próxima leitura</b>${dateBr(block.billing.nextReadDate)}</span></div></article><article class="cover-half cover-back cover-back-inverted"><header><img src="assets/logo.png" alt="KR²MELO"><div><p class="eyebrow">CONTRACAPA</p><h1>KR²MELO</h1><p>${esc(block.name)} · ${monthLabel(block.month)}</p></div></header><div class="provider-services"><span>Leitura mensal dos hidrômetros</span><span>Cálculo individual de consumo</span><span>Rateio de água</span><span>Boletos e recibos</span></div><footer>Prestador responsável pelo serviço de leitura</footer></article></section>`;
   }
   function summarySheet(block, units, index) {
     const t = units.reduce((sum, unit) => { const c = unitCharges(unit, block); sum.m3 += n(unit.m3); sum.water += c.water; sum.discount += c.condoDiscount; sum.total += c.total; return sum; }, { m3: 0, water: 0, discount: 0, total: 0 });
@@ -502,9 +504,10 @@ Esta ação remove os apartamentos da competência atual. O histórico já fecha
     const ruleText = adjustmentText(c);
     const discountLine = c.condoDiscount ? `<div class="bill-charge-line bill-adjustment"><span>${esc(ruleText || 'Desconto de condomínio')}</span><b>− ${money.format(c.condoDiscount)}</b></div>` : '';
     const serviceLine = c.service ? `<div class="bill-charge-line"><span>${esc(billing.serviceLabel)}</span><b>${money.format(c.service)}</b></div>` : '';
+    const extraLine = c.extraCharge ? `<div class="bill-charge-line"><span>${esc(unit.extraChargeLabel || 'VALOR ADICIONAL')}</span><b>${money.format(c.extraCharge)}</b></div>` : '';
     const notes = String(billing.notes || '').split(/\r?\n/).filter(Boolean).slice(0, 2);
     const footer = managerCopy ? `<footer class="bill-signature"><div></div><small>RECEBIDO POR / ASSINATURA DO MORADOR</small></footer>` : `<section class="bill-notes"><strong>OBS.</strong><div>${notes.map(note => `<p>${esc(note)}</p>`).join('') || '<p>Sem observações adicionais.</p>'}</div></section>`;
-    return `<article class="bill-copy ${managerCopy ? 'bill-copy-manager' : 'bill-copy-resident'}"><div class="bill-copy-tag">VIA DO ${copy}</div><header class="bill-head"><strong>${esc(unit.number)}</strong><b>Vencimento · ${dateBr(billing.dueDate)}</b></header><div class="bill-party"><span>RESPONSÁVEL</span><strong>${esc(unit.resident || '—')}</strong><small>REFERÊNCIA · ${monthLabel(block.month).toUpperCase().replace(' DE ', ' / ')}</small></div><section class="bill-reading-grid"><div><span>LEITURA ANTERIOR</span><small>${dateBr(billing.previousReadDate)}</small><b>${fmtInt(unit.previous)}</b></div><div><span>LEITURA ATUAL</span><small>${dateBr(billing.currentReadDate)}</small><b>${unit.current === '' ? '—' : fmtInt(unit.current)}</b></div><div><span>CONSUMO</span><small>METROS CÚBICOS</small><b>${fmtM3(unit.m3)} m³</b></div></section><section class="bill-charge-list"><div class="bill-charge-line"><span>ÁGUA</span><b>${money.format(c.water)}</b></div>${discountLine}<div class="bill-charge-line bill-condo-net"><span>CONDOMÍNIO A PAGAR</span><b>${money.format(c.condo)}</b></div>${serviceLine}<div class="bill-charge-line"><span>${esc(unit.billingFineLabel || 'MULTAS / OUTROS')}</span><b>${money.format(c.fine)}</b></div></section><div class="bill-total"><strong>TOTAL</strong><span>VALOR A PAGAR</span><b>${money.format(c.total)}</b></div>${footer}</article>`;
+    return `<article class="bill-copy ${managerCopy ? 'bill-copy-manager' : 'bill-copy-resident'}"><div class="bill-copy-tag">VIA DO ${copy}</div><header class="bill-head"><strong>${esc(unit.number)}</strong><b>Vencimento · ${dateBr(billing.dueDate)}</b></header><div class="bill-party"><span>RESPONSÁVEL</span><strong>${esc(unit.resident || '—')}</strong><small>REFERÊNCIA · ${monthLabel(block.month).toUpperCase().replace(' DE ', ' / ')}</small></div><section class="bill-reading-grid"><div><span>LEITURA ANTERIOR</span><small>${dateBr(billing.previousReadDate)}</small><b>${fmtInt(unit.previous)}</b></div><div><span>LEITURA ATUAL</span><small>${dateBr(billing.currentReadDate)}</small><b>${unit.current === '' ? '—' : fmtInt(unit.current)}</b></div><div><span>CONSUMO</span><small>METROS CÚBICOS</small><b>${fmtM3(unit.m3)} m³</b></div></section><section class="bill-charge-list"><div class="bill-charge-line"><span>ÁGUA</span><b>${money.format(c.water)}</b></div>${discountLine}<div class="bill-charge-line bill-condo-net"><span>CONDOMÍNIO A PAGAR</span><b>${money.format(c.condo)}</b></div>${serviceLine}${extraLine}<div class="bill-charge-line"><span>${esc(unit.billingFineLabel || 'MULTAS / OUTROS')}</span><b>${money.format(c.fine)}</b></div></section><div class="bill-total"><strong>TOTAL</strong><span>VALOR A PAGAR</span><b>${money.format(c.total)}</b></div>${footer}</article>`;
   }
   function billPages(block, units, index) {
     const pages = [];
@@ -517,7 +520,7 @@ Esta ação remove os apartamentos da competência atual. O histórico já fecha
   }
   function renderBills(block) {
     const groups = chunk(block.units, 16);
-    const content = groups.map((units, index) => `<div class="bill-group-title no-print">Bloco ${blockLetter(index)} · ${units.length} apartamento(s)</div>${coverSheet(block, units, index)}${summarySheet(block, units, index)}${billPages(block, units, index)}`).join('');
+    const content = groups.map((units, index) => `<div class="bill-group-title no-print">Bloco ${blockLetter(index)} · ${units.length} apartamento(s)</div>${coverSheet(block, units, index)}${billPages(block, units, index)}`).join('');
     const b = block.billing;
     return `<section class="billing-controls no-print"><div class="section-actions"><div><h2>Boletos mensais</h2><span class="muted">Cada boleto mostra água, condomínio, desconto/isenção, serviço e outros separadamente.</span></div><div class="button-row"><button class="secondary" data-go="regras">Regras por apartamento</button><button class="primary" data-print-bills>Imprimir conjunto</button></div></div><form class="card form-grid" id="billingForm"><div class="field"><label>Vencimento</label><input name="dueDate" type="date" value="${esc(b.dueDate)}" required></div><div class="field"><label>Conta global de água (R$)</label><input name="waterBill" type="number" min="0" step="0.01" value="${b.waterBill || ''}"></div><div class="field"><label>Data da leitura anterior</label><input name="previousReadDate" type="date" value="${esc(b.previousReadDate)}"></div><div class="field"><label>Data da leitura atual</label><input name="currentReadDate" type="date" value="${esc(b.currentReadDate)}"></div><div class="field"><label>Próxima leitura</label><input name="nextReadDate" type="date" value="${esc(b.nextReadDate)}"></div><div class="field"><label>Condomínio bruto (R$)</label><input name="condoFee" type="number" min="0" step="0.01" value="${b.condoFee}"></div><div class="field"><label>Serviço de leitura (R$)</label><input name="serviceFee" type="number" min="0" step="0.01" value="${b.serviceFee}"></div><div class="field"><label>Descrição do serviço</label><input name="serviceLabel" value="${esc(b.serviceLabel)}"></div><div class="field full"><label><input name="chargeService" type="checkbox" ${b.chargeService !== false ? 'checked' : ''}> Cobrar serviço de leitura neste mês</label></div><div class="field full"><label>Observações — uma por linha</label><textarea name="notes" rows="4">${esc(b.notes)}</textarea></div><div class="form-foot"><button class="primary" type="submit">Salvar e atualizar boletos</button></div></form></section><div class="billing-preview">${content || '<div class="card empty">Cadastre apartamentos antes de gerar boletos.</div>'}</div>`;
   }
@@ -525,7 +528,7 @@ Esta ação remove os apartamentos da competência atual. O histórico já fecha
     return `<section class="settings"><article class="card"><div class="card-head"><h3>Dados do condomínio</h3></div><form class="form-grid" id="blockForm"><div class="field"><label>Nome</label><input name="name" value="${esc(block.name)}" required></div><div class="field"><label>Referência atual</label><input name="month" type="month" value="${esc(block.month)}" required></div><div class="field full"><label>Endereço</label><input name="address" value="${esc(block.address)}"></div><div class="field full"><label>Responsável / síndico</label><input name="manager" value="${esc(block.manager)}"></div><div class="form-foot"><button class="primary" type="submit">Salvar alterações</button></div></form></article><article class="card"><div class="card-head"><h3>Tarifa da água</h3></div><form class="form-grid" id="tariffForm"><div class="field full"><label>Mínimo até 10 m³ (R$)</label><input name="minimum" type="number" min="0" step="0.01" value="${block.tariff.minimum}"></div><div class="field"><label>De 11 a 20 m³ (R$/m³)</label><input name="tier1" type="number" min="0" step="0.01" value="${block.tariff.tier1}"></div><div class="field"><label>Acima de 20 m³ (R$/m³)</label><input name="tier2" type="number" min="0" step="0.01" value="${block.tariff.tier2}"></div><div class="form-foot"><button class="primary" type="submit">Salvar e recalcular</button></div></form></article><article class="card"><h3>Backup e restauração</h3><p class="muted">O backup JSON protege leituras, regras, boletos, histórico e recibos. Fotos novas capturadas no celular ficam no armazenamento local do aparelho.</p><div class="button-row"><button class="secondary" data-export>Baixar backup</button><button class="secondary" data-import>Restaurar backup</button></div></article><article class="card"><h3>Zona de atenção</h3><p class="muted">A exclusão remove o condomínio, as leituras e o histórico armazenado neste navegador.</p><button class="danger" data-delete-block>Excluir condomínio</button></article></section>`;
   }
   function renderHelp() {
-    return `<section class="hero"><div><p class="eyebrow">KR²MELO v5.1.6</p><h2>Manual de uso</h2><p>Guia para operador, síndico, tesoureiro e moradores.</p></div><button class="secondary" data-print>Imprimir manual</button></section><section class="help-grid" style="margin-top:16px"><article class="card help-card"><h3>1. Ciclo mensal</h3><ol><li>Cadastre o condomínio e os apartamentos.</li><li>Informe as leituras atuais.</li><li>Confira a conta global de água.</li><li>Defina regras e descontos por apartamento.</li><li>Gere boletos, relatórios e recibos.</li><li>Feche o mês para arquivar o retrato completo.</li></ol></article><article class="card help-card"><h3>2. Água</h3><p>O consumo é calculado por <strong>Leitura Atual − Leitura Anterior</strong>.</p><div class="simple-calc"><strong>Exemplo:</strong><br>Anterior: 1500<br>Atual: 1518<br>Consumo: 18 m³</div><p>A conferência da conta global soma apenas o campo Água de cada apartamento.</p></article><article class="card help-card"><h3>3. Isenção e desconto</h3><p>Síndicos, tesoureiros e indicados podem ficar isentos do condomínio. Também é possível aplicar desconto fixo ou percentual, sempre com motivo e vigência.</p><div class="resident-note">A água não é isenta automaticamente. O abatimento recai somente sobre o valor do condomínio.</div></article><article class="card help-card"><h3>4. Transparência no boleto</h3><p>Quando houver benefício, o boleto mostra o condomínio bruto, a linha de isenção ou desconto, o condomínio líquido e o motivo. Isso evita confusão na conferência.</p></article><article class="card help-card"><h3>5. Fechamento e histórico</h3><p>O fechamento arquiva as leituras, as regras usadas, valores de cobrança e pagamentos do mês. Alterações futuras não modificam o registro histórico.</p></article><article class="card help-card"><h3>6. Modo leiturista</h3><p>O celular permite lançar leitura, foto e GPS. Para sincronizar sem nuvem, use o mesmo navegador/perfil do painel ou exporte/importa backups entre aparelhos.</p></article></section>`;
+    return `<section class="hero"><div><p class="eyebrow">KR²MELO ${VERSION_LABEL}</p><h2>Manual de uso</h2><p>Guia para operador, síndico, tesoureiro e moradores.</p></div><button class="secondary" data-print>Imprimir manual</button></section><section class="help-grid" style="margin-top:16px"><article class="card help-card"><h3>1. Ciclo mensal</h3><ol><li>Cadastre o condomínio e os apartamentos.</li><li>Informe as leituras atuais.</li><li>Confira a conta global de água.</li><li>Defina regras e descontos por apartamento.</li><li>Gere boletos, relatórios e recibos.</li><li>Feche o mês para arquivar o retrato completo.</li></ol></article><article class="card help-card"><h3>2. Água</h3><p>O consumo é calculado por <strong>Leitura Atual − Leitura Anterior</strong>.</p><div class="simple-calc"><strong>Exemplo:</strong><br>Anterior: 1500<br>Atual: 1518<br>Consumo: 18 m³</div><p>A conferência da conta global soma apenas o campo Água de cada apartamento.</p></article><article class="card help-card"><h3>3. Isenção e desconto</h3><p>Síndicos, tesoureiros e indicados podem ficar isentos do condomínio. Também é possível aplicar desconto fixo ou percentual, sempre com motivo e vigência.</p><div class="resident-note">A água não é isenta automaticamente. O abatimento recai somente sobre o valor do condomínio.</div></article><article class="card help-card"><h3>4. Transparência no boleto</h3><p>Quando houver benefício, o boleto mostra o condomínio bruto, a linha de isenção ou desconto, o condomínio líquido e o motivo. Isso evita confusão na conferência.</p></article><article class="card help-card"><h3>5. Fechamento e histórico</h3><p>O fechamento arquiva as leituras, as regras usadas, valores de cobrança e pagamentos do mês. Alterações futuras não modificam o registro histórico.</p></article><article class="card help-card"><h3>6. Modo leiturista</h3><p>O celular permite lançar leitura, foto e GPS. Para sincronizar sem nuvem, use o mesmo navegador/perfil do painel ou exporte/importa backups entre aparelhos.</p></article></section>`;
   }
 
   function render() {
@@ -573,14 +576,14 @@ Esta ação remove os apartamentos da competência atual. O histórico já fecha
     const checks = closeChecks(block); const danger = checks.filter(check => check.type === 'danger').length; const warn = checks.filter(check => check.type === 'warn').length;
     if (!confirm(`Fechar ${monthLabel(block.month)}?\n\nPendências: ${warn}\nCríticas: ${danger}\n\nO sistema guardará um retrato financeiro completo e preparará o próximo mês.`)) return;
     const totals = chargeTotals(block); const closingMonth = block.month;
-    const charges = block.units.map(unit => { const c = unitCharges(unit, block); return { unitId: unit.id, number: unit.number, resident: unit.resident, m3: unit.m3, water: c.water, grossCondo: c.grossCondo, condoDiscount: c.condoDiscount, condo: c.condo, service: c.service, fine: c.fine, total: c.total, rule: deepClone(c.rule), fineLabel: unit.billingFineLabel, paid: unit.paid, paymentDate: unit.paymentDate }; });
+    const charges = block.units.map(unit => { const c = unitCharges(unit, block); return { unitId: unit.id, number: unit.number, resident: unit.resident, m3: unit.m3, water: c.water, grossCondo: c.grossCondo, condoDiscount: c.condoDiscount, condo: c.condo, service: c.service, extraCharge: c.extraCharge, extraChargeLabel: unit.extraChargeLabel, fine: c.fine, total: c.total, rule: deepClone(c.rule), fineLabel: unit.billingFineLabel, paid: unit.paid, paymentDate: unit.paymentDate }; });
     const snapshot = { id: uid(), month: closingMonth, version: (block.history.filter(item => item.month === closingMonth).length + 1), closedAt: new Date().toISOString(), checks: deepClone(checks), units: deepClone(block.units), tariff: deepClone(block.tariff), billing: deepClone(block.billing), charges, totalM3: totals.m3, totalValue: totals.water, waterTotal: totals.water, grandTotal: totals.total, totalDiscount: totals.discount };
     block.history.unshift(snapshot);
     const nextMonth = shiftMonth(closingMonth, 1);
     const oldBilling = deepClone(block.billing);
     block.units.forEach(unit => {
       if (unit.current !== '') unit.previous = n(unit.current);
-      unit.current = ''; unit.m3 = 0; unit.value = waterCost(0, block.tariff); unit.note = ''; unit.mobileDone = false; unit.mobileSavedAt = ''; unit.gps = null; unit.photoKey = ''; unit.photo = ''; unit.paid = false; unit.paymentDate = ''; unit.billingFine = 0;
+      unit.current = ''; unit.m3 = 0; unit.value = waterCost(0, block.tariff); unit.note = ''; unit.mobileDone = false; unit.mobileSavedAt = ''; unit.gps = null; unit.photoKey = ''; unit.photo = ''; unit.paid = false; unit.paymentDate = ''; unit.extraCharge = 0; unit.billingFine = 0;
     });
     block.month = nextMonth;
     block.billing = normalizeBilling({ ...oldBilling, dueDate: dateForMonth(nextMonth, dayOf(oldBilling.dueDate)), previousReadDate: oldBilling.currentReadDate || oldBilling.previousReadDate || '', currentReadDate: oldBilling.nextReadDate || addMonthToDate(oldBilling.currentReadDate) || dateForMonth(nextMonth, 1), nextReadDate: oldBilling.nextReadDate ? addMonthToDate(oldBilling.nextReadDate) : '' }, nextMonth);
@@ -884,7 +887,7 @@ Esta ação remove os apartamentos da competência atual. O histórico já fecha
     const ruleField = target.closest('[data-rule-field]');
     if (ruleField) {
       const row = target.closest('[data-rule-row]'); const block = selected(); const unit = findUnit(block, row?.dataset.ruleRow); if (!unit) return; const field = target.dataset.ruleField;
-      if (field === 'billingFineLabel') unit.billingFineLabel = target.value || 'MULTAS / OUTROS'; else if (field === 'billingFine') unit.billingFine = Math.max(0, n(target.value)); else { unit.condoRule = normalizeRule(unit.condoRule); unit.condoRule[field] = ['value'].includes(field) ? Math.max(0, n(target.value)) : target.value; unit.condoRule = normalizeRule(unit.condoRule); }
+      if (field === 'billingFineLabel') unit.billingFineLabel = target.value || 'MULTAS / OUTROS'; else if (field === 'billingFine') unit.billingFine = Math.max(0, n(target.value)); else if (field === 'extraChargeLabel') unit.extraChargeLabel = target.value || 'VALOR ADICIONAL'; else if (field === 'extraCharge') unit.extraCharge = Math.max(0, n(target.value)); else { unit.condoRule = normalizeRule(unit.condoRule); unit.condoRule[field] = ['value'].includes(field) ? Math.max(0, n(target.value)) : target.value; unit.condoRule = normalizeRule(unit.condoRule); }
       save('Regra atualizada'); render(); return;
     }
     const paymentField = target.closest('[data-payment-field]');
@@ -923,7 +926,7 @@ Esta ação remove os apartamentos da competência atual. O histórico já fecha
 
 
 
-  // ===================== KR²MELO v5.1.6 — Histórico, auditoria e operação =====================
+  // ===================== Histórico, auditoria e operação =====================
   Object.assign(routes, {
     unidades: ['OPERAÇÃO', 'Unidades e hidrômetros'],
     excecoes: ['ATENÇÕES', 'Painel de exceções']
@@ -1040,7 +1043,7 @@ Esta ação remove os apartamentos da competência atual. O histórico já fecha
     const billing = normalizeBilling({ ...block.billing, dueDate: dateForMonth(month, dayOf(block.billing.dueDate)), currentReadDate: block.billing.currentReadDate || '' }, month);
     const units = rows.map((row, index) => normalizeUnit(row, index));
     const temp = { month, tariff: deepClone(block.tariff), billing, units };
-    const charges = units.map(unit => { const c = unitCharges(unit, temp); return { unitId: unit.id, number: unit.number, resident: unit.resident, m3: unit.m3, water: c.water, grossCondo: c.grossCondo, condoDiscount: c.condoDiscount, condo: c.condo, service: c.service, fine: c.fine, total: c.total, rule: deepClone(c.rule), fineLabel: unit.billingFineLabel, paid: unit.paid, paymentDate: unit.paymentDate }; });
+    const charges = units.map(unit => { const c = unitCharges(unit, temp); return { unitId: unit.id, number: unit.number, resident: unit.resident, m3: unit.m3, water: c.water, grossCondo: c.grossCondo, condoDiscount: c.condoDiscount, condo: c.condo, service: c.service, extraCharge: c.extraCharge, extraChargeLabel: unit.extraChargeLabel, fine: c.fine, total: c.total, rule: deepClone(c.rule), fineLabel: unit.billingFineLabel, paid: unit.paid, paymentDate: unit.paymentDate }; });
     const totals = charges.reduce((sum, row) => { sum.m3 += n(row.m3); sum.water += n(row.water); sum.discount += n(row.condoDiscount); sum.total += n(row.total); return sum; }, { m3: 0, water: 0, discount: 0, total: 0 });
     const existing = block.history.filter(entry => entry.month === month);
     return normalizeHistoryEntry({
@@ -1251,7 +1254,7 @@ Esta ação remove os apartamentos da competência atual. O histórico já fecha
 
 
 
-  // ===================== KR²MELO v5.2 — Reset seguro, sincronização e painel anual =====================
+  // ===================== Reset seguro, sincronização e painel anual =====================
   Object.assign(routes, {
     anual: ['ANÁLISE', 'Dashboard anual'],
     sincronizacao: ['NUVEM', 'Sincronização entre dispositivos']
@@ -1438,7 +1441,7 @@ Esta ação remove os apartamentos da competência atual. O histórico já fecha
 
 
 
-  // ===================== KR²MELO v5.2.1 — Relatórios históricos e recibos A4 retrato =====================
+  // ===================== Relatórios históricos e recibos A4 retrato =====================
   // O seletor abaixo usa exatamente o retrato financeiro salvo no fechamento mensal.
   // Nenhum valor do mês atual é recalculado quando uma competência histórica é escolhida.
   const reportPeriodByBlockV521 = new Map();
@@ -1476,6 +1479,7 @@ Esta ação remove os apartamentos da competência atual. O histórico já fecha
         condoDiscount: n(saved?.condoDiscount ?? calculated.condoDiscount),
         condo: n(saved?.condo ?? calculated.condo),
         service: n(saved?.service ?? calculated.service),
+        extraCharge: n(saved?.extraCharge ?? calculated.extraCharge),
         fine: n(saved?.fine ?? calculated.fine),
         total: n(saved?.total ?? calculated.total),
         paid: Boolean(saved?.paid ?? unit.paid),
@@ -1484,11 +1488,11 @@ Esta ação remove os apartamentos da competência atual. O histórico já fecha
     });
     const totals = rows.reduce((sum, row) => {
       sum.m3 += row.m3; sum.water += row.water; sum.grossCondo += row.grossCondo;
-      sum.discount += row.condoDiscount; sum.condo += row.condo; sum.service += row.service;
+      sum.discount += row.condoDiscount; sum.condo += row.condo; sum.service += row.service; sum.extraCharge += row.extraCharge;
       sum.fine += row.fine; sum.total += row.total;
       if (row.paid) { sum.paid += row.total; sum.paidCount++; }
       return sum;
-    }, { m3: 0, water: 0, grossCondo: 0, discount: 0, condo: 0, service: 0, fine: 0, total: 0, paid: 0, paidCount: 0 });
+    }, { m3: 0, water: 0, grossCondo: 0, discount: 0, condo: 0, service: 0, extraCharge: 0, fine: 0, total: 0, paid: 0, paidCount: 0 });
     const bill = n(billing?.waterBill);
     const diff = totals.water - bill;
     return { entry, archived, period, billing, rows, totals, bill, diff, coverage: bill ? totals.water / bill * 100 : 0 };
@@ -1606,6 +1610,217 @@ Esta ação remove os apartamentos da competência atual. O histórico já fecha
       return;
     }
     return handleClickV522Base(event);
+  };
+
+  // ===================== Impressão, recibos, observações e conflitos =====================
+  const VERSION_LABEL = `v${APP_VERSION}`;
+
+  function versionText(text = '') {
+    return String(text).replace(/v5\.\d+(?:\.\d+)?/g, VERSION_LABEL);
+  }
+  function refreshVersionLabelsV53() {
+    document.title = `KR²MELO · Gestão de Água ${VERSION_LABEL}`;
+    const brand = $('.brand small');
+    if (brand) brand.textContent = `Gestão de água · ${VERSION_LABEL}`;
+  }
+  function ensureV53(block) {
+    if (!block) return;
+    block.units = (block.units || []).map(unit => {
+      if (!('billingNote' in unit)) unit.billingNote = '';
+      return unit;
+    });
+    block.billing = normalizeBilling(block.billing || {}, block.month || currentMonth());
+  }
+  const normalizeUnitV53Base = normalizeUnit;
+  normalizeUnit = function(raw, index = 0) {
+    const unit = normalizeUnitV53Base(raw, index);
+    unit.billingNote = String(raw?.billingNote || '');
+    return unit;
+  };
+  const normalizeBillingV53Base = normalizeBilling;
+  normalizeBilling = function(raw, month) {
+    const billing = normalizeBillingV53Base(raw, month);
+    billing.notes = String(raw?.notes ?? billing.notes ?? '');
+    return billing;
+  };
+
+  function cleanNoteLines(value, limit = 5) {
+    return String(value || '').split(/\r?\n/).map(line => line.trim()).filter(Boolean).slice(0, limit);
+  }
+  function billingNoteLines(unit, billing) {
+    const global = cleanNoteLines(billing?.notes, 4);
+    const individual = cleanNoteLines(unit?.billingNote, 3);
+    return [...global, ...individual].slice(0, 6);
+  }
+  function noteParagraphs(lines) {
+    return lines.length ? lines.map(note => `<p>${esc(note)}</p>`).join('') : '<p>Sem observações adicionais.</p>';
+  }
+
+  const onesV53 = ['', 'um', 'dois', 'três', 'quatro', 'cinco', 'seis', 'sete', 'oito', 'nove'];
+  const teensV53 = ['dez', 'onze', 'doze', 'treze', 'quatorze', 'quinze', 'dezesseis', 'dezessete', 'dezoito', 'dezenove'];
+  const tensV53 = ['', '', 'vinte', 'trinta', 'quarenta', 'cinquenta', 'sessenta', 'setenta', 'oitenta', 'noventa'];
+  const hundredsV53 = ['', 'cento', 'duzentos', 'trezentos', 'quatrocentos', 'quinhentos', 'seiscentos', 'setecentos', 'oitocentos', 'novecentos'];
+  function intToWordsV53(value) {
+    const num = Math.trunc(Math.max(0, Number(value) || 0));
+    if (num === 0) return 'zero';
+    if (num === 100) return 'cem';
+    if (num < 10) return onesV53[num];
+    if (num < 20) return teensV53[num - 10];
+    if (num < 100) {
+      const ten = Math.floor(num / 10), one = num % 10;
+      return tensV53[ten] + (one ? ` e ${onesV53[one]}` : '');
+    }
+    if (num < 1000) {
+      const hundred = Math.floor(num / 100), rest = num % 100;
+      return hundredsV53[hundred] + (rest ? ` e ${intToWordsV53(rest)}` : '');
+    }
+    if (num < 1000000) {
+      const thousand = Math.floor(num / 1000), rest = num % 1000;
+      const prefix = thousand === 1 ? 'mil' : `${intToWordsV53(thousand)} mil`;
+      return prefix + (rest ? `${rest < 100 ? ' e ' : ' '}${intToWordsV53(rest)}` : '');
+    }
+    return String(num);
+  }
+  function amountToWordsV53(value) {
+    const centsTotal = Math.round(Math.max(0, n(value)) * 100);
+    const reais = Math.floor(centsTotal / 100);
+    const cents = centsTotal % 100;
+    const parts = [];
+    if (reais) parts.push(`${intToWordsV53(reais)} ${reais === 1 ? 'real' : 'reais'}`);
+    if (cents) parts.push(`${intToWordsV53(cents)} ${cents === 1 ? 'centavo' : 'centavos'}`);
+    return parts.length ? parts.join(' e ') : 'zero real';
+  }
+  function receiptDataV53(data) {
+    const amount = n(data?.amount);
+    return { ...(data || {}), amount, amountWords: amountToWordsV53(amount) };
+  }
+
+  receiptDraft = function(block) {
+    const base = { payer: block.name, service: `Serviço de leitura de hidrômetros — ${monthLabel(block.month)}`, amount: n(block.billing?.serviceFee), issueDate: today(), city: '', issuer: block.manager || 'KR²MELO', phone: '', notes: '' , ...(block.serviceReceiptDraft || {}) };
+    return receiptDataV53(base);
+  };
+  receiptHtml = function(data) {
+    const receipt = receiptDataV53(data);
+    const notes = cleanNoteLines(receipt.notes, 4);
+    return `<article class="receipt-preview receipt-preview-branded"><header class="receipt-brand"><img src="assets/logo.png" alt="KR²MELO"><div><p class="eyebrow">KR²MELO · GESTÃO DE ÁGUA</p><h2>RECIBO</h2></div></header><p>Recebi de <strong>${esc(receipt.payer || '—')}</strong> a quantia de <strong>${money.format(n(receipt.amount))}</strong> (<strong>${esc(receipt.amountWords)}</strong>), referente a <strong>${esc(receipt.service || '—')}</strong>.</p>${notes.map(note => `<p>${esc(note)}</p>`).join('')}<p>${esc(receipt.city || '________________')}, ${dateBr(receipt.issueDate)}</p><footer><img class="receipt-signature" src="assets/assinatura.png" alt="Assinatura"><div></div><b>${esc(receipt.issuer || 'KR²MELO')}</b><br><small>${esc(receipt.phone || '')}</small></footer></article>`;
+  };
+  renderReceipts = function(block) {
+    const draft = receiptDraft(block);
+    return `<section class="receipt-layout"><form class="card form-grid" id="receiptForm"><div class="card-head field full"><h3>Recibo de serviço</h3></div><div class="field full"><label>Recebi de</label><input name="payer" value="${esc(draft.payer)}"></div><div class="field"><label>Valor (R$)</label><input name="amount" type="number" min="0" step="0.01" value="${draft.amount || ''}"></div><div class="field"><label>Valor por extenso automático</label><input name="amountWords" value="${esc(draft.amountWords)}" readonly></div><div class="field full"><label>Referente a</label><input name="service" value="${esc(draft.service)}"></div><div class="field"><label>Data</label><input name="issueDate" type="date" value="${esc(draft.issueDate)}"></div><div class="field"><label>Cidade</label><input name="city" value="${esc(draft.city)}"></div><div class="field"><label>Nome para assinatura</label><input name="issuer" value="${esc(draft.issuer)}"></div><div class="field"><label>Telefone</label><input name="phone" value="${esc(draft.phone)}"></div><div class="field full"><label>Observação</label><textarea name="notes" rows="3">${esc(draft.notes)}</textarea></div><div class="form-foot"><button class="secondary" data-clear-receipt type="button">Limpar</button><button class="primary" type="submit">Salvar recibo</button></div></form><section class="card"><div class="card-head"><h3>Pré-visualização</h3><button class="secondary" data-print-service-receipt type="button">Imprimir meia A4 retrato</button></div><div id="receiptPreview">${receiptHtml(draft)}</div></section></section><section class="card"><div class="card-head"><h3>Recibos emitidos</h3></div><div class="table-wrap"><table><thead><tr><th>Data</th><th>Recebi de</th><th>Referente</th><th>Valor</th><th></th></tr></thead><tbody>${(block.serviceReceipts || []).slice(0, 20).map(item => `<tr><td>${dateBr(item.issueDate)}</td><td>${esc(item.payer)}</td><td>${esc(item.service)}</td><td>${money.format(n(item.amount))}</td><td><button class="danger" data-delete-service-receipt="${item.id}" type="button">Excluir</button></td></tr>`).join('') || '<tr><td colspan="5" class="empty">Nenhum recibo salvo.</td></tr>'}</tbody></table></div></section>`;
+  };
+
+  billCopy = function(unit, block, copy) {
+    const c = unitCharges(unit, block); const billing = block.billing; const managerCopy = copy === 'SÍNDICO';
+    const ruleText = adjustmentText(c);
+    const discountLine = c.condoDiscount ? `<div class="bill-charge-line bill-adjustment"><span>${esc(ruleText || 'Desconto de condomínio')}</span><b>− ${money.format(c.condoDiscount)}</b></div>` : '';
+    const serviceLine = c.service ? `<div class="bill-charge-line"><span>${esc(billing.serviceLabel)}</span><b>${money.format(c.service)}</b></div>` : '';
+    const extraLine = c.extraCharge ? `<div class="bill-charge-line"><span>${esc(unit.extraChargeLabel || 'VALOR ADICIONAL')}</span><b>${money.format(c.extraCharge)}</b></div>` : '';
+    const notes = billingNoteLines(unit, billing);
+    const footer = managerCopy ? `<footer class="bill-signature"><div></div><small>RECEBIDO POR / ASSINATURA DO MORADOR</small></footer>` : `<section class="bill-notes"><strong>OBS.</strong><div>${noteParagraphs(notes)}</div></section>`;
+    return `<article class="bill-copy ${managerCopy ? 'bill-copy-manager' : 'bill-copy-resident'}"><div class="bill-copy-tag">VIA DO ${copy}</div><header class="bill-head"><strong>${esc(unit.number)}</strong><b>Vencimento · ${dateBr(billing.dueDate)}</b></header><div class="bill-party"><span>RESPONSÁVEL</span><strong>${esc(unit.resident || '—')}</strong><small>REFERÊNCIA · ${monthLabel(block.month).toUpperCase().replace(' DE ', ' / ')}</small></div><section class="bill-reading-grid"><div><span>LEITURA ANTERIOR</span><small>${dateBr(billing.previousReadDate)}</small><b>${fmtInt(unit.previous)}</b></div><div><span>LEITURA ATUAL</span><small>${dateBr(billing.currentReadDate)}</small><b>${unit.current === '' ? '—' : fmtInt(unit.current)}</b></div><div><span>CONSUMO</span><small>METROS CÚBICOS</small><b>${fmtM3(unit.m3)} m³</b></div></section><section class="bill-charge-list"><div class="bill-charge-line"><span>ÁGUA</span><b>${money.format(c.water)}</b></div>${discountLine}<div class="bill-charge-line bill-condo-net"><span>CONDOMÍNIO A PAGAR</span><b>${money.format(c.condo)}</b></div>${serviceLine}${extraLine}<div class="bill-charge-line"><span>${esc(unit.billingFineLabel || 'MULTAS / OUTROS')}</span><b>${money.format(c.fine)}</b></div></section><div class="bill-total"><strong>TOTAL</strong><span>VALOR A PAGAR</span><b>${money.format(c.total)}</b></div>${footer}</article>`;
+  };
+  renderBills = function(block) {
+    ensureV53(block);
+    const groups = chunk(block.units, 16);
+    const content = groups.map((units, index) => `<div class="bill-group-title no-print">Bloco ${blockLetter(index)} · ${units.length} apartamento(s)</div>${coverSheet(block, units, index)}${billPages(block, units, index)}`).join('');
+    const b = block.billing;
+    const unitNotes = `<section class="card billing-unit-notes"><div class="card-head"><h3>Observações individuais nos boletos</h3><span class="muted">Aparecem somente no boleto do respectivo apartamento.</span></div><div class="table-wrap"><table><thead><tr><th>Apto</th><th>Responsável</th><th>Observação individual</th></tr></thead><tbody>${block.units.map(unit => `<tr><td><strong>${esc(unit.number)}</strong></td><td>${esc(unit.resident || '—')}</td><td><textarea name="billingNote_${esc(unit.id)}" rows="2" placeholder="Ex.: Acordo, aviso, orientação específica">${esc(unit.billingNote || '')}</textarea></td></tr>`).join('')}</tbody></table></div></section>`;
+    return `<section class="billing-controls no-print"><div class="section-actions"><div><h2>Boletos mensais</h2><span class="muted">Cada boleto mostra água, condomínio, desconto/isenção, serviço e outros separadamente.</span></div><div class="button-row"><button class="secondary" data-go="regras">Regras por apartamento</button><button class="primary" data-print-bills>Imprimir conjunto</button></div></div><form class="card form-grid" id="billingForm"><div class="field"><label>Vencimento</label><input name="dueDate" type="date" value="${esc(b.dueDate)}" required></div><div class="field"><label>Conta global de água (R$)</label><input name="waterBill" type="number" min="0" step="0.01" value="${b.waterBill || ''}"></div><div class="field"><label>Data da leitura anterior</label><input name="previousReadDate" type="date" value="${esc(b.previousReadDate)}"></div><div class="field"><label>Data da leitura atual</label><input name="currentReadDate" type="date" value="${esc(b.currentReadDate)}"></div><div class="field"><label>Próxima leitura</label><input name="nextReadDate" type="date" value="${esc(b.nextReadDate)}"></div><div class="field"><label>Condomínio bruto (R$)</label><input name="condoFee" type="number" min="0" step="0.01" value="${b.condoFee}"></div><div class="field"><label>Serviço de leitura (R$)</label><input name="serviceFee" type="number" min="0" step="0.01" value="${b.serviceFee}"></div><div class="field"><label>Descrição do serviço</label><input name="serviceLabel" value="${esc(b.serviceLabel)}"></div><div class="field full"><label><input name="chargeService" type="checkbox" ${b.chargeService !== false ? 'checked' : ''}> Cobrar serviço de leitura neste mês</label></div><div class="field full"><label>Observações gerais — uma por linha</label><textarea name="notes" rows="5" placeholder="Cada linha aparece no boleto. Linhas em branco são ignoradas.">${esc(b.notes)}</textarea></div><div class="field full">${unitNotes}</div><div class="form-foot"><button class="primary" type="submit">Salvar e atualizar boletos</button></div></form></section><div class="billing-preview">${content || '<div class="card empty">Cadastre apartamentos antes de gerar boletos.</div>'}</div>`;
+  };
+  saveBilling = function(form) {
+    const block = selected(); if (!block) return;
+    ensureV53(block);
+    const data = Object.fromEntries(new FormData(form));
+    block.units.forEach(unit => { unit.billingNote = String(data[`billingNote_${unit.id}`] || ''); });
+    block.billing = normalizeBilling({ ...block.billing, ...data, chargeService: data.chargeService === 'on', waterBill: n(data.waterBill), serviceFee: n(data.serviceFee), condoFee: n(data.condoFee) }, block.month);
+    save('Configuração de boletos atualizada'); render();
+  };
+
+  const handleInputV53Base = handleInput;
+  handleInput = function(event) {
+    if (event.target.closest('#receiptForm')) {
+      const form = $('#receiptForm');
+      const preview = $('#receiptPreview');
+      if (form) {
+        const data = receiptDataV53(Object.fromEntries(new FormData(form)));
+        const amountWords = form.querySelector('[name="amountWords"]');
+        if (amountWords) amountWords.value = data.amountWords;
+        if (preview) preview.innerHTML = receiptHtml(data);
+      }
+      return;
+    }
+    return handleInputV53Base(event);
+  };
+  const handleSubmitV53Base = handleSubmit;
+  handleSubmit = function(event) {
+    if (event.target.id === 'receiptForm') {
+      event.preventDefault();
+      const block = selected(); if (!block) return;
+      const data = receiptDataV53(Object.fromEntries(new FormData(event.target)));
+      block.serviceReceiptDraft = data;
+      block.serviceReceipts.unshift({ ...data, id: uid(), createdAt: new Date().toISOString() });
+      save('Recibo salvo'); render(); return;
+    }
+    return handleSubmitV53Base(event);
+  };
+
+  function printReceiptHalfPortraitV53(title, receiptMarkup) {
+    const win = window.open('', '_blank');
+    if (!win) return toast('Permita pop-ups para imprimir o recibo.', true);
+    const css = new URL('styles.css', location.href).href;
+    win.document.write(`<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><base href="${esc(location.href)}"><title>${esc(title)}</title><link rel="stylesheet" href="${css}"><style>@page{size:A4 portrait;margin:10mm}*{box-sizing:border-box}html,body{margin:0;padding:0;background:#fff;color:#111;font-family:Arial,sans-serif}.receipt-toolbar{position:sticky;top:0;z-index:5;background:#111;color:#fff;padding:10px;display:flex;gap:12px;align-items:center;justify-content:center}.receipt-toolbar button{background:#ff1100;color:#fff;border:0;border-radius:7px;padding:9px 15px;font-weight:800;cursor:pointer}.receipt-half-page{width:190mm;height:138.5mm;margin:0 auto;display:block;page-break-inside:avoid}@media print{.receipt-toolbar{display:none!important}html,body{width:100%!important;height:auto!important;background:#fff!important}.receipt-half-page{width:190mm!important;height:138.5mm!important;margin:0!important;break-inside:avoid!important;page-break-inside:avoid!important}.receipt-half-page .receipt-preview{width:100%!important;height:138.5mm!important;min-height:0!important;overflow:hidden!important;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}}</style></head><body><div class="receipt-toolbar"><span>Recibo em meia folha A4 · retrato</span><button onclick="window.print()">Imprimir agora</button></div><main class="receipt-half-page">${receiptMarkup}</main></body></html>`);
+    win.document.close();
+  }
+  printReceiptHalfPortraitV521 = printReceiptHalfPortraitV53;
+  function printPaymentReceiptPortraitV53(id) {
+    const block = selected(); const unit = findUnit(block, id); if (!unit) return;
+    const c = unitCharges(unit, block);
+    printReceiptHalfPortraitV53(`Recibo Apto ${unit.number}`, receiptHtml({ payer: unit.resident || '—', amount: c.total, service: `Pagamento do apartamento ${unit.number}, referente a água, condomínio e demais lançamentos de ${monthLabel(block.month)}`, issueDate: unit.paymentDate || today(), city: '', issuer: block.manager || 'Síndico responsável', phone: '' }));
+  }
+
+  async function uploadCloudV53() {
+    try {
+      const c = window.KR2Sync?.getConfig?.() || {};
+      const remote = await window.KR2Sync?.remoteInfo?.();
+      if (remote?.updated_at && c.remoteUpdatedAt && remote.updated_at !== c.remoteUpdatedAt) {
+        const ok = confirm(`A cópia na nuvem foi alterada em ${auditDate(remote.updated_at)} depois da última sincronização deste aparelho.\n\nEnviar agora pode substituir dados de outro aparelho. Deseja continuar?`);
+        if (!ok) { render(); return; }
+      }
+      await window.KR2Sync.pushState(deepClone(state));
+      toast('Dados enviados para a nuvem'); render();
+    } catch (error) { toast(error.message || 'Falha no envio.', true); }
+  }
+  async function downloadCloudV53() {
+    try {
+      const remoteInfo = await window.KR2Sync?.remoteInfo?.();
+      const remote = await window.KR2Sync.pullState();
+      if (!remote || !Array.isArray(remote.blocks)) { toast('Nenhuma cópia encontrada para esta conta.'); render(); return; }
+      const msg = remoteInfo?.updated_at ? `A nuvem foi atualizada em ${auditDate(remoteInfo.updated_at)}.\n\nBaixar a nuvem substituirá os dados locais deste aparelho. Você já possui backup local?` : 'Baixar a nuvem substituirá os dados locais deste aparelho. Você já possui backup local?';
+      if (state.blocks.length && !confirm(msg)) { render(); return; }
+      suspendCloudSyncV52 = true; state = normalizeState(remote); state.blocks.forEach(ensureV51); state.blocks.forEach(ensureV53); localStorage.setItem(KEY, JSON.stringify(state)); suspendCloudSyncV52 = false; selectedReadingIds.clear(); toast('Dados baixados da nuvem'); render();
+    } catch (error) { toast(error.message || 'Falha ao baixar dados.', true); }
+  }
+  uploadCloudV52 = uploadCloudV53;
+  downloadCloudV52 = downloadCloudV53;
+
+  const renderV53Base = render;
+  render = function() {
+    state.blocks.forEach(ensureV53);
+    renderV53Base();
+    const heroEyebrow = $('#app .hero .eyebrow');
+    if (heroEyebrow) heroEyebrow.textContent = versionText(heroEyebrow.textContent);
+    refreshVersionLabelsV53();
+  };
+
+  const handleClickV53Base = handleClick;
+  handleClick = async function(event) {
+    const target = event.target;
+    const paymentReceipt = target.closest('[data-payment-receipt]');
+    if (paymentReceipt) { printPaymentReceiptPortraitV53(paymentReceipt.dataset.paymentReceipt); return; }
+    if (target.closest('[data-print-service-receipt]')) { printReceiptHalfPortraitV53('Recibo KR²MELO', $('#receiptPreview')?.innerHTML || ''); return; }
+    if (target.closest('[data-sync-push]')) { await uploadCloudV53(); return; }
+    if (target.closest('[data-sync-pull]')) { await downloadCloudV53(); return; }
+    return handleClickV53Base(event);
   };
 
   setTimeout(bootstrapCloudV52, 250);

@@ -80,6 +80,13 @@
     dispatch('pull', { updatedAt: row?.updated_at || '', found: Boolean(row) });
     return row?.payload || null;
   }
+  async function remoteInfo() {
+    const config = await refreshSessionIfNeeded();
+    const uid = encodeURIComponent(config.user.id);
+    const data = await request(`/rest/v1/kr2melo_sync_state?user_id=eq.${uid}&select=updated_at&limit=1`, { method: 'GET' }, config.accessToken);
+    const row = Array.isArray(data) ? data[0] : null;
+    return row || null;
+  }
   async function pushState(payload) {
     const config = await refreshSessionIfNeeded();
     const body = [{ user_id: config.user.id, payload, updated_at: now() }];
@@ -106,5 +113,5 @@
     write({ url: current.url || '', anonKey: current.anonKey || '', autoSync: false, lastPushAt: '', lastPullAt: '' });
     dispatch('session', { config: getConfig() });
   }
-  window.KR2Sync = { getConfig, setConfig, clearConfig, configured, connected, autoEnabled, signIn, signUp, signOut, pullState, pushState, queuePush, deleteRemote };
+  window.KR2Sync = { getConfig, setConfig, clearConfig, configured, connected, autoEnabled, signIn, signUp, signOut, pullState, pushState, queuePush, deleteRemote, remoteInfo };
 })();

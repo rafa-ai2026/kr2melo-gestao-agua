@@ -1,7 +1,7 @@
 # KR²MELO — Gestão de Água
 
 > **Manual completo de operação, impressão, histórico, sincronização e segurança**  
-> Versão do sistema: **v5.2.2**
+> Versão do sistema: **v5.3.4**
 
 O KR²MELO é um sistema para administrar leituras individuais de hidrômetros, rateio de água, cobranças, boletos, recibos, histórico mensal e controle financeiro de condomínios ou blocos residenciais.
 
@@ -1506,3 +1506,45 @@ Na página **Relatórios**, há uma caixa destacada chamada **“Relatórios sal
 Todo mês encerrado em **Fechamento** aparece como um cartão de histórico. Ao selecionar um deles, o sistema abre os valores preservados no fechamento, sem recalcular com as tarifas ou regras atuais.
 
 Quando nenhum mês foi encerrado, a caixa informa que ainda não há histórico disponível. Nesse caso, conclua o fechamento mensal primeiro.
+
+---
+
+## Atualização v5.3.0 — Boletos, recibos, versão e sincronização
+
+- Versão centralizada em `v5.3.0` nos arquivos do aplicativo, manifesto e cache PWA.
+- Boletos com observações gerais em mais linhas e observações individuais por apartamento.
+- Ajuste da grade de impressão dos boletos para quatro partes iguais ao cortar nas linhas tracejadas.
+- Recibo com logo, cores da plataforma e valor por extenso automático.
+- Aviso de possível conflito antes de sobrescrever uma cópia mais recente na nuvem.
+- Pasta `tests/` com smoke test e checklist de impressão.
+
+---
+
+## Atualização v5.3.1 — Capas e margem para grampear
+
+- Boletos com área visual maior à esquerda para grampear os blocos.
+- Capa frontal simplificada com apenas condomínio, vencimento e próxima leitura.
+- Contracapa invertida em 180° para ficar voltada para fora no bloco impresso.
+
+---
+
+## Atualização v5.3.2 — Grampo por via e leitura in loco simplificada
+
+- Área de grampo aplicada somente na via do Síndico.
+- Via do Morador mantida no tamanho normal.
+- Tela do celular simplificada para uso exclusivo de leitura in loco.
+- Remoção dos atalhos de foto, GPS, backup, ajuda, admin e sincronização manual da tela móvel.
+
+---
+
+## Atualização v5.3.3 — Capa frontal e fichas técnicas
+
+- Capa frontal mais compacta para a próxima leitura não ficar escondida na impressão.
+- Remoção das páginas de ficha técnica do bloco no conjunto dos boletos.
+
+---
+
+## Atualização v5.3.4 — Valor adicional individual
+
+- Novo campo de valor adicional por apartamento, separado de multas/outros.
+- Valor adicional aparece como linha própria no boleto e soma no total.
