@@ -31,6 +31,7 @@ button{border:0;padding:15px 16px;font-weight:900;cursor:pointer}
 .unit-number{font-size:54px;font-weight:950;letter-spacing:.03em}
 .resident-line{margin-top:-4px}
 .saved-line{margin:-4px 0 10px;color:var(--ok);font-size:12px;font-weight:800}
+.edit-unit{margin:0 0 12px;padding:11px 14px}
 .pill{display:inline-block;border-radius:999px;padding:6px 10px;font-size:12px;font-weight:900;background:#eee}
 .pill.ok{background:#e5f8ef;color:#08724e}
 .pill.warn{background:#fff3d8;color:#8a5b00}

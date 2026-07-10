@@ -1,6 +1,7 @@
 (() => {
   'use strict';
   const KEY = 'kr2melo.hidrometro.v1';
+  const APP_VERSION = '5.3.14';
   const $ = (selector, parent = document) => parent.querySelector(selector);
   const monthFmt = new Intl.DateTimeFormat('pt-BR', { month: 'long', year: 'numeric' });
   const n = value => Number(value) || 0;
@@ -17,6 +18,8 @@
   }
   function save(message = '') {
     try {
+      state.version = APP_VERSION;
+      state.blocks?.forEach(sortBlockUnits);
       localStorage.setItem(KEY, JSON.stringify(state));
       if (window.KR2Sync?.autoEnabled?.()) window.KR2Sync.queuePush(JSON.parse(JSON.stringify(state)));
       if (message) toast(message);
@@ -74,7 +77,7 @@
   }
   function moneyLike(value) { return n(value).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); }
   function downloadMobileBackup() {
-    const payload = { ...state, version: state.version || '5.3.11', exportedAt: new Date().toISOString(), source: 'mobile' };
+    const payload = { ...state, version: state.version || APP_VERSION, exportedAt: new Date().toISOString(), source: 'mobile' };
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -91,7 +94,7 @@
     const parsed = JSON.parse(raw);
     const candidate = parsed?.state && Array.isArray(parsed.state.blocks) ? parsed.state : parsed;
     if (!candidate || !Array.isArray(candidate.blocks)) throw new Error('invalid-backup');
-    return { ...candidate, version: candidate.version || parsed.appVersion || parsed.version || '5.3.11' };
+    return { ...candidate, version: candidate.version || parsed.appVersion || parsed.version || APP_VERSION };
   }
   function uploadMobileBackup() {
     $('#mobileImportInput')?.click();
@@ -106,6 +109,8 @@
       const ok = confirm(`Restaurar este BKP no celular?\n\nCondominios: ${imported.blocks.length}\nApartamentos: ${count}\n\nIsso substitui os dados atuais deste aparelho.`);
       if (!ok) return;
       state = imported;
+      state.version = APP_VERSION;
+      state.blocks?.forEach(sortBlockUnits);
       state.selected = state.blocks.some(block => block.id === state.selected) ? state.selected : (state.blocks[0]?.id || null);
       localStorage.setItem(KEY, JSON.stringify(state));
       if (window.KR2Sync?.autoEnabled?.()) window.KR2Sync.queuePush(JSON.parse(JSON.stringify(state)));
@@ -136,6 +141,7 @@
     const selectedIndex = state.blocks.findIndex(block => block.id === state.selected);
     blockIndex = selectedIndex >= 0 ? selectedIndex : 0;
     const block = currentBlock();
+    sortBlockUnits(block);
     const next = block?.units?.findIndex(unit => !isDone(unit));
     unitIndex = next >= 0 ? next : 0;
   }
@@ -147,23 +153,44 @@
     if (diff > 15) return { level: 'warn', text: 'Consumo acima de 15 m3.' };
     return null;
   }
+  function routeSortKey(unit) {
+    const label = String(unit?.number || '').toUpperCase().replace(/\s+/g, '');
+    const suffix = (label.match(/[A-Z]+$/) || [''])[0];
+    const numeric = Number((label.match(/\d+/) || ['0'])[0]);
+    if (!Number.isFinite(numeric) || numeric <= 0) return `${suffix}|999|999|${label}`;
+    const stack = ((numeric - 1) % 10) + 1;
+    const floor = Math.floor((numeric - stack) / 10);
+    return `${suffix}|${String(stack).padStart(3, '0')}|${String(floor).padStart(3, '0')}|${label}`;
+  }
+  function routeCompare(a, b) {
+    return routeSortKey(a).localeCompare(routeSortKey(b), 'pt-BR', { numeric: true });
+  }
+  function sortBlockUnits(block) {
+    if (Array.isArray(block?.units)) block.units.sort(routeCompare);
+    return block;
+  }
+  function routeOrderedIndexes(block, options = {}) {
+    const q = options.search === false ? '' : searchText.trim().toLowerCase();
+    return [...block.units].map((item, index) => ({ item, index }))
+      .filter(({ item }) => !q || String(item.number).toLowerCase().includes(q) || String(item.resident || '').toLowerCase().includes(q))
+      .sort((a, b) => Number(isDone(a.item)) - Number(isDone(b.item)) || routeCompare(a.item, b.item));
+  }
   function nextPendingIndex(block, start) {
-    for (let i = start + 1; i < block.units.length; i++) if (!isDone(block.units[i])) return i;
-    for (let i = 0; i < block.units.length; i++) if (!isDone(block.units[i])) return i;
+    const ordered = routeOrderedIndexes(block, { search: false }).filter(({ item }) => !isDone(item));
+    const afterCurrent = ordered.find(({ index }) => index > start);
+    if (afterCurrent) return afterCurrent.index;
+    if (ordered.length) return ordered[0].index;
     return Math.min(start + 1, block.units.length - 1);
   }
   function filteredUnits(block) {
-    const q = searchText.trim().toLowerCase();
-    return [...block.units].map((item, index) => ({ item, index }))
-      .filter(({ item }) => !q || String(item.number).toLowerCase().includes(q) || String(item.resident || '').toLowerCase().includes(q))
-      .sort((a, b) => Number(isDone(a.item)) - Number(isDone(b.item)) || String(a.item.number).localeCompare(String(b.item.number), 'pt-BR', { numeric: true }));
+    return routeOrderedIndexes(block);
   }
   function jumpPending() {
     const block = currentBlock();
     if (!block) return;
-    const next = block.units.findIndex(unit => !isDone(unit));
-    if (next < 0) return toast('Todas as leituras foram conferidas.');
-    unitIndex = next;
+    const next = routeOrderedIndexes(block, { search: false }).find(({ item }) => !isDone(item));
+    if (!next) return toast('Todas as leituras foram conferidas.');
+    unitIndex = next.index;
     render();
   }
   function reopenReading() {
@@ -175,6 +202,64 @@
       unit.estimatedReason = '';
     }
     save('Leitura reaberta');
+    render();
+  }
+  function duplicateUnitNumber(block, unit, number) {
+    const target = String(number || '').trim().toLowerCase();
+    return block.units.some(item => item !== unit && String(item.number || '').trim().toLowerCase() === target);
+  }
+  function recalcUnit(block, unit) {
+    if (unit.current === '' || unit.current === null || unit.current === undefined) return;
+    unit.m3 = Math.max(0, n(unit.current) - n(unit.previous));
+    unit.value = cost(unit.m3, tariffForMonth(block, block.month));
+  }
+  function pinHash(value) {
+    let hash = 2166136261;
+    for (const char of String(value || '')) {
+      hash ^= char.charCodeAt(0);
+      hash = Math.imul(hash, 16777619);
+    }
+    return String(hash >>> 0);
+  }
+  function verifyAdminPin() {
+    const existing = String(state.mobileAdminPinHash || '');
+    if (!existing) {
+      const created = prompt('Crie um PIN administrativo para editar apartamentos neste celular. Use 4 a 8 numeros.');
+      if (created === null) return false;
+      if (!/^\d{4,8}$/.test(created)) { toast('PIN deve ter 4 a 8 numeros.', true); return false; }
+      const confirmPin = prompt('Confirme o PIN administrativo.');
+      if (confirmPin !== created) { toast('PIN nao confere.', true); return false; }
+      state.mobileAdminPinHash = pinHash(created);
+      save('PIN administrativo criado');
+      return true;
+    }
+    const informed = prompt('Digite o PIN administrativo para editar este apartamento.');
+    if (pinHash(informed) !== existing) { toast('PIN incorreto.', true); return false; }
+    return true;
+  }
+  function editCurrentUnit() {
+    const block = currentBlock(), unit = currentUnit();
+    if (!block || !unit) return;
+    if (!verifyAdminPin()) return;
+    const number = prompt('Apartamento / hidrometro', unit.number);
+    if (number === null) return;
+    const cleanNumber = number.trim();
+    if (!cleanNumber) return toast('Informe o apartamento.', true);
+    if (duplicateUnitNumber(block, unit, cleanNumber)) return toast('Ja existe apartamento com esse numero.', true);
+    const resident = prompt('Responsavel', unit.resident || '');
+    if (resident === null) return;
+    const previousRaw = prompt('Leitura anterior', unit.previous ?? 0);
+    if (previousRaw === null) return;
+    const previous = Number(String(previousRaw).replace(',', '.').trim());
+    if (!Number.isFinite(previous) || previous < 0) return toast('Leitura anterior invalida.', true);
+    unit.number = cleanNumber;
+    unit.resident = resident.trim();
+    unit.previous = previous;
+    recalcUnit(block, unit);
+    sortBlockUnits(block);
+    unitIndex = block.units.findIndex(item => item.id === unit.id);
+    state.selected = block.id;
+    if (!save(`Apto ${unit.number} atualizado`)) return;
     render();
   }
 
@@ -200,7 +285,7 @@
       <section class="card compact-card"><label class="muted"><b>Condominio</b></label><select id="blockPick">${state.blocks.map((item, index) => `<option value="${index}" ${item.id === block.id ? 'selected' : ''}>${esc(item.name)}</option>`).join('')}</select></section>
       <section class="card route-summary" id="routeSummary"><div><small>Pendentes</small><strong>${pending}</strong></div><div><small>Lidas</small><strong>${real}</strong></div><div><small>Sem acesso</small><strong>${noAccess}</strong></div><div><small>Alertas</small><strong>${alerts}</strong></div></section>
       <section class="card mobile-tools"><input id="aptSearch" autocomplete="off" value="${esc(searchText)}" placeholder="Buscar apto ou morador"><button class="secondary pending-button" id="jumpPending">Ir para pendente</button><button class="secondary backup-button" id="mobileBackupBtn">Baixar BKP</button><button class="secondary backup-button" id="mobileImportBtn">Upar BKP</button></section>
-      <section class="card reading-card"><div class="unit-head"><div><span class="muted">Apartamento</span><div class="unit-number">${esc(unit.number)}</div></div><span class="pill ${isDone(unit) ? 'ok' : 'warn'}">${isDone(unit) ? 'Salvo' : 'Pendente'}</span></div><p class="muted resident-line">${esc(unit.resident || 'Responsavel nao informado')}</p>${savedAt ? `<p class="saved-line">Salvo em ${esc(savedAt)}</p>` : ''}<div class="read-kpis"><div><small>Anterior</small><strong>${fmt(unit.previous)}</strong></div><div><small>Consumo</small><strong>${fmt(consumption)} m3</strong></div></div><div class="reading-big"><label>Leitura atual</label><input id="currentReading" inputmode="decimal" autocomplete="off" value="${unit.current === '' ? '' : esc(unit.current)}" placeholder="Digite e aperte Enter"></div><label class="note-field">Observacao da leitura<textarea id="mobileNote" rows="2" placeholder="Ex.: visor embacado, lacre rompido">${esc(unit.note || '')}</textarea></label><div id="alertBox"></div><button class="primary save-reading" id="saveBtn">Salvar e proximo</button><div class="no-access-row"><select id="noAccessReason">${reasonOption('Sem acesso')}${reasonOption('Morador ausente')}${reasonOption('Hidrometro inacessivel')}${reasonOption('Portao fechado')}</select><button class="secondary no-access" id="noAccessBtn">Marcar</button></div>${isDone(unit) ? '<button class="secondary reopen" id="reopenBtn">Reabrir leitura</button>' : ''}<div class="row nav-row"><button class="secondary" id="prevBtn">Anterior</button><button class="secondary" id="nextBtn">Proximo</button></div></section>
+      <section class="card reading-card"><div class="unit-head"><div><span class="muted">Apartamento</span><div class="unit-number">${esc(unit.number)}</div></div><span class="pill ${isDone(unit) ? 'ok' : 'warn'}">${isDone(unit) ? 'Salvo' : 'Pendente'}</span></div><p class="muted resident-line">${esc(unit.resident || 'Responsavel nao informado')}</p>${savedAt ? `<p class="saved-line">Salvo em ${esc(savedAt)}</p>` : ''}<button class="secondary edit-unit" id="editUnitBtn">Editar apto</button><div class="read-kpis"><div><small>Anterior</small><strong>${fmt(unit.previous)}</strong></div><div><small>Consumo</small><strong>${fmt(consumption)} m3</strong></div></div><div class="reading-big"><label>Leitura atual</label><input id="currentReading" inputmode="decimal" autocomplete="off" value="${unit.current === '' ? '' : esc(unit.current)}" placeholder="Digite e aperte Enter"></div><label class="note-field">Observacao da leitura<textarea id="mobileNote" rows="2" placeholder="Ex.: visor embacado, lacre rompido">${esc(unit.note || '')}</textarea></label><div id="alertBox"></div><button class="primary save-reading" id="saveBtn">Salvar e proximo</button><div class="no-access-row"><select id="noAccessReason">${reasonOption('Sem acesso')}${reasonOption('Morador ausente')}${reasonOption('Hidrometro inacessivel')}${reasonOption('Portao fechado')}</select><button class="secondary no-access" id="noAccessBtn">Marcar</button></div>${isDone(unit) ? '<button class="secondary reopen" id="reopenBtn">Reabrir leitura</button>' : ''}<div class="row nav-row"><button class="secondary" id="prevBtn">Anterior</button><button class="secondary" id="nextBtn">Proximo</button></div></section>
       ${historyMarkup(block, unit)}
       <section class="card apt-card"><h3>Pendentes primeiro</h3><div class="apt-list">${orderedUnits.length ? orderedUnits.map(({ item, index }) => `<button data-jump="${index}" class="${index === unitIndex ? 'active' : ''} ${isDone(item) ? 'done' : ''}">${esc(item.number)}</button>`).join('') : '<p class="muted empty-list">Nenhum apartamento encontrado.</p>'}</div></section>`;
     bind();
@@ -223,6 +308,7 @@
     $('#jumpPending').onclick = jumpPending;
     $('#mobileBackupBtn').onclick = downloadMobileBackup;
     $('#mobileImportBtn').onclick = uploadMobileBackup;
+    $('#editUnitBtn').onclick = editCurrentUnit;
     $('#currentReading').oninput = event => checkAlert(event.target.value);
     $('#currentReading').onkeydown = event => { if (event.key === 'Enter') { event.preventDefault(); saveReading(); } };
     $('#mobileNote').onchange = event => { const unit = currentUnit(); if (unit) { unit.note = event.target.value; save('Observacao salva'); } };

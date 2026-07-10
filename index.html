@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#111111">
-  <meta name="description" content="KR²MELO Gestão de Água — leituras, rateio, boletos, isenções e descontos.">
-  <title>KR²MELO · Gestão de Água v5.3.13</title>
+  <meta name="description" content="KRÂ²MELO GestÃ£o de Ãgua â€” leituras, rateio, boletos, isenÃ§Ãµes e descontos.">
+  <title>KRÂ²MELO Â· GestÃ£o de Ãgua v5.3.14</title>
   <link rel="icon" href="assets/logo.png">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="stylesheet" href="styles.css">
@@ -13,43 +13,43 @@
 <body>
   <div class="app-shell">
     <aside class="sidebar" id="sidebar">
-      <a class="brand" href="#dashboard" aria-label="KR²MELO início">
-        <img src="assets/logo.png" alt="Logotipo KR²MELO">
-        <span><strong>KR²MELO</strong><small>Gestão de água · v5.3.13</small></span>
+      <a class="brand" href="#dashboard" aria-label="KRÂ²MELO inÃ­cio">
+        <img src="assets/logo.png" alt="Logotipo KRÂ²MELO">
+        <span><strong>KRÂ²MELO</strong><small>GestÃ£o de Ã¡gua Â· v5.3.14</small></span>
       </a>
-      <nav aria-label="Navegação principal">
-        <a href="#dashboard" data-route="dashboard"><span>⌂</span> Visão geral</a>
-        <a href="#leituras" data-route="leituras"><span>◫</span> Leituras</a>
-        <a href="#fechamento" data-route="fechamento"><span>◷</span> Fechamento</a>
-        <a href="#historico" data-route="historico"><span>▤</span> Histórico e auditoria</a>
-        <a href="#unidades" data-route="unidades"><span>◉</span> Unidades e hidrômetros</a>
-        <a href="#excecoes" data-route="excecoes"><span>⚠</span> Exceções do mês</a>
-        <a href="#relatorios" data-route="relatorios"><span>▧</span> Relatórios</a>
-        <a href="#proposta" data-route="proposta"><span>▨</span> Proposta</a>
-        <a href="#anual" data-route="anual"><span>▦</span> Dashboard anual</a>
-        <a href="#recibos" data-route="recibos"><span>▣</span> Recibos</a>
-        <a href="#boletos" data-route="boletos"><span>▥</span> Boletos</a>
-        <a href="#configuracoes" data-route="configuracoes"><span>⚙</span> Configurações</a>
-        <a href="#sincronizacao" data-route="sincronizacao"><span>☁</span> Sincronização</a>
+      <nav aria-label="NavegaÃ§Ã£o principal">
+        <a href="#dashboard" data-route="dashboard"><span>âŒ‚</span> VisÃ£o geral</a>
+        <a href="#leituras" data-route="leituras"><span>â—«</span> Leituras</a>
+        <a href="#fechamento" data-route="fechamento"><span>â—·</span> Fechamento</a>
+        <a href="#historico" data-route="historico"><span>â–¤</span> HistÃ³rico e auditoria</a>
+        <a href="#unidades" data-route="unidades"><span>â—‰</span> Unidades e hidrÃ´metros</a>
+        <a href="#excecoes" data-route="excecoes"><span>âš </span> ExceÃ§Ãµes do mÃªs</a>
+        <a href="#relatorios" data-route="relatorios"><span>â–§</span> RelatÃ³rios</a>
+        <a href="#proposta" data-route="proposta"><span>â–¨</span> Proposta</a>
+        <a href="#anual" data-route="anual"><span>â–¦</span> Dashboard anual</a>
+        <a href="#recibos" data-route="recibos"><span>â–£</span> Recibos</a>
+        <a href="#boletos" data-route="boletos"><span>â–¥</span> Boletos</a>
+        <a href="#configuracoes" data-route="configuracoes"><span>âš™</span> ConfiguraÃ§Ãµes</a>
+        <a href="#sincronizacao" data-route="sincronizacao"><span>â˜</span> SincronizaÃ§Ã£o</a>
         <a href="#ajuda" data-route="ajuda"><span>?</span> Ajuda</a>
-        <a href="./mobile.html"><span>📱</span> Modo leiturista</a>
+        <a href="./mobile.html"><span>ðŸ“±</span> Modo leiturista</a>
       </nav>
       <div class="sidebar-foot"><span class="status-dot"></span> Dados neste dispositivo</div>
     </aside>
 
     <div class="main-area">
       <header class="topbar">
-        <button class="menu-btn" id="menuBtn" aria-label="Abrir menu">☰</button>
-        <div class="page-heading"><p class="eyebrow" id="pageEyebrow">PAINEL</p><h1 id="pageTitle">Visão geral</h1></div>
+        <button class="menu-btn" id="menuBtn" aria-label="Abrir menu">â˜°</button>
+        <div class="page-heading"><p class="eyebrow" id="pageEyebrow">PAINEL</p><h1 id="pageTitle">VisÃ£o geral</h1></div>
         <div class="top-actions">
-          <label class="block-picker"><span>Condomínio</span><select id="blockSelect" aria-label="Selecionar condomínio"></select></label>
-          <button class="icon-btn" id="exportBtn" title="Baixar backup" aria-label="Baixar backup">⇩</button>
+          <label class="block-picker"><span>CondomÃ­nio</span><select id="blockSelect" aria-label="Selecionar condomÃ­nio"></select></label>
+          <button class="icon-btn" id="exportBtn" title="Baixar backup" aria-label="Baixar backup">â‡©</button>
           <button class="secondary" id="importBackupBtn" type="button">Importar backup</button>
-          <button class="primary" id="newBlockBtn" type="button">+ Novo condomínio</button>
+          <button class="primary" id="newBlockBtn" type="button">+ Novo condomÃ­nio</button>
         </div>
         <nav class="mobile-shortcuts" aria-label="Atalhos no celular">
           <a href="#ajuda" data-mobile-shortcut="help"><span aria-hidden="true">?</span> Ajuda</a>
-          <a href="./mobile.html" data-mobile-shortcut="reader"><span aria-hidden="true">📱</span> Leiturista</a>
+          <a href="./mobile.html" data-mobile-shortcut="reader"><span aria-hidden="true">ðŸ“±</span> Leiturista</a>
         </nav>
       </header>
       <main id="app" tabindex="-1"></main>

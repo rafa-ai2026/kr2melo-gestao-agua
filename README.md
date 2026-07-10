@@ -1644,3 +1644,13 @@ Ao salvar o modelo, o sistema recalcula automaticamente a água nas leituras, bo
 - A tela Proposta foi ajustada para formato de carta de apresentacao.
 - O texto apresenta o trabalho e o site como instrumento de organizacao.
 - Removido o tom de contrato, aceite e contratante.
+---
+
+## Atualizacao v5.3.14 - Rota fisica e edicao protegida no mobile
+
+- Apartamentos agora seguem a ordem fisica da leitura em todo o site: 01, 11, 21, 31; 02, 12, 22, 32; e assim por diante.
+- A mesma regra separa os blocos por sufixo, como A antes de B.
+- O modo mobile ganhou edicao protegida por PIN administrativo para apartamento, responsavel e leitura anterior.
+- Backups mobile passam a gravar a versao atual do sistema.
+- Fixtures e checklist duplicados foram removidos da raiz, mantendo as copias usadas em `tests/`.
+
