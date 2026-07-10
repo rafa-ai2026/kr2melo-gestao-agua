@@ -10,9 +10,9 @@ const manifest = readFileSync(new URL('../manifest.webmanifest', import.meta.url
 const sw = readFileSync(new URL('../sw.js', import.meta.url), 'utf8');
 const css = readFileSync(new URL('../styles.css', import.meta.url), 'utf8');
 
-assert.match(app, /const APP_VERSION = '5\.3\.15'/, 'APP_VERSION deve estar em v5.3.15');
+assert.match(app, /const APP_VERSION = '5\.3\.16'/, 'APP_VERSION deve estar em v5.3.16');
 for (const file of [html, mobile, manifest, sw]) {
-  assert.match(file, /5\.3\.15/, 'todos os arquivos publicados devem carregar a versao nova');
+  assert.match(file, /5\.3\.16/, 'todos os arquivos publicados devem carregar a versao nova');
 }
 
 assert.match(app, /billingNote_/, 'boletos devem salvar observacao individual por unidade');
@@ -92,6 +92,11 @@ assert.match(app, /data-reorder-units/, 'configuracoes deve permitir reordenar a
 assert.match(app, /unit-change-history/, 'unidades deve mostrar historico de alteracao por apartamento');
 assert.match(app, /checkVersionNoticeV5315/, 'site deve avisar sobre versao/cache antigo');
 assert.doesNotMatch(app + mobileJs + html, /VisÃ|KRÂ|condomÃ|mÂ³|ConfiguraÃ/, 'arquivos publicados nao devem ter mojibake comum');
+assert.match(app, /fineUnitsCardV5316/, 'Leituras deve identificar apartamentos com multa ou outros lancamentos');
+assert.match(app, /waterStrategyCardV5316/, 'Leituras deve recomendar melhor forma de sanar a conta de agua');
+assert.match(app, /rateio proporcional/, 'analise da agua deve sugerir rateio proporcional ao consumo');
+assert.match(css, /fine-unit-list/, 'lista de apartamentos com multas deve ter estilo proprio');
+assert.match(css, /strategy-options/, 'opcoes de estrategia da agua devem ter estilo proprio');
 assert.match(html, /data-route="proposta"/, 'menu deve mostrar a proposta comercial');
 assert.match(app, /proposalDocumentMarkup/, 'app deve gerar documento de apresentacao');
 assert.match(app, /data-print-proposal/, 'proposta deve ter botao para salvar PDF ou imprimir');
@@ -102,4 +107,4 @@ assert.doesNotMatch(app, /Contratante \/ Administradora/, 'carta nao deve parece
 assert.match(css, /proposal-document/, 'proposta deve ter estilo proprio para PDF');
 assert.match(css, /presentation-letter/, 'carta deve ter estilo de apresentacao');
 
-console.log('Smoke tests KR2MELO v5.3.15: OK');
+console.log('Smoke tests KR2MELO v5.3.16: OK');

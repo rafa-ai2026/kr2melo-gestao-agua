@@ -2,7 +2,7 @@
   'use strict';
 
   const KEY = 'kr2melo.hidrometro.v1';
-  const APP_VERSION = '5.3.15';
+  const APP_VERSION = '5.3.16';
   const DEFAULT_TARIFF = { minimum: 80.84, minimumM3: 10, tier1: 8.37, tier1Limit: 20, tier2: 10.87, tier2Limit: 30 };
   const money = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
   const monthFmt = new Intl.DateTimeFormat('pt-BR', { month: 'long', year: 'numeric' });
@@ -2445,6 +2445,77 @@ Esta ação remove os apartamentos da competência atual. O histórico já fecha
     state.blocks.forEach(ensureV538);
     renderV538Base();
     refreshVersionLabelsV53();
+  };
+
+  // ===================== KR2MELO v5.3.16 =====================
+  function fineUnitsV5316(block) {
+    return orderUnits([...(block?.units || [])])
+      .map(unit => ({ unit, charges: unitCharges(unit, block) }))
+      .filter(item => item.charges.fine > 0);
+  }
+
+  function fineUnitsCardV5316(block) {
+    const items = fineUnitsV5316(block);
+    const total = items.reduce((sum, item) => sum + item.charges.fine, 0);
+    if (!items.length) {
+      return `<section class="card fine-units-card no-print"><div class="card-head"><div><h3>Apartamentos com multas/outros</h3><span class="muted">Nenhum apartamento possui multa ou outro lancamento neste mes.</span></div><span class="pill ok">0</span></div></section>`;
+    }
+    return `<section class="card fine-units-card no-print"><div class="card-head"><div><h3>Apartamentos com multas/outros</h3><span class="muted">Lista rapida para conferir quem recebeu lancamento individual.</span></div><span class="pill danger">${items.length} apto(s) · ${money.format(total)}</span></div><div class="fine-unit-list">${items.map(({ unit, charges }) => `<article class="fine-unit-item"><strong>${esc(unit.number)}</strong><div><b>${esc(unit.resident || 'Sem responsavel')}</b><small>${esc(unit.billingFineLabel || 'MULTAS / OUTROS')}${unit.billingFineNote ? ` · ${esc(unit.billingFineNote)}` : ''}</small></div><span>${money.format(charges.fine)}</span></article>`).join('')}</div></section>`;
+  }
+
+  function waterStrategyV5316(block) {
+    const totals = chargeTotals(block);
+    const coverage = waterCoverage(block);
+    const bill = coverage.bill;
+    const gap = Math.max(0, bill - totals.water);
+    const readUnits = (block?.units || []).filter(unit => unit.current !== '' && unit.current !== null && unit.current !== undefined);
+    const pending = Math.max(0, (block?.units || []).length - readUnits.length);
+    const consumed = (block?.units || []).filter(unit => n(unit.m3) > 0);
+    const avgM3 = consumed.length ? totals.m3 / consumed.length : 0;
+    const highUnits = consumed
+      .filter(unit => n(unit.m3) >= Math.max(20, avgM3 * 1.55))
+      .sort((a, b) => n(b.m3) - n(a.m3))
+      .slice(0, 3);
+    const topUnits = consumed.sort((a, b) => n(b.m3) - n(a.m3)).slice(0, 3);
+    const perUnitGap = block.units.length ? gap / block.units.length : 0;
+    const proportionalExamples = topUnits.map(unit => {
+      const share = totals.m3 > 0 ? gap * n(unit.m3) / totals.m3 : 0;
+      return `${esc(unit.number)}: ${money.format(share)}`;
+    }).join(' · ');
+    const pricePerM3 = bill && totals.m3 ? bill / totals.m3 : 0;
+    let recommendation = 'Informe a conta global de agua e as leituras para receber uma recomendacao.';
+    let pill = '<span class="pill info">Aguardando dados</span>';
+    if (bill && pending > 0) {
+      recommendation = `Melhor primeiro passo: concluir ${pending} leitura(s) pendente(s) antes de fechar o rateio.`;
+      pill = '<span class="pill warn">Completar leituras</span>';
+    } else if (bill && totals.m3 <= 0) {
+      recommendation = 'Melhor primeiro passo: conferir leituras, pois ainda nao ha consumo suficiente para dividir a conta com seguranca.';
+      pill = '<span class="pill warn">Sem consumo</span>';
+    } else if (gap > 0) {
+      recommendation = 'Melhor opcao: cobrir a diferenca por rateio proporcional ao consumo, pois quem consumiu mais participa mais da sobra da conta global.';
+      pill = '<span class="pill danger">Falta cobertura</span>';
+    } else if (bill) {
+      recommendation = 'A soma da agua ja cobre a conta global. Se a sobra estiver alta, revise a tarifa configurada ou mantenha como margem/reserva combinada com o predio.';
+      pill = '<span class="pill ok">Conta coberta</span>';
+    }
+    return { totals, coverage, bill, gap, pending, avgM3, highUnits, topUnits, perUnitGap, proportionalExamples, pricePerM3, recommendation, pill };
+  }
+
+  function waterStrategyCardV5316(block) {
+    const s = waterStrategyV5316(block);
+    const high = s.highUnits.length ? s.highUnits.map(unit => `<span>${esc(unit.number)} · ${fmtM3(unit.m3)} m3</span>`).join('') : '<span>Nenhum consumo alto destacado.</span>';
+    const proportionalText = s.gap > 0 && s.totals.m3 > 0 ? `Rateio proporcional: ${s.proportionalExamples || 'sem consumo para simular'}.` : 'Rateio proporcional sera calculado quando houver falta de cobertura.';
+    return `<section class="card water-strategy-card no-print"><div class="card-head"><div><h3>Melhor forma de sanar a conta de agua</h3><span class="muted">Analise baseada na conta global, nas leituras dos hidrometros e na tarifa configurada.</span></div>${s.pill}</div><div class="strategy-main"><strong>${esc(s.recommendation)}</strong><div class="strategy-kpis"><div><small>Diferenca a cobrir</small><b>${money.format(s.gap)}</b></div><div><small>Conta por m3 real</small><b>${s.pricePerM3 ? money.format(s.pricePerM3) : '---'}</b></div><div><small>Rateio igual</small><b>${s.gap ? money.format(s.perUnitGap) : '---'}</b></div><div><small>Leituras pendentes</small><b>${s.pending}</b></div></div></div><div class="strategy-options"><article><b>1. Proporcional ao consumo</b><small>${proportionalText}</small></article><article><b>2. Igual por apartamento</b><small>${s.gap ? `Cada unidade cobriria ${money.format(s.perUnitGap)}.` : 'Use somente quando o predio decidir dividir a diferenca igualmente.'}</small></article><article><b>3. Revisar tarifa/minimo</b><small>Se a falta ou sobra repetir todo mes, ajuste a tarifa em Configuracoes usando a conta real como conferencia.</small></article></div><div class="strategy-watch"><b>Apartamentos para conferir consumo</b><div>${high}</div></div></section>`;
+  }
+
+  const waterCoverageCardV5316Base = waterCoverageCard;
+  waterCoverageCard = function(block) {
+    return `${waterCoverageCardV5316Base(block)}${waterStrategyCardV5316(block)}`;
+  };
+
+  const adjustmentCenterV5316Base = adjustmentCenterV537;
+  adjustmentCenterV537 = function(block) {
+    return `${fineUnitsCardV5316(block)}${adjustmentCenterV5316Base(block)}`;
   };
 
   setTimeout(bootstrapCloudV52, 250);
