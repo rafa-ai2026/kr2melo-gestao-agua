@@ -11,9 +11,9 @@ const manifest = readFileSync(new URL('../manifest.webmanifest', import.meta.url
 const sw = readFileSync(new URL('../sw.js', import.meta.url), 'utf8');
 const css = readFileSync(new URL('../styles.css', import.meta.url), 'utf8');
 
-assert.match(app, /const APP_VERSION = '5\.3\.17'/, 'APP_VERSION deve estar em v5.3.17');
+assert.match(app, /const APP_VERSION = '5\.3\.18'/, 'APP_VERSION deve estar em v5.3.18');
 for (const file of [html, mobile, manifest, sw]) {
-  assert.match(file, /5\.3\.17/, 'todos os arquivos publicados devem carregar a versao nova');
+  assert.match(file, /5\.3\.18/, 'todos os arquivos publicados devem carregar a versao nova');
 }
 
 assert.match(app, /billingNote_/, 'boletos devem salvar observacao individual por unidade');
@@ -108,6 +108,9 @@ assert.match(app, /annualAdvancedInsightsV5317/, 'dashboard anual deve mostrar a
 assert.match(css, /closing-checklist/, 'checklist inteligente deve ter estilo');
 assert.match(mobileJs, /mobileFilter/, 'mobile deve permitir filtrar pendentes, lidas, sem acesso e alertas');
 assert.match(mobileCss, /reading-card-alert/, 'mobile deve destacar leitura com alerta');
+assert.match(mobileCss, /\.apt-list\{display:grid;grid-template-columns:repeat\(4,1fr\)/, 'mobile deve manter lista de aptos em linhas de 4');
+assert.doesNotMatch(mobileCss, /apt-list\{grid-template-columns:repeat\(6/, 'mobile nao deve voltar para 6 apartamentos por linha');
+assert.doesNotMatch(mobileCss, /apt-list\{grid-template-columns:repeat\(3/, 'mobile nao deve voltar para 3 apartamentos por linha');
 assert.match(html, /data-route="proposta"/, 'menu deve mostrar a proposta comercial');
 assert.match(app, /proposalDocumentMarkup/, 'app deve gerar documento de apresentacao');
 assert.match(app, /data-print-proposal/, 'proposta deve ter botao para salvar PDF ou imprimir');
@@ -118,4 +121,4 @@ assert.doesNotMatch(app, /Contratante \/ Administradora/, 'carta nao deve parece
 assert.match(css, /proposal-document/, 'proposta deve ter estilo proprio para PDF');
 assert.match(css, /presentation-letter/, 'carta deve ter estilo de apresentacao');
 
-console.log('Smoke tests KR2MELO v5.3.17: OK');
+console.log('Smoke tests KR2MELO v5.3.18: OK');
