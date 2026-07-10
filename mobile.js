@@ -35,7 +35,7 @@
   }
   function cost(m3, tariff) {
     const use = Math.max(0, n(m3));
-    const t = { minimum: 64.6, tier1: 8.94, tier2: 13.82, sheetMinimum: 70, sheetAllowance: 10, sheetExcess: 7, ...(tariff || {}) };
+    const t = { minimum: 80.84, minimumM3: 10, tier1: 8.37, tier1Limit: 20, tier2: 10.87, tier2Limit: 30, sheetMinimum: 80.84, sheetAllowance: 10, sheetExcess: 8.37, ...(tariff || {}) };
     const mode = String(t.calculationMode || t.mode || '').trim();
     if (mode === 'spreadsheet_1938') {
       const allowance = Math.max(0, n(t.sheetAllowance));
@@ -44,9 +44,78 @@
       if (use <= allowance) return minimum;
       return minimum + (use - allowance) * excess;
     }
-    if (use <= 10) return n(t.minimum);
-    if (use <= 20) return n(t.minimum) + (use - 10) * n(t.tier1);
-    return n(t.minimum) + 10 * n(t.tier1) + (use - 20) * n(t.tier2);
+    const minimumM3 = Math.max(0, n(t.minimumM3 || 10));
+    const tier1Limit = Math.max(minimumM3, n(t.tier1Limit || 20));
+    if (use <= minimumM3) return n(t.minimum);
+    if (use <= tier1Limit) return n(t.minimum) + (use - minimumM3) * n(t.tier1);
+    return n(t.minimum) + (tier1Limit - minimumM3) * n(t.tier1) + (use - tier1Limit) * n(t.tier2);
+  }
+  function tariffV5311(raw = {}) {
+    return { minimum: 80.84, minimumM3: 10, tier1: 8.37, tier1Limit: 20, tier2: 10.87, tier2Limit: 30, sheetMinimum: 80.84, sheetAllowance: 10, sheetExcess: 8.37, ...(raw || {}) };
+  }
+  function tariffForMonth(block, month = block?.month) {
+    const periods = Array.isArray(block?.tariffPeriods) ? block.tariffPeriods
+      .filter(item => item && item.effectiveMonth && item.effectiveMonth <= month)
+      .sort((a, b) => String(a.effectiveMonth).localeCompare(String(b.effectiveMonth))) : [];
+    return tariffV5311(periods.pop()?.tariff || block?.tariff);
+  }
+  function unitHistory(block, unit) {
+    if (!block || !unit || !Array.isArray(block.history)) return [];
+    return block.history.map(entry => {
+      const found = (entry.units || []).find(item => String(item.id) === String(unit.id) || String(item.number) === String(unit.number));
+      if (!found) return null;
+      return { month: entry.month, m3: n(found.m3), current: found.current, water: cost(n(found.m3), entry.tariff || tariffForMonth(block, entry.month)) };
+    }).filter(Boolean).sort((a, b) => String(b.month).localeCompare(String(a.month))).slice(0, 4);
+  }
+  function historyMarkup(block, unit) {
+    const rows = unitHistory(block, unit);
+    if (!rows.length) return '<section class="card history-card"><h3>Historico rapido</h3><p class="muted">Sem meses fechados para este apartamento.</p></section>';
+    return `<section class="card history-card"><h3>Historico rapido</h3><div class="mobile-history-list">${rows.map(row => `<div><small>${esc(monthLabel(row.month))}</small><strong>${fmt(row.m3)} m3</strong><span>${moneyLike(row.water)}</span></div>`).join('')}</div></section>`;
+  }
+  function moneyLike(value) { return n(value).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); }
+  function downloadMobileBackup() {
+    const payload = { ...state, version: state.version || '5.3.11', exportedAt: new Date().toISOString(), source: 'mobile' };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const block = currentBlock();
+    a.href = url;
+    a.download = `kr2melo-bkp-mobile-${(block?.name || 'condominio').replace(/[^a-z0-9]+/gi, '-').replace(/^-|-$/g, '').toLowerCase()}-${new Date().toISOString().slice(0, 10)}.json`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    toast('BKP baixado no celular.');
+  }
+  function backupStateFromJson(raw) {
+    const parsed = JSON.parse(raw);
+    const candidate = parsed?.state && Array.isArray(parsed.state.blocks) ? parsed.state : parsed;
+    if (!candidate || !Array.isArray(candidate.blocks)) throw new Error('invalid-backup');
+    return { ...candidate, version: candidate.version || parsed.appVersion || parsed.version || '5.3.11' };
+  }
+  function uploadMobileBackup() {
+    $('#mobileImportInput')?.click();
+  }
+  async function importMobileBackup(event) {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (!file) return;
+    try {
+      const imported = backupStateFromJson(await file.text());
+      const count = imported.blocks.reduce((sum, block) => sum + (Array.isArray(block.units) ? block.units.length : 0), 0);
+      const ok = confirm(`Restaurar este BKP no celular?\n\nCondominios: ${imported.blocks.length}\nApartamentos: ${count}\n\nIsso substitui os dados atuais deste aparelho.`);
+      if (!ok) return;
+      state = imported;
+      state.selected = state.blocks.some(block => block.id === state.selected) ? state.selected : (state.blocks[0]?.id || null);
+      localStorage.setItem(KEY, JSON.stringify(state));
+      if (window.KR2Sync?.autoEnabled?.()) window.KR2Sync.queuePush(JSON.parse(JSON.stringify(state)));
+      searchText = '';
+      initIndexes();
+      toast('BKP restaurado no celular.');
+      render();
+    } catch {
+      toast('BKP invalido. Selecione um arquivo JSON do KR2MELO.', true);
+    }
   }
   function currentBlock() { return state.blocks.find(block => block.id === state.selected) || state.blocks[blockIndex] || state.blocks[0] || null; }
   function currentUnit() { return currentBlock()?.units?.[unitIndex] || null; }
@@ -130,8 +199,9 @@
     app.innerHTML = `<section class="card hero"><p>Leitura in loco</p><h1>${esc(block.name)}</h1><p>${monthLabel(block.month)} - ${done}/${block.units.length} leituras</p><div class="progress"><i style="width:${percent}%"></i></div></section>
       <section class="card compact-card"><label class="muted"><b>Condominio</b></label><select id="blockPick">${state.blocks.map((item, index) => `<option value="${index}" ${item.id === block.id ? 'selected' : ''}>${esc(item.name)}</option>`).join('')}</select></section>
       <section class="card route-summary" id="routeSummary"><div><small>Pendentes</small><strong>${pending}</strong></div><div><small>Lidas</small><strong>${real}</strong></div><div><small>Sem acesso</small><strong>${noAccess}</strong></div><div><small>Alertas</small><strong>${alerts}</strong></div></section>
-      <section class="card mobile-tools"><input id="aptSearch" autocomplete="off" value="${esc(searchText)}" placeholder="Buscar apto ou morador"><button class="secondary pending-button" id="jumpPending">Ir para pendente</button></section>
+      <section class="card mobile-tools"><input id="aptSearch" autocomplete="off" value="${esc(searchText)}" placeholder="Buscar apto ou morador"><button class="secondary pending-button" id="jumpPending">Ir para pendente</button><button class="secondary backup-button" id="mobileBackupBtn">Baixar BKP</button><button class="secondary backup-button" id="mobileImportBtn">Upar BKP</button></section>
       <section class="card reading-card"><div class="unit-head"><div><span class="muted">Apartamento</span><div class="unit-number">${esc(unit.number)}</div></div><span class="pill ${isDone(unit) ? 'ok' : 'warn'}">${isDone(unit) ? 'Salvo' : 'Pendente'}</span></div><p class="muted resident-line">${esc(unit.resident || 'Responsavel nao informado')}</p>${savedAt ? `<p class="saved-line">Salvo em ${esc(savedAt)}</p>` : ''}<div class="read-kpis"><div><small>Anterior</small><strong>${fmt(unit.previous)}</strong></div><div><small>Consumo</small><strong>${fmt(consumption)} m3</strong></div></div><div class="reading-big"><label>Leitura atual</label><input id="currentReading" inputmode="decimal" autocomplete="off" value="${unit.current === '' ? '' : esc(unit.current)}" placeholder="Digite e aperte Enter"></div><label class="note-field">Observacao da leitura<textarea id="mobileNote" rows="2" placeholder="Ex.: visor embacado, lacre rompido">${esc(unit.note || '')}</textarea></label><div id="alertBox"></div><button class="primary save-reading" id="saveBtn">Salvar e proximo</button><div class="no-access-row"><select id="noAccessReason">${reasonOption('Sem acesso')}${reasonOption('Morador ausente')}${reasonOption('Hidrometro inacessivel')}${reasonOption('Portao fechado')}</select><button class="secondary no-access" id="noAccessBtn">Marcar</button></div>${isDone(unit) ? '<button class="secondary reopen" id="reopenBtn">Reabrir leitura</button>' : ''}<div class="row nav-row"><button class="secondary" id="prevBtn">Anterior</button><button class="secondary" id="nextBtn">Proximo</button></div></section>
+      ${historyMarkup(block, unit)}
       <section class="card apt-card"><h3>Pendentes primeiro</h3><div class="apt-list">${orderedUnits.length ? orderedUnits.map(({ item, index }) => `<button data-jump="${index}" class="${index === unitIndex ? 'active' : ''} ${isDone(item) ? 'done' : ''}">${esc(item.number)}</button>`).join('') : '<p class="muted empty-list">Nenhum apartamento encontrado.</p>'}</div></section>`;
     bind();
     checkAlert($('#currentReading').value);
@@ -151,6 +221,8 @@
     $('#blockPick').onchange = event => { blockIndex = n(event.target.value); state.selected = state.blocks[blockIndex].id; unitIndex = 0; save(); render(); };
     $('#aptSearch').oninput = event => { searchText = event.target.value; keepSearchFocus = true; render(); };
     $('#jumpPending').onclick = jumpPending;
+    $('#mobileBackupBtn').onclick = downloadMobileBackup;
+    $('#mobileImportBtn').onclick = uploadMobileBackup;
     $('#currentReading').oninput = event => checkAlert(event.target.value);
     $('#currentReading').onkeydown = event => { if (event.key === 'Enter') { event.preventDefault(); saveReading(); } };
     $('#mobileNote').onchange = event => { const unit = currentUnit(); if (unit) { unit.note = event.target.value; save('Observacao salva'); } };
@@ -184,7 +256,7 @@
     unit.readingType = 'real';
     unit.estimatedReason = '';
     unit.m3 = Math.max(0, current - n(unit.previous));
-    unit.value = cost(unit.m3, block.tariff);
+    unit.value = cost(unit.m3, tariffForMonth(block, block.month));
     unit.note = $('#mobileNote')?.value || '';
     unit.mobileDone = true;
     unit.mobileSavedAt = new Date().toISOString();
@@ -224,5 +296,6 @@
     } catch {}
   }
   initIndexes(); render(); bootstrapCloudMobile();
+  $('#mobileImportInput')?.addEventListener('change', importMobileBackup);
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
 })();

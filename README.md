@@ -1,7 +1,7 @@
 # KR²MELO — Gestão de Água
 
 > **Manual completo de operação, impressão, histórico, sincronização e segurança**  
-> Versão do sistema: **v5.3.8**
+> Versão do sistema: **v5.3.12**
 
 O KR²MELO é um sistema para administrar leituras individuais de hidrômetros, rateio de água, cobranças, boletos, recibos, histórico mensal e controle financeiro de condomínios ou blocos residenciais.
 
@@ -1604,3 +1604,35 @@ A tela **Configurações → Tarifa da água** agora permite escolher entre dois
 2. **Planilha Bloco 1938 · mínimo + excedente**: cobra um valor mínimo até a franquia e, acima dela, soma o valor por m³ excedente. O padrão vem configurado como **R$ 70,00 até 10 m³ + R$ 7,00 por m³ excedente**, igual ao cálculo identificado na planilha.
 
 Ao salvar o modelo, o sistema recalcula automaticamente a água nas leituras, boletos, relatórios, fechamento mensal e modo leiturista.
+
+---
+
+## Atualizacao v5.3.9 - BKP mobile e tarifa editavel
+
+- Mobile ganhou botao de BKP para baixar backup JSON direto no celular.
+- Tarifa principal atualizada para o exemplo: R$ 80,84 ate 10 m3, R$ 8,37/m3 de excedente ate 20 m3 e R$ 10,87/m3 acima disso.
+- Limites das faixas e valores ficaram editaveis em Configuracoes.
+- Configuracoes mostra previa automatica para 10, 11 e 30 m3.
+
+---
+
+## Atualizacao v5.3.10 - Restaurar BKP no Mobile
+
+- Mobile agora permite upar/restaurar um BKP JSON direto no celular.
+- A restauracao pede confirmacao antes de substituir os dados atuais do aparelho.
+
+---
+
+## Atualizacao v5.3.11 - Historico rapido e tarifas por vigencia
+
+- Mobile mostra historico rapido dos ultimos meses fechados no apartamento selecionado.
+- Configuracoes ganhou vigencia da tarifa para salvar tabelas por mes.
+- O sistema escolhe automaticamente a tarifa correta conforme a competencia do bloco.
+
+---
+
+## Atualizacao v5.3.12 - Proposta comercial
+
+- Nova tela Proposta com documento de trabalho para administradoras e condominios.
+- Documento usa logo, assinatura, escopo do servico, beneficios e area de aceite.
+- Botao para salvar em PDF/imprimir e link para envio por e-mail.

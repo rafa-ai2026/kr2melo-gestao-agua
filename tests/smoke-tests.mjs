@@ -10,9 +10,9 @@ const manifest = readFileSync(new URL('../manifest.webmanifest', import.meta.url
 const sw = readFileSync(new URL('../sw.js', import.meta.url), 'utf8');
 const css = readFileSync(new URL('../styles.css', import.meta.url), 'utf8');
 
-assert.match(app, /const APP_VERSION = '5\.3\.8'/, 'APP_VERSION deve estar em v5.3.8');
+assert.match(app, /const APP_VERSION = '5\.3\.12'/, 'APP_VERSION deve estar em v5.3.12');
 for (const file of [html, mobile, manifest, sw]) {
-  assert.match(file, /5\.3\.8/, 'todos os arquivos publicados devem carregar a versao nova');
+  assert.match(file, /5\.3\.12/, 'todos os arquivos publicados devem carregar a versao nova');
 }
 
 assert.match(app, /billingNote_/, 'boletos devem salvar observacao individual por unidade');
@@ -35,6 +35,15 @@ assert.match(app, /sheetAllowance/, 'modelo da planilha deve salvar franquia em 
 assert.match(app, /sheetExcess/, 'modelo da planilha deve salvar valor excedente');
 assert.match(app, /Planilha Bloco 1938/, 'interface deve mostrar a opcao Planilha Bloco 1938');
 assert.match(mobileJs, /spreadsheet_1938/, 'mobile deve calcular pelo modelo da planilha quando ativo');
+assert.match(app, /minimumM3/, 'tarifa deve permitir editar limite da tarifa minima');
+assert.match(app, /tier1Limit/, 'tarifa deve permitir editar limite da segunda faixa');
+assert.match(app, /80\.84/, 'tarifa padrao deve usar minimo de R$ 80,84');
+assert.match(app, /8\.37/, 'tarifa padrao deve usar segunda faixa de R$ 8,37');
+assert.match(app, /10\.87/, 'tarifa padrao deve usar terceira faixa de R$ 10,87');
+assert.match(app, /tariffExampleRowsV539/, 'configuracoes deve mostrar previa de exemplos de tarifa');
+assert.match(app, /tariffPeriodsV5311/, 'tarifa deve ter tabela por vigencia');
+assert.match(app, /effectiveMonth/, 'tarifa deve salvar mes de vigencia');
+assert.match(app, /tariffForMonthV5311/, 'tarifa deve ser escolhida pelo mes da competencia');
 
 assert.match(app, /delete routes\.regras/, 'rota Regras e descontos deve ser removida');
 assert.doesNotMatch(html, /data-route="regras"/, 'menu Regras e descontos nao deve aparecer');
@@ -64,5 +73,19 @@ assert.match(mobileJs, /id="routeSummary"/, 'mobile deve mostrar resumo da rota'
 assert.match(mobileJs, /jumpPending/, 'mobile deve pular para proximo pendente');
 assert.match(mobileJs, /reopenReading/, 'mobile deve permitir reabrir leitura salva');
 assert.match(mobileJs, /id="noAccessReason"/, 'mobile deve registrar motivo do sem acesso');
+assert.match(mobileJs, /id="mobileBackupBtn"/, 'mobile deve permitir baixar BKP no celular');
+assert.match(mobileJs, /downloadMobileBackup/, 'mobile deve gerar backup JSON simples');
+assert.match(mobile, /id="mobileImportInput"/, 'mobile deve ter seletor de arquivo para upar BKP');
+assert.match(mobileJs, /id="mobileImportBtn"/, 'mobile deve mostrar botao de upar BKP');
+assert.match(mobileJs, /importMobileBackup/, 'mobile deve restaurar backup JSON');
+assert.match(mobileJs, /backupStateFromJson/, 'mobile deve aceitar backup do app completo ou do mobile');
+assert.match(mobileJs, /unitHistory/, 'mobile deve mostrar historico rapido por apartamento');
+assert.match(mobileJs, /historyMarkup/, 'mobile deve renderizar historico rapido');
+assert.match(mobileJs, /tariffForMonth/, 'mobile deve respeitar tarifa por vigencia no historico');
+assert.match(html, /data-route="proposta"/, 'menu deve mostrar a proposta comercial');
+assert.match(app, /proposalDocumentMarkup/, 'app deve gerar documento de proposta');
+assert.match(app, /data-print-proposal/, 'proposta deve ter botao para salvar PDF ou imprimir');
+assert.match(app, /assets\/assinatura\.png/, 'proposta deve usar assinatura existente');
+assert.match(css, /proposal-document/, 'proposta deve ter estilo proprio para PDF');
 
-console.log('Smoke tests KR2MELO v5.3.8: OK');
+console.log('Smoke tests KR2MELO v5.3.12: OK');

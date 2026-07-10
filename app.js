@@ -2,8 +2,8 @@
   'use strict';
 
   const KEY = 'kr2melo.hidrometro.v1';
-  const APP_VERSION = '5.3.8';
-  const DEFAULT_TARIFF = { minimum: 64.6, tier1: 8.94, tier2: 13.82 };
+  const APP_VERSION = '5.3.12';
+  const DEFAULT_TARIFF = { minimum: 80.84, minimumM3: 10, tier1: 8.37, tier1Limit: 20, tier2: 10.87, tier2Limit: 30 };
   const money = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
   const monthFmt = new Intl.DateTimeFormat('pt-BR', { month: 'long', year: 'numeric' });
   const $ = (selector, parent = document) => parent.querySelector(selector);
@@ -262,9 +262,11 @@
   function waterCost(m3, tariff) {
     const use = Math.max(0, n(m3));
     const t = { ...DEFAULT_TARIFF, ...(tariff || {}) };
-    if (use <= 10) return n(t.minimum);
-    if (use <= 20) return n(t.minimum) + (use - 10) * n(t.tier1);
-    return n(t.minimum) + 10 * n(t.tier1) + (use - 20) * n(t.tier2);
+    const minimumM3 = Math.max(0, n(t.minimumM3 || 10));
+    const tier1Limit = Math.max(minimumM3, n(t.tier1Limit || 20));
+    if (use <= minimumM3) return n(t.minimum);
+    if (use <= tier1Limit) return n(t.minimum) + (use - minimumM3) * n(t.tier1);
+    return n(t.minimum) + (tier1Limit - minimumM3) * n(t.tier1) + (use - tier1Limit) * n(t.tier2);
   }
   function recalculateUnit(unit, block) {
     const current = unit.current === '' ? null : n(unit.current);
@@ -1809,7 +1811,7 @@ Esta ação remove os apartamentos da competência atual. O histórico já fecha
   uploadCloudV52 = uploadCloudV53;
   downloadCloudV52 = downloadCloudV53;
 
-  // ===================== KR2MELO v5.3.8 =====================
+  // ===================== KR2MELO v5.3.12 =====================
   delete routes.financeiro;
 
   function extraChargeItems(unit) {
@@ -1972,7 +1974,7 @@ Esta ação remove os apartamentos da competência atual. O histórico já fecha
   };
 
 
-  // ===================== KR2MELO v5.3.8 =====================
+  // ===================== KR2MELO v5.3.12 =====================
   // Centraliza multas, descontos, adicionais e abatimentos avulsos dentro da tela Leituras.
   delete routes.regras;
 
@@ -2097,11 +2099,20 @@ Esta ação remove os apartamentos da competência atual. O histórico já fecha
 
 
 
-  // ===================== KR2MELO v5.3.8 =====================
+  // ===================== KR2MELO v5.3.12 =====================
   // Opção de cálculo igual à planilha Bloco 1938: mínimo fixo até 10 m³ + excedente por m³.
   function tariffV538(raw = {}) {
     const t = { ...DEFAULT_TARIFF, ...(raw || {}) };
     const mode = String(t.calculationMode || t.mode || '').trim();
+    const wasOldDefault = n(raw?.minimum) === 64.6 && n(raw?.tier1) === 8.94 && n(raw?.tier2) === 13.82 && raw?.minimumM3 === undefined && raw?.tier1Limit === undefined;
+    if (wasOldDefault) {
+      t.minimum = DEFAULT_TARIFF.minimum;
+      t.minimumM3 = DEFAULT_TARIFF.minimumM3;
+      t.tier1 = DEFAULT_TARIFF.tier1;
+      t.tier1Limit = DEFAULT_TARIFF.tier1Limit;
+      t.tier2 = DEFAULT_TARIFF.tier2;
+      t.tier2Limit = DEFAULT_TARIFF.tier2Limit;
+    }
     const nonNegative = (value, fallback) => {
       const source = value === '' || value === null || value === undefined ? fallback : value;
       return Math.max(0, n(source));
@@ -2110,11 +2121,14 @@ Esta ação remove os apartamentos da competência atual. O histórico já fecha
       ...t,
       calculationMode: mode === 'spreadsheet_1938' ? 'spreadsheet_1938' : 'tiered',
       minimum: nonNegative(t.minimum, DEFAULT_TARIFF.minimum),
+      minimumM3: nonNegative(t.minimumM3, DEFAULT_TARIFF.minimumM3),
       tier1: nonNegative(t.tier1, DEFAULT_TARIFF.tier1),
+      tier1Limit: Math.max(nonNegative(t.minimumM3, DEFAULT_TARIFF.minimumM3), nonNegative(t.tier1Limit, DEFAULT_TARIFF.tier1Limit)),
       tier2: nonNegative(t.tier2, DEFAULT_TARIFF.tier2),
-      sheetMinimum: nonNegative(t.sheetMinimum, 70),
+      tier2Limit: Math.max(nonNegative(t.tier1Limit, DEFAULT_TARIFF.tier1Limit), nonNegative(t.tier2Limit, DEFAULT_TARIFF.tier2Limit)),
+      sheetMinimum: nonNegative(t.sheetMinimum, 80.84),
       sheetAllowance: nonNegative(t.sheetAllowance, 10),
-      sheetExcess: nonNegative(t.sheetExcess, 7)
+      sheetExcess: nonNegative(t.sheetExcess, 8.37)
     };
   }
   function tariffModeLabelV538(tariff) {
@@ -2129,9 +2143,11 @@ Esta ação remove os apartamentos da competência atual. O histórico já fecha
       if (use <= t.sheetAllowance) return t.sheetMinimum;
       return t.sheetMinimum + (use - t.sheetAllowance) * t.sheetExcess;
     }
-    if (use <= 10) return n(t.minimum);
-    if (use <= 20) return n(t.minimum) + (use - 10) * n(t.tier1);
-    return n(t.minimum) + 10 * n(t.tier1) + (use - 20) * n(t.tier2);
+    const minimumM3 = Math.max(0, n(t.minimumM3));
+    const tier1Limit = Math.max(minimumM3, n(t.tier1Limit));
+    if (use <= minimumM3) return n(t.minimum);
+    if (use <= tier1Limit) return n(t.minimum) + (use - minimumM3) * n(t.tier1);
+    return n(t.minimum) + (tier1Limit - minimumM3) * n(t.tier1) + (use - tier1Limit) * n(t.tier2);
   };
   function ensureV538(block) {
     if (!block) return;
@@ -2164,8 +2180,11 @@ Esta ação remove os apartamentos da competência atual. O histórico já fecha
         ...block.tariff,
         calculationMode: data.calculationMode === 'spreadsheet_1938' ? 'spreadsheet_1938' : 'tiered',
         minimum: n(data.minimum),
+        minimumM3: n(data.minimumM3),
         tier1: n(data.tier1),
+        tier1Limit: n(data.tier1Limit),
         tier2: n(data.tier2),
+        tier2Limit: n(data.tier2Limit),
         sheetMinimum: n(data.sheetMinimum),
         sheetAllowance: n(data.sheetAllowance),
         sheetExcess: n(data.sheetExcess)
@@ -2176,6 +2195,118 @@ Esta ação remove os apartamentos da competência atual. O histórico já fecha
       return;
     }
     return handleSubmitV538Base(event);
+  };
+
+  function tariffExampleRowsV539(tariff) {
+    return [10, 11, 30].map(m3 => `<div><small>${fmtM3(m3)} m3</small><strong>${money.format(waterCost(m3, tariff))}</strong></div>`).join('');
+  }
+
+  renderSettings = function(block) {
+    ensureV538(block);
+    const t = tariffV538(block.tariff);
+    return `<section class="settings"><article class="card"><div class="card-head"><h3>Dados do condominio</h3></div><form class="form-grid" id="blockForm"><div class="field"><label>Nome</label><input name="name" value="${esc(block.name)}" required></div><div class="field"><label>Referencia atual</label><input name="month" type="month" value="${esc(block.month)}" required></div><div class="field full"><label>Endereco</label><input name="address" value="${esc(block.address)}"></div><div class="field full"><label>Responsavel / sindico</label><input name="manager" value="${esc(block.manager)}"></div><div class="form-foot"><button class="primary" type="submit">Salvar alteracoes</button></div></form></article><article class="card tariff-editor-card"><div class="card-head"><div><h3>Tarifa da agua</h3><span class="muted">Campos editaveis para atualizar a tabela sempre que os valores mudarem.</span></div></div><form class="form-grid" id="tariffForm"><div class="field full"><label>Modelo de calculo</label><select name="calculationMode"><option value="tiered" ${t.calculationMode === 'tiered' ? 'selected' : ''}>Faixas editaveis - minimo + excedentes</option><option value="spreadsheet_1938" ${t.calculationMode === 'spreadsheet_1938' ? 'selected' : ''}>Planilha Bloco 1938 - minimo + excedente unico</option></select><small class="muted">Modelo ativo: ${esc(tariffModeLabelV538(t))}</small></div><div class="field full"><div class="info-box"><strong>Exemplo atual:</strong> 0 a 10 m3 = R$ 80,84. De 11 a 20 m3 = R$ 8,37 por m3 excedente. Acima de 20 m3 = R$ 10,87 por m3 excedente. Todos os campos abaixo podem ser editados.</div></div><div class="field full"><div class="tariff-preview">${tariffExampleRowsV539(t)}</div></div><div class="field"><label>Tarifa minima total (R$)</label><input name="minimum" type="number" min="0" step="0.01" value="${t.minimum}"></div><div class="field"><label>Minimo cobre ate (m3)</label><input name="minimumM3" type="number" min="0" step="0.001" value="${t.minimumM3}"></div><div class="field"><label>2a faixa - valor por m3 (R$)</label><input name="tier1" type="number" min="0" step="0.01" value="${t.tier1}"></div><div class="field"><label>2a faixa vai ate (m3)</label><input name="tier1Limit" type="number" min="0" step="0.001" value="${t.tier1Limit}"></div><div class="field"><label>3a faixa - valor por m3 (R$)</label><input name="tier2" type="number" min="0" step="0.01" value="${t.tier2}"></div><div class="field"><label>Referencia da 3a faixa ate (m3)</label><input name="tier2Limit" type="number" min="0" step="0.001" value="${t.tier2Limit}"></div><div class="field full"><h4>Modelo alternativo: minimo + excedente unico</h4></div><div class="field"><label>Minimo ate a franquia (R$)</label><input name="sheetMinimum" type="number" min="0" step="0.01" value="${t.sheetMinimum}"></div><div class="field"><label>Franquia em m3</label><input name="sheetAllowance" type="number" min="0" step="0.001" value="${t.sheetAllowance}"></div><div class="field"><label>Excedente unico por m3 (R$)</label><input name="sheetExcess" type="number" min="0" step="0.01" value="${t.sheetExcess}"></div><div class="form-foot"><button class="primary" type="submit">Salvar tarifa e recalcular</button></div></form></article><article class="card"><h3>Backup e restauracao</h3><p class="muted">O backup JSON protege leituras, regras, boletos, historico e recibos.</p><div class="button-row"><button class="secondary" data-export>Baixar backup</button><button class="secondary" data-import>Restaurar backup</button></div></article><article class="card"><h3>Zona de atencao</h3><p class="muted">A exclusao remove o condominio, as leituras e o historico armazenado neste navegador.</p><button class="danger" data-delete-block>Excluir condominio</button></article></section>`;
+  };
+
+  function tariffPeriodsV5311(block) {
+    const raw = Array.isArray(block.tariffPeriods) ? block.tariffPeriods : [];
+    const periods = raw.map(item => ({
+      effectiveMonth: /^\d{4}-\d{2}$/.test(item?.effectiveMonth || '') ? item.effectiveMonth : block.month,
+      tariff: tariffV538(item?.tariff || item || block.tariff)
+    })).sort((a, b) => a.effectiveMonth.localeCompare(b.effectiveMonth));
+    if (!periods.length) periods.push({ effectiveMonth: block.month, tariff: tariffV538(block.tariff) });
+    return periods;
+  }
+  function tariffForMonthV5311(block, month = block.month) {
+    return tariffPeriodsV5311(block).filter(item => item.effectiveMonth <= month).pop()?.tariff || tariffV538(block.tariff);
+  }
+  function tariffPeriodRowsV5311(block) {
+    return tariffPeriodsV5311(block).map(item => `<tr><td>${esc(item.effectiveMonth)}</td><td>${esc(item.tariff.calculationMode === 'spreadsheet_1938' ? 'Minimo + excedente unico' : 'Faixas editaveis')}</td><td>${money.format(item.tariff.minimum)} ate ${fmtM3(item.tariff.minimumM3)} m3</td><td>${money.format(item.tariff.tier1)} / ${money.format(item.tariff.tier2)}</td></tr>`).join('');
+  }
+  function tariffEffectiveInfoV5311(block) {
+    const active = tariffForMonthV5311(block, block.month);
+    return `<div class="info-box tariff-effective-box"><strong>Tarifa aplicada em ${esc(block.month)}:</strong> ${esc(tariffModeLabelV538(active))}</div>`;
+  }
+
+  const handleSubmitV5311Base = handleSubmit;
+  handleSubmit = function(event) {
+    if (event.target.id === 'tariffForm') {
+      event.preventDefault();
+      const block = selected(); if (!block) return;
+      const data = Object.fromEntries(new FormData(event.target));
+      const effectiveMonth = /^\d{4}-\d{2}$/.test(data.effectiveMonth || '') ? data.effectiveMonth : block.month;
+      const newTariff = tariffV538({
+        calculationMode: data.calculationMode === 'spreadsheet_1938' ? 'spreadsheet_1938' : 'tiered',
+        minimum: n(data.minimum), minimumM3: n(data.minimumM3),
+        tier1: n(data.tier1), tier1Limit: n(data.tier1Limit),
+        tier2: n(data.tier2), tier2Limit: n(data.tier2Limit),
+        sheetMinimum: n(data.sheetMinimum), sheetAllowance: n(data.sheetAllowance), sheetExcess: n(data.sheetExcess)
+      });
+      const periods = tariffPeriodsV5311(block).filter(item => item.effectiveMonth !== effectiveMonth);
+      periods.push({ effectiveMonth, tariff: newTariff });
+      block.tariffPeriods = periods.sort((a, b) => a.effectiveMonth.localeCompare(b.effectiveMonth));
+      block.tariff = tariffForMonthV5311(block, block.month);
+      recalculateBlock(block);
+      save(`Tarifa salva com vigencia em ${effectiveMonth}`);
+      render();
+      return;
+    }
+    return handleSubmitV5311Base(event);
+  };
+
+  const renderSettingsV5311Base = renderSettings;
+  renderSettings = function(block) {
+    ensureV538(block);
+    const t = tariffForMonthV5311(block, block.month);
+    block.tariff = t;
+    const markup = renderSettingsV5311Base(block);
+    const field = `<div class="field"><label>Vigencia da tarifa</label><input name="effectiveMonth" type="month" value="${esc(block.month)}"></div>`;
+    const table = `<div class="field full"><h4>Tarifas por vigencia</h4>${tariffEffectiveInfoV5311(block)}<div class="table-wrap tariff-period-wrap"><table class="tariff-period-table"><thead><tr><th>Vigencia</th><th>Modelo</th><th>Minimo</th><th>Faixas</th></tr></thead><tbody>${tariffPeriodRowsV5311(block)}</tbody></table></div></div>`;
+    return markup.replace('<div class="field full"><div class="info-box"><strong>Exemplo atual:', `${field}<div class="field full"><div class="info-box"><strong>Exemplo atual:`).replace('<div class="form-foot"><button class="primary" type="submit">Salvar tarifa e recalcular</button></div>', `${table}<div class="form-foot"><button class="primary" type="submit">Salvar tarifa e recalcular</button></div>`);
+  };
+
+  const ensureV5311Base = ensureV538;
+  ensureV538 = function(block) {
+    ensureV5311Base(block);
+    block.tariffPeriods = tariffPeriodsV5311(block);
+    block.tariff = tariffForMonthV5311(block, block.month);
+    recalculateBlock(block);
+  };
+
+  routes.proposta = ['COMERCIAL', 'Proposta de trabalho'];
+
+  function proposalDocumentMarkup() {
+    const issued = dateBr(today());
+    return `<article class="proposal-document" id="proposalDocument"><header class="proposal-header"><div><img src="assets/logo.png" alt="KR2MELO"><span>KR2MELO CONTRATADA</span></div><aside><strong>Proposta de trabalho</strong><small>Gestao de leitura individual de hidrometros</small><small>Emitida em ${issued}</small></aside></header><section class="proposal-hero"><p class="eyebrow">SERVICO PARA ADMINISTRADORAS, CONDOMINIOS E BLOCOS</p><h1>Leitura de hidrometros, calculo individual de consumo e emissao organizada dos boletos mensais.</h1><p>A KR2MELO oferece um processo completo para condominios e blocos de apartamentos que precisam controlar o consumo individual de agua com clareza, rapidez e documentacao pronta para conferencia.</p></section><section class="proposal-grid"><div><h2>Como o servico funciona</h2><ol><li>Cadastro do condominio, bloco e apartamentos no sistema.</li><li>Coleta das leituras in loco pelo celular, com historico rapido por apartamento.</li><li>Calculo automatico do consumo individual, tarifa, condominio, servico e lancamentos extras.</li><li>Geracao de boletos organizados por bloco, com capa, contracapa e vias de sindico/morador.</li><li>Relatorios para sindico, recibos, historico mensal e backup dos dados.</li></ol></div><div><h2>Beneficios para a administradora</h2><ul><li>Menos retrabalho na conferencia das leituras e valores.</li><li>Padronizacao dos boletos entregues aos moradores.</li><li>Historico mensal preservado para consultas futuras.</li><li>Reducao de erros manuais em calculos por faixa de consumo.</li><li>Mais transparencia para sindicos, tesoureiros e moradores.</li></ul></div></section><section class="proposal-services"><h2>Servicos prestados</h2><div><span>Leitura mensal de hidrometros</span><span>Cadastro de apartamentos e responsaveis</span><span>Calculo individual de agua</span><span>Configuracao de tarifas por vigencia</span><span>Emissao de boletos para impressao</span><span>Relatorio mensal do sindico</span><span>Recibos de servico</span><span>Backup e restauracao dos dados</span></div></section><section class="proposal-benefit"><h2>Por que contratar</h2><p>Com o sistema KR2MELO, a administradora passa a receber um fechamento mensal mais organizado, com dados conferiveis, documentos padronizados e reducao de falhas comuns em controles feitos apenas por planilhas. O servico ajuda o condominio a cobrar de forma mais justa, com base no consumo real de cada unidade.</p></section><section class="proposal-conditions"><h2>Escopo da proposta</h2><p>Esta proposta contempla a prestacao de servico de leitura e organizacao mensal dos documentos de cobranca de agua individualizada. Valores, periodicidade, quantidade de unidades atendidas e condicoes comerciais podem ser ajustados conforme cada condominio ou bloco.</p></section><footer class="proposal-signatures"><div><span>Contratante / Administradora</span></div><div><img src="assets/assinatura.png" alt="Assinatura KR2MELO"><span>KR2MELO CONTRATADA</span></div></footer></article>`;
+  }
+  function renderProposal() {
+    const subject = encodeURIComponent('Proposta de trabalho - KR2MELO Contratada');
+    const body = encodeURIComponent('Ola,\n\nSegue proposta de trabalho da KR2MELO para leitura de hidrometros, calculo individual de consumo e organizacao mensal dos boletos.\n\nAbra o anexo/PDF gerado pelo sistema para avaliacao.\n\nAtenciosamente,\nKR2MELO Contratada');
+    return `<section class="section-actions no-print"><div><h2>Proposta de trabalho</h2><span class="muted">Documento comercial para salvar em PDF, imprimir ou enviar para administradoras.</span></div><div class="button-row"><button class="primary" data-print-proposal type="button">Salvar PDF / imprimir</button><a class="secondary" href="mailto:?subject=${subject}&body=${body}">Enviar por e-mail</a></div></section>${proposalDocumentMarkup()}`;
+  }
+  function printProposal() {
+    printHtml('Proposta de trabalho KR2MELO', proposalDocumentMarkup());
+  }
+
+  const handleClickV5312Base = handleClick;
+  handleClick = function(event) {
+    if (event.target.closest('[data-print-proposal]')) { printProposal(); return; }
+    return handleClickV5312Base(event);
+  };
+
+  const renderProposalBase = render;
+  render = function() {
+    if (location.hash === '#proposta') {
+      refreshPicker();
+      $('#pageEyebrow').textContent = routes.proposta[0];
+      $('#pageTitle').textContent = routes.proposta[1];
+      $$('[data-route]').forEach(link => link.classList.toggle('active', link.dataset.route === 'proposta'));
+      const app = $('#app');
+      app.innerHTML = renderProposal();
+      app.focus({ preventScroll: true });
+      refreshVersionLabelsV53();
+      return;
+    }
+    renderProposalBase();
   };
 
   const renderV538Base = render;
