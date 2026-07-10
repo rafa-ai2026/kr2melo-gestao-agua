@@ -6,13 +6,14 @@ const sync = readFileSync(new URL('../sync.js', import.meta.url), 'utf8');
 const html = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
 const mobile = readFileSync(new URL('../mobile.html', import.meta.url), 'utf8');
 const mobileJs = readFileSync(new URL('../mobile.js', import.meta.url), 'utf8');
+const mobileCss = readFileSync(new URL('../mobile.css', import.meta.url), 'utf8');
 const manifest = readFileSync(new URL('../manifest.webmanifest', import.meta.url), 'utf8');
 const sw = readFileSync(new URL('../sw.js', import.meta.url), 'utf8');
 const css = readFileSync(new URL('../styles.css', import.meta.url), 'utf8');
 
-assert.match(app, /const APP_VERSION = '5\.3\.16'/, 'APP_VERSION deve estar em v5.3.16');
+assert.match(app, /const APP_VERSION = '5\.3\.17'/, 'APP_VERSION deve estar em v5.3.17');
 for (const file of [html, mobile, manifest, sw]) {
-  assert.match(file, /5\.3\.16/, 'todos os arquivos publicados devem carregar a versao nova');
+  assert.match(file, /5\.3\.17/, 'todos os arquivos publicados devem carregar a versao nova');
 }
 
 assert.match(app, /billingNote_/, 'boletos devem salvar observacao individual por unidade');
@@ -97,6 +98,16 @@ assert.match(app, /waterStrategyCardV5316/, 'Leituras deve recomendar melhor for
 assert.match(app, /rateio proporcional/, 'analise da agua deve sugerir rateio proporcional ao consumo');
 assert.match(css, /fine-unit-list/, 'lista de apartamentos com multas deve ter estilo proprio');
 assert.match(css, /strategy-options/, 'opcoes de estrategia da agua devem ter estilo proprio');
+assert.match(app, /closingChecklistV5317/, 'fechamento deve ter checklist inteligente');
+assert.match(app, /waterRateSimulatorV5317/, 'fechamento deve ter simulador de rateio da agua');
+assert.match(app, /managerInsightsV5317/, 'relatorios devem ter resumo executivo do sindico');
+assert.match(app, /tariffHealthCardV5317/, 'configuracoes deve validar tarifa');
+assert.match(app, /backupHealthCardV5317/, 'configuracoes deve monitorar backup');
+assert.match(app, /searchMatchesV5317/, 'pesquisa rapida deve buscar status, multas e observacoes');
+assert.match(app, /annualAdvancedInsightsV5317/, 'dashboard anual deve mostrar analise ampliada');
+assert.match(css, /closing-checklist/, 'checklist inteligente deve ter estilo');
+assert.match(mobileJs, /mobileFilter/, 'mobile deve permitir filtrar pendentes, lidas, sem acesso e alertas');
+assert.match(mobileCss, /reading-card-alert/, 'mobile deve destacar leitura com alerta');
 assert.match(html, /data-route="proposta"/, 'menu deve mostrar a proposta comercial');
 assert.match(app, /proposalDocumentMarkup/, 'app deve gerar documento de apresentacao');
 assert.match(app, /data-print-proposal/, 'proposta deve ter botao para salvar PDF ou imprimir');
@@ -107,4 +118,4 @@ assert.doesNotMatch(app, /Contratante \/ Administradora/, 'carta nao deve parece
 assert.match(css, /proposal-document/, 'proposta deve ter estilo proprio para PDF');
 assert.match(css, /presentation-letter/, 'carta deve ter estilo de apresentacao');
 
-console.log('Smoke tests KR2MELO v5.3.16: OK');
+console.log('Smoke tests KR2MELO v5.3.17: OK');

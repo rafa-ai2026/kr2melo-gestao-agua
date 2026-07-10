@@ -637,3 +637,40 @@
 .strategy-watch span{border-radius:999px;background:#f1f1ef;padding:6px 9px;font-size:12px;font-weight:800}
 @media(max-width:900px){.strategy-kpis{grid-template-columns:1fr 1fr}.strategy-options{grid-template-columns:1fr}.fine-unit-item{grid-template-columns:54px minmax(0,1fr)}.fine-unit-item span{grid-column:1/-1}}
 @media(max-width:560px){.strategy-kpis{grid-template-columns:1fr}.fine-unit-list{grid-template-columns:1fr}.water-strategy-card{margin-top:0}}
+
+/* KR2MELO v5.3.17 - checklist, simulador, auditoria e analise */
+.status-legend{margin:16px 0}
+.status-legend>div:last-child{display:flex;gap:8px;flex-wrap:wrap}
+.status-chip{display:inline-flex;align-items:center;border-radius:999px;padding:7px 10px;font-size:12px;font-weight:900;border:1px solid var(--line);background:#fff}
+.status-chip.ok{border-color:#b8e6cf;background:#e9f8f1;color:#08724e}
+.status-chip.warn{border-color:#f2d28b;background:#fff8e8;color:#805400}
+.status-chip.danger{border-color:#f2b0aa;background:#fff0ef;color:#9d1a10}
+.status-chip.info{border-color:#b8d9f3;background:#eef7ff;color:#1767a8}
+.status-chip.fine{border-color:#f2b0aa;background:#fff4f2;color:#c90d00}
+.status-chip.discount{border-color:#d7cdf4;background:#f5f1ff;color:#6043a6}
+.closing-checklist{margin:0 0 16px;border-left:4px solid #e9a400}
+.checklist-grid,.executive-grid,.simulator-grid,.tariff-samples{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.checklist-grid>div,.executive-grid>div,.simulator-grid>article,.tariff-samples>div{border:1px solid var(--line);border-radius:10px;background:#fff;padding:12px}
+.checklist-grid small,.executive-grid small,.simulator-grid small,.tariff-samples small{display:block;color:var(--muted);font-size:10px;font-weight:850;text-transform:uppercase;letter-spacing:.04em}
+.checklist-grid strong,.executive-grid strong,.simulator-grid strong,.tariff-samples strong{display:block;margin-top:5px;font-size:18px;overflow-wrap:anywhere}
+.checklist-grid .ok{border-left:4px solid var(--green)}
+.checklist-grid .warn{border-left:4px solid #e9a400}
+.checklist-grid .danger{border-left:4px solid var(--red)}
+.checklist-grid .fine{border-left:4px solid var(--red-dark)}
+.checklist-grid .discount{border-left:4px solid #6043a6}
+.water-simulator,.manager-insights,.annual-insights{margin:16px 0}
+.water-simulator{border-left:4px solid #1377c8}
+.simulator-grid article p{margin:6px 0 0;color:var(--muted);font-size:12px;line-height:1.35}
+.simulator-table{margin-top:12px}
+.report-columns{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:12px}
+.report-columns article{border:1px solid var(--line);border-radius:10px;background:#fafafa;padding:12px}
+.report-columns b,.report-columns p{display:block;margin:0}
+.report-columns p{margin-top:6px;color:var(--muted);line-height:1.45}
+.settings-v5317{margin-top:14px}
+.audit-mini-list{display:grid;gap:8px}
+.audit-mini-list>div{display:grid;grid-template-columns:64px minmax(0,1fr) auto;gap:8px;align-items:center;border:1px solid var(--line);border-radius:9px;background:#fafafa;padding:9px}
+.audit-mini-list span,.audit-mini-list small{color:var(--muted);font-size:12px;overflow-wrap:anywhere}
+.backup-health-card .button-row{margin-top:12px}
+.smart-search-result{display:block!important;width:100%;text-align:left;line-height:1.35}
+.smart-search-result small{display:block;color:var(--muted);font-weight:700;margin-top:4px}
+@media(max-width:900px){.report-columns{grid-template-columns:1fr}.audit-mini-list>div{grid-template-columns:52px minmax(0,1fr)}.audit-mini-list small{grid-column:1/-1}}

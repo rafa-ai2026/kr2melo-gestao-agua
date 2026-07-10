@@ -2,7 +2,7 @@
   'use strict';
 
   const KEY = 'kr2melo.hidrometro.v1';
-  const APP_VERSION = '5.3.16';
+  const APP_VERSION = '5.3.17';
   const DEFAULT_TARIFF = { minimum: 80.84, minimumM3: 10, tier1: 8.37, tier1Limit: 20, tier2: 10.87, tier2Limit: 30 };
   const money = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
   const monthFmt = new Intl.DateTimeFormat('pt-BR', { month: 'long', year: 'numeric' });
@@ -2516,6 +2516,151 @@ Esta ação remove os apartamentos da competência atual. O histórico já fecha
   const adjustmentCenterV5316Base = adjustmentCenterV537;
   adjustmentCenterV537 = function(block) {
     return `${fineUnitsCardV5316(block)}${adjustmentCenterV5316Base(block)}`;
+  };
+
+  // ===================== KR2MELO v5.3.17 =====================
+  function readingDoneV5317(unit) {
+    return unit && unit.current !== '' && unit.current !== null && unit.current !== undefined;
+  }
+  function unitStatusFlagsV5317(unit, block) {
+    const c = unitCharges(unit, block);
+    const flags = [];
+    const issue = readingIssue(unit);
+    if (!readingDoneV5317(unit)) flags.push({ type: 'warn', label: 'pendente', text: 'Leitura pendente' });
+    if (issue) flags.push({ type: issue.type === 'danger' ? 'danger' : 'warn', label: issue.type === 'danger' ? 'critico' : 'atencao', text: issue.text });
+    if (unit.note || unit.billingNote || unit.billingFineNote) flags.push({ type: 'info', label: 'obs', text: 'Possui observacao' });
+    if (c.fine > 0) flags.push({ type: 'fine', label: 'multa', text: `${unit.billingFineLabel || 'Multas/outros'}: ${money.format(c.fine)}` });
+    if (c.condoDiscount > 0) flags.push({ type: 'discount', label: 'desconto', text: `Desconto: ${money.format(c.condoDiscount)}` });
+    return flags;
+  }
+  function statusLegendV5317() {
+    return `<section class="card status-legend no-print"><div class="card-head"><h3>Legenda de status</h3><span class="muted">Cores usadas nas conferencias</span></div><div><span class="status-chip ok">Normal</span><span class="status-chip warn">Pendente/atencao</span><span class="status-chip danger">Erro provavel</span><span class="status-chip info">Observacao</span><span class="status-chip fine">Multa/outros</span><span class="status-chip discount">Desconto/isencao</span></div></section>`;
+  }
+  function closingChecklistV5317(block) {
+    const totals = chargeTotals(block), coverage = waterCoverage(block);
+    const fines = fineUnitsV5316(block);
+    const discounts = block.units.filter(unit => unitCharges(unit, block).condoDiscount > 0);
+    const pending = block.units.filter(unit => !readingDoneV5317(unit));
+    const noResident = block.units.filter(unit => !String(unit.resident || '').trim());
+    const critical = block.units.filter(unit => readingIssue(unit)?.type === 'danger');
+    const diff = coverage.bill ? coverage.bill - totals.water : 0;
+    const items = [
+      { label: 'Leituras pendentes', value: pending.length, type: pending.length ? 'warn' : 'ok' },
+      { label: 'Erros provaveis', value: critical.length, type: critical.length ? 'danger' : 'ok' },
+      { label: 'Conta global sem valor', value: coverage.bill ? 0 : 1, type: coverage.bill ? 'ok' : 'warn' },
+      { label: 'Diferenca da agua', value: coverage.bill ? money.format(Math.abs(diff)) : '---', type: coverage.bill && diff > 0 ? 'danger' : 'ok' },
+      { label: 'Multas/outros', value: fines.length, type: fines.length ? 'fine' : 'ok' },
+      { label: 'Descontos/isencoes', value: discounts.length, type: discounts.length ? 'discount' : 'ok' },
+      { label: 'Sem responsavel', value: noResident.length, type: noResident.length ? 'warn' : 'ok' }
+    ];
+    return `<section class="card closing-checklist no-print"><div class="card-head"><div><h3>Checklist inteligente antes do fechamento</h3><span class="muted">Revise estes pontos antes de confirmar o mes.</span></div><span class="pill ${critical.length || diff > 0 ? 'danger' : pending.length ? 'warn' : 'ok'}">${critical.length || diff > 0 ? 'Revisar' : pending.length ? 'Atenção' : 'Pronto'}</span></div><div class="checklist-grid">${items.map(item => `<div class="${item.type}"><small>${esc(item.label)}</small><strong>${esc(item.value)}</strong></div>`).join('')}</div></section>`;
+  }
+  function waterRateSimulatorV5317(block) {
+    const s = waterStrategyV5316(block);
+    const gap = s.gap;
+    const units = Math.max(1, block.units.length);
+    const read = block.units.filter(unit => n(unit.m3) > 0);
+    const top = read.sort((a, b) => n(b.m3) - n(a.m3)).slice(0, 5);
+    const minimumSuggestion = units ? s.bill / units : 0;
+    const proportionalRows = top.map(unit => `<tr><td>${esc(unit.number)}</td><td>${fmtM3(unit.m3)} m3</td><td>${money.format(s.totals.m3 ? gap * n(unit.m3) / s.totals.m3 : 0)}</td></tr>`).join('');
+    return `<section class="card water-simulator no-print"><div class="card-head"><div><h3>Simulador de rateio da agua</h3><span class="muted">Mostra caminhos sem alterar boletos automaticamente.</span></div><span class="pill info">Simulacao</span></div><div class="simulator-grid"><article><small>Proporcional ao consumo</small><strong>${gap ? money.format(gap) : '---'}</strong><p>Distribui a diferenca conforme m3 de cada apartamento.</p></article><article><small>Igual por unidade</small><strong>${gap ? money.format(gap / units) : '---'}</strong><p>Mesmo valor para cada apartamento cadastrado.</p></article><article><small>Minimo medio sugerido</small><strong>${s.bill ? money.format(minimumSuggestion) : '---'}</strong><p>Referencia simples para revisar a tarifa minima.</p></article><article><small>Ajuste por m3 real</small><strong>${s.pricePerM3 ? money.format(s.pricePerM3) : '---'}</strong><p>Conta global dividida pelo consumo total do mes.</p></article></div><div class="table-wrap simulator-table"><table><thead><tr><th>Top consumo</th><th>Consumo</th><th>Cota proporcional da diferenca</th></tr></thead><tbody>${proportionalRows || '<tr><td colspan="3">Informe leituras e conta global para simular.</td></tr>'}</tbody></table></div></section>`;
+  }
+  function managerInsightsV5317(block) {
+    const totals = chargeTotals(block), coverage = waterCoverage(block), strategy = waterStrategyV5316(block);
+    const pending = block.units.filter(unit => !readingDoneV5317(unit));
+    const fines = fineUnitsV5316(block);
+    const discounts = block.units.filter(unit => unitCharges(unit, block).condoDiscount > 0);
+    const top = [...block.units].sort((a, b) => n(b.m3) - n(a.m3)).slice(0, 5);
+    return `<section class="card manager-insights"><div class="card-head"><div><h3>Relatorio executivo do sindico</h3><span class="muted">Resumo para explicar a cobranca do mes.</span></div><span class="pill ${coverage.covered ? 'ok' : coverage.bill ? 'danger' : 'warn'}">${coverage.bill ? `${coverage.percent.toFixed(1)}% da conta` : 'Sem conta global'}</span></div><div class="executive-grid"><div><small>Conta global</small><strong>${money.format(coverage.bill)}</strong></div><div><small>Agua rateada</small><strong>${money.format(totals.water)}</strong></div><div><small>Diferenca</small><strong>${money.format(Math.abs(coverage.bill - totals.water))}</strong></div><div><small>Multas/outros</small><strong>${money.format(totals.fine)}</strong></div><div><small>Descontos</small><strong>${money.format(totals.discount)}</strong></div><div><small>Pendencias</small><strong>${pending.length}</strong></div></div><div class="report-columns"><article><b>Recomendacao</b><p>${esc(strategy.recommendation)}</p></article><article><b>Top consumos</b><p>${top.map(unit => `${unit.number}: ${fmtM3(unit.m3)} m3`).join(' · ') || 'Sem consumo registrado.'}</p></article><article><b>Lancamentos</b><p>${fines.length} multa(s)/outros e ${discounts.length} desconto(s)/isencao(oes).</p></article></div></section>`;
+  }
+  function tariffHealthCardV5317(block) {
+    const t = tariffV538(block.tariff);
+    const samples = [0, 10, 11, 20, 30].map(m3 => ({ m3, value: waterCost(m3, t) }));
+    const coverage = waterCoverage(block);
+    const hint = coverage.bill && coverage.total ? Math.abs(coverage.total - coverage.bill) / coverage.bill : 0;
+    return `<article class="card tariff-health-card"><div class="card-head"><div><h3>Conferencia da tarifa</h3><span class="muted">Use para validar se a tabela do mes esta coerente com a conta real.</span></div><span class="pill ${hint > .12 ? 'warn' : 'ok'}">${hint > .12 ? 'Revisar' : 'Coerente'}</span></div><div class="tariff-samples">${samples.map(item => `<div><small>${fmtM3(item.m3)} m3</small><strong>${money.format(item.value)}</strong></div>`).join('')}</div><div class="info-box"><strong>Regra pratica:</strong> se a diferenca entre a conta global e a soma dos apartamentos repetir por varios meses, revise minimo, faixas e vigencia da tarifa.</div></article>`;
+  }
+  function auditSummaryCardV5317(block) {
+    const changes = block.units.flatMap(unit => (Array.isArray(unit.changeLog) ? unit.changeLog : []).map(item => ({ unit, item }))).sort((a, b) => String(b.item.at).localeCompare(String(a.item.at))).slice(0, 8);
+    return `<article class="card audit-summary-card"><div class="card-head"><div><h3>Auditoria recente</h3><span class="muted">Ultimas alteracoes por apartamento.</span></div><span class="pill info">${changes.length}</span></div><div class="audit-mini-list">${changes.map(({ unit, item }) => `<div><strong>${esc(unit.number)}</strong><span>${esc(item.type || 'Alteracao')} · ${esc(item.field || '')}</span><small>${esc(auditDate(item.at))}</small></div>`).join('') || '<p class="muted">Nenhuma alteracao registrada.</p>'}</div></article>`;
+  }
+  function backupHealthCardV5317() {
+    const last = localStorage.getItem(`${KEY}.lastBackupAt.v5317`);
+    const days = last ? Math.floor((Date.now() - new Date(last).getTime()) / 86400000) : 999;
+    return `<article class="card backup-health-card"><div class="card-head"><div><h3>Seguranca do backup</h3><span class="muted">${last ? `Ultimo backup: ${auditDate(last)}` : 'Nenhum backup registrado neste navegador.'}</span></div><span class="pill ${days > 7 ? 'warn' : 'ok'}">${days > 7 ? 'Baixar BKP' : 'Em dia'}</span></div><p class="muted">O fechamento ja baixa backup automaticamente; ainda assim, mantenha uma copia externa depois de grandes alteracoes.</p><div class="button-row"><button class="secondary" data-export type="button">Baixar backup agora</button></div></article>`;
+  }
+  function searchMatchesV5317(term) {
+    const clean = normalizedHeader(term);
+    if (!clean) return [];
+    return state.blocks.flatMap(block => block.units.map(unit => ({ block, unit, charges: unitCharges(unit, block), flags: unitStatusFlagsV5317(unit, block) })))
+      .filter(item => [item.block.name, item.unit.number, item.unit.resident, item.unit.note, item.unit.billingFineLabel, item.unit.billingFineNote, item.unit.billingNote, ...item.flags.map(flag => flag.text), ...item.flags.map(flag => flag.label)].some(value => normalizedHeader(value).includes(clean)))
+      .slice(0, 20);
+  }
+  function annualAdvancedInsightsV5317(block, rows) {
+    const max = rows.reduce((best, row) => n(row.m3) > n(best?.m3) ? row : best, null);
+    const totalBill = rows.reduce((sum, row) => sum + n(row.water), 0);
+    const avg = rows.length ? rows.reduce((sum, row) => sum + n(row.m3), 0) / rows.length : 0;
+    const topUnits = [...block.units].sort((a, b) => n(b.m3) - n(a.m3)).slice(0, 5);
+    return `<section class="card annual-insights"><div class="card-head"><div><h3>Analise anual ampliada</h3><span class="muted">Evolucao, riscos e apartamentos de maior consumo.</span></div></div><div class="executive-grid"><div><small>Mes de maior consumo</small><strong>${max ? monthLabel(max.month) : '---'}</strong></div><div><small>Media mensal</small><strong>${fmtM3(avg)} m3</strong></div><div><small>Agua no ano</small><strong>${money.format(totalBill)}</strong></div><div><small>Top atual</small><strong>${topUnits[0] ? `${topUnits[0].number} · ${fmtM3(topUnits[0].m3)} m3` : '---'}</strong></div></div><p class="muted">Use esta visao para comparar meses, observar aumentos recorrentes e justificar revisoes de tarifa ou comunicados aos moradores.</p></section>`;
+  }
+
+  const closeChecksV5317Base = closeChecks;
+  closeChecks = function(block) {
+    const checks = closeChecksV5317Base(block);
+    const coverage = waterCoverage(block);
+    const totals = chargeTotals(block);
+    const fines = fineUnitsV5316(block);
+    const discounts = block.units.filter(unit => unitCharges(unit, block).condoDiscount > 0);
+    if (!coverage.bill) checks.push({ type: 'warn', title: 'Conta global de agua nao informada', text: 'Informe o valor da conta antes de conferir o rateio.' });
+    if (coverage.bill && totals.water < coverage.bill) checks.push({ type: 'danger', title: 'Agua nao cobre a conta global', text: `Faltam ${money.format(coverage.bill - totals.water)} para cobrir a conta.` });
+    if (fines.length) checks.push({ type: 'warn', title: 'Multas/outros para revisar', text: `${fines.length} apartamento(s) possuem lancamento individual.` });
+    if (discounts.length) checks.push({ type: 'warn', title: 'Descontos/isencoes ativos', text: `${discounts.length} apartamento(s) possuem abatimento no condominio.` });
+    return checks;
+  };
+
+  const renderClosingV5317Base = renderClosing;
+  renderClosing = function(block) {
+    return `${closingChecklistV5317(block)}${renderClosingV5317Base(block)}${waterRateSimulatorV5317(block)}`;
+  };
+
+  const renderDashboardV5317Base = renderDashboard;
+  renderDashboard = function(block) {
+    return `${renderDashboardV5317Base(block)}${statusLegendV5317()}`;
+  };
+
+  const renderReportsV5317Base = renderReports;
+  renderReports = function(block) {
+    return renderReportsV5317Base(block).replace('<section class="finance-summary', `${managerInsightsV5317(block)}<section class="finance-summary`);
+  };
+
+  const renderSettingsV5317Base = renderSettings;
+  renderSettings = function(block) {
+    return `${renderSettingsV5317Base(block)}<section class="settings settings-v5317">${tariffHealthCardV5317(block)}${auditSummaryCardV5317(block)}${backupHealthCardV5317()}</section>`;
+  };
+
+  const renderAnnualDashboardV5317Base = renderAnnualDashboardV52;
+  renderAnnualDashboardV52 = function(block) {
+    const years = yearOptionsV52(block); const year = annualYearV52 && years.includes(annualYearV52) ? annualYearV52 : years[0];
+    return `${renderAnnualDashboardV5317Base(block)}${annualAdvancedInsightsV5317(block, annualRowsV52(block, year))}`;
+  };
+
+  const exportDataV5317Base = exportData;
+  exportData = function() {
+    localStorage.setItem(`${KEY}.lastBackupAt.v5317`, new Date().toISOString());
+    exportDataV5317Base();
+  };
+
+  const handleInputV5317Base = handleInput;
+  handleInput = function(event) {
+    if (event.target.matches('[data-global-search]')) {
+      const result = $('#globalSearchResult'); if (!result) return;
+      const matches = searchMatchesV5317(event.target.value);
+      if (!String(event.target.value || '').trim()) { result.innerHTML = ''; return; }
+      result.innerHTML = matches.length ? matches.map(item => `<button class="secondary smart-search-result" data-search-select="${item.block.id}" data-search-route="leituras" type="button"><strong>${esc(item.block.name)}</strong> · Apto ${esc(item.unit.number)} · ${esc(item.unit.resident || 'Sem responsavel')}<small>${item.flags.map(flag => flag.text).slice(0, 2).join(' · ') || `${fmtM3(item.unit.m3)} m3`}</small></button>`).join('') : '<p class="muted">Nenhum resultado encontrado.</p>';
+      $$('#globalSearchResult [data-search-select]').forEach(button => button.onclick = () => { state.selected = button.dataset.searchSelect; save(); setRoute(button.dataset.searchRoute); render(); });
+      return;
+    }
+    return handleInputV5317Base(event);
   };
 
   setTimeout(bootstrapCloudV52, 250);
