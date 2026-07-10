@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#111111">
   <meta name="description" content="KR²MELO Gestão de Água — leituras, rateio, boletos, isenções e descontos.">
-  <title>KR²MELO · Gestão de Água v5.3.8</title>
+  <title>KR²MELO · Gestão de Água v5.2.2</title>
   <link rel="icon" href="assets/logo.png">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="stylesheet" href="styles.css">
@@ -15,17 +15,19 @@
     <aside class="sidebar" id="sidebar">
       <a class="brand" href="#dashboard" aria-label="KR²MELO início">
         <img src="assets/logo.png" alt="Logotipo KR²MELO">
-        <span><strong>KR²MELO</strong><small>Gestão de água · v5.3.8</small></span>
+        <span><strong>KR²MELO</strong><small>Gestão de água · v5.2.2</small></span>
       </a>
       <nav aria-label="Navegação principal">
         <a href="#dashboard" data-route="dashboard"><span>⌂</span> Visão geral</a>
         <a href="#leituras" data-route="leituras"><span>◫</span> Leituras</a>
+        <a href="#regras" data-route="regras"><span>≋</span> Regras e descontos</a>
         <a href="#fechamento" data-route="fechamento"><span>◷</span> Fechamento</a>
         <a href="#historico" data-route="historico"><span>▤</span> Histórico e auditoria</a>
         <a href="#unidades" data-route="unidades"><span>◉</span> Unidades e hidrômetros</a>
         <a href="#excecoes" data-route="excecoes"><span>⚠</span> Exceções do mês</a>
         <a href="#relatorios" data-route="relatorios"><span>▧</span> Relatórios</a>
         <a href="#anual" data-route="anual"><span>▦</span> Dashboard anual</a>
+        <a href="#financeiro" data-route="financeiro"><span>◉</span> Financeiro</a>
         <a href="#recibos" data-route="recibos"><span>▣</span> Recibos</a>
         <a href="#boletos" data-route="boletos"><span>▥</span> Boletos</a>
         <a href="#configuracoes" data-route="configuracoes"><span>⚙</span> Configurações</a>
@@ -58,6 +60,7 @@
   <dialog id="modal"><form method="dialog" id="modalForm"><div id="modalContent"></div></form></dialog>
   <input type="file" id="importInput" accept="application/json" hidden>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script>localStorage.setItem("kr2melo.hidrometro.v1", {"selected": "b1", "blocks": [{"id": "b1", "name": "Condomínio Vitória · Bloco A", "address": "Rua Exemplo, 100", "manager": "Síndico Teste", "month": "2026-07", "tariff": {"minimum": 68.4, "tier1": 9.56, "tier2": 14.77}, "billing": {"dueDate": "2026-08-15", "previousReadDate": "2026-07-05", "currentReadDate": "2026-08-06", "nextReadDate": "2026-09-06", "waterBill": 400, "serviceFee": 5, "chargeService": true, "serviceLabel": "LEITURA", "condoFee": 70, "notes": ""}, "units": [{"id": "u1", "number": "01A", "resident": "Marcos Vinicios", "previous": 1168, "current": 1176, "billingFine": 0, "condoRule": {}}, {"id": "u2", "number": "02A", "resident": "Paulo Calixto", "previous": 1603, "current": 1615, "billingFine": 5, "condoRule": {}}, {"id": "u3", "number": "03A", "resident": "Jabson Batista", "previous": 1800, "current": 1818, "billingFine": 0, "condoRule": {}}, {"id": "u4", "number": "04A", "resident": "Maria Souza", "previous": 900, "current": 906, "billingFine": 0, "condoRule": {}}], "history": [{"id": "hist-2026-06", "month": "2026-06", "version": 1, "closedAt": "2026-07-10T14:00:00.000Z", "units": [{"id": "u1", "number": "01A", "resident": "Marcos Vinicios", "previous": 1168, "current": 1176, "billingFine": 0, "condoRule": {}}, {"id": "u2", "number": "02A", "resident": "Paulo Calixto", "previous": 1603, "current": 1615, "billingFine": 5, "condoRule": {}}, {"id": "u3", "number": "03A", "resident": "Jabson Batista", "previous": 1800, "current": 1818, "billingFine": 0, "condoRule": {}}, {"id": "u4", "number": "04A", "resident": "Maria Souza", "previous": 900, "current": 906, "billingFine": 0, "condoRule": {}}], "tariff": {"minimum": 68.4, "tier1": 9.56, "tier2": 14.77}, "billing": {"dueDate": "2026-07-15", "previousReadDate": "2026-06-05", "currentReadDate": "2026-07-06", "nextReadDate": "2026-08-06", "waterBill": 350, "serviceFee": 5, "chargeService": true, "serviceLabel": "LEITURA", "condoFee": 70, "notes": ""}, "charges": [{"unitId": "u1", "number": "01A", "resident": "Marcos Vinicios", "m3": 8, "water": 68.4, "grossCondo": 70, "condoDiscount": 0, "condo": 70, "service": 5, "fine": 0, "total": 143.4, "paid": false, "paymentDate": ""}, {"unitId": "u2", "number": "02A", "resident": "Paulo Calixto", "m3": 12, "water": 86.28, "grossCondo": 70, "condoDiscount": 0, "condo": 70, "service": 5, "fine": 5, "total": 166.28, "paid": false, "paymentDate": ""}, {"unitId": "u3", "number": "03A", "resident": "Jabson Batista", "m3": 18, "water": 140.0, "grossCondo": 70, "condoDiscount": 0, "condo": 70, "service": 5, "fine": 0, "total": 215.0, "paid": false, "paymentDate": ""}, {"unitId": "u4", "number": "04A", "resident": "Maria Souza", "m3": 6, "water": 68.4, "grossCondo": 70, "condoDiscount": 0, "condo": 70, "service": 5, "fine": 0, "total": 143.4, "paid": false, "paymentDate": ""}], "source": "fechado", "status": "bloqueado"}]}]}); location.hash="relatorios";</script>
   <script src="sync.js"></script>
   <script src="app.js"></script>
 </body>

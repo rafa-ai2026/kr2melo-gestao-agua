@@ -593,3 +593,18 @@
 .bill-builder{margin-bottom:14px}
 .cover-back-only{grid-template-rows:1fr!important}
 .cover-back-only .cover-back{height:100%!important}
+
+/* KR²MELO v5.3.8 — Central de lançamentos na tela Leituras */
+.adjustment-center{margin:16px 0}
+.adjustment-center .card-head{align-items:flex-start;gap:16px}
+.adjustment-center .card-head .button-row{justify-content:flex-end}
+.adjustment-table{min-width:1320px}
+.adjustment-table th{white-space:nowrap}
+.adjustment-table td{vertical-align:top}
+.adjustment-table input,.adjustment-table select,.adjustment-table textarea{width:100%;min-width:120px;border:1px solid var(--line);background:#fff;border-radius:8px;padding:8px;font-size:12px}
+.adjustment-table textarea{min-height:78px;resize:vertical;line-height:1.35}
+.adjustment-table select+select,.adjustment-table input+input,.adjustment-table textarea+input{margin-top:7px}
+.adjustment-table .extra-charge-editor{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;min-width:210px}
+.adjustment-table .mini-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:7px}
+.adjustment-table small.adjustment{color:var(--red-dark);font-weight:800}
+@media(max-width:900px){.adjustment-center .card-head{display:block}.adjustment-center .card-head .button-row{justify-content:flex-start;margin-top:10px}.adjustment-table{min-width:1180px}}

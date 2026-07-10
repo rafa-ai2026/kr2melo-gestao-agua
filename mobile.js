@@ -34,7 +34,16 @@
     toast.timer = setTimeout(() => { el.className = 'toast'; }, 2200);
   }
   function cost(m3, tariff) {
-    const use = Math.max(0, n(m3)), t = { minimum: 64.6, tier1: 8.94, tier2: 13.82, ...(tariff || {}) };
+    const use = Math.max(0, n(m3));
+    const t = { minimum: 64.6, tier1: 8.94, tier2: 13.82, sheetMinimum: 70, sheetAllowance: 10, sheetExcess: 7, ...(tariff || {}) };
+    const mode = String(t.calculationMode || t.mode || '').trim();
+    if (mode === 'spreadsheet_1938') {
+      const allowance = Math.max(0, n(t.sheetAllowance));
+      const minimum = Math.max(0, n(t.sheetMinimum));
+      const excess = Math.max(0, n(t.sheetExcess));
+      if (use <= allowance) return minimum;
+      return minimum + (use - allowance) * excess;
+    }
     if (use <= 10) return n(t.minimum);
     if (use <= 20) return n(t.minimum) + (use - 10) * n(t.tier1);
     return n(t.minimum) + 10 * n(t.tier1) + (use - 20) * n(t.tier2);

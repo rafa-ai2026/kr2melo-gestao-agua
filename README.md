@@ -1,7 +1,7 @@
 # KR²MELO — Gestão de Água
 
 > **Manual completo de operação, impressão, histórico, sincronização e segurança**  
-> Versão do sistema: **v5.3.6**
+> Versão do sistema: **v5.3.8**
 
 O KR²MELO é um sistema para administrar leituras individuais de hidrômetros, rateio de água, cobranças, boletos, recibos, histórico mensal e controle financeiro de condomínios ou blocos residenciais.
 
@@ -19,7 +19,7 @@ Ele pode ser usado no computador, no celular e, quando configurado com Supabase,
 6. [Visão geral](#viso-geral)
 7. [Leituras do mês](#leituras-do-ms)
 8. [Rateio da conta global de água](#rateio-da-conta-global-de-gua)
-9. [Regras, isenções, descontos e outros lançamentos](#regras-isenes-descontos-e-outros-lanamentos)
+9. [Lançamentos, isenções, descontos e outros ajustes](#lanamentos-isenes-descontos-e-outros-ajustes)
 10. [Unidades, moradores e hidrômetros](#unidades-moradores-e-hidrmetros)
 11. [Exceções do mês](#excees-do-ms)
 12. [Fechamento mensal](#fechamento-mensal)
@@ -399,9 +399,9 @@ Use essa conferência antes de emitir os boletos. Ela ajuda a verificar se a tar
 
 ---
 
-# Regras, isenções, descontos e outros lançamentos
+# Lançamentos, isenções, descontos e outros ajustes
 
-A tela **Regras e descontos** serve para aplicar regras por apartamento.
+O bloco **Lançamentos e ajustes por apartamento**, dentro da tela **Leituras**, serve para aplicar regras por apartamento e reunir multas, descontos, adicionais, abatimentos e observações em um único lugar.
 
 ## Função do morador
 
@@ -1563,7 +1563,7 @@ Quando nenhum mês foi encerrado, a caixa informa que ainda não há histórico 
 
 ---
 
-## Atualização v5.3.6 - Mobile de leitura em campo
+## Atualização v5.3.8 - Mobile de leitura em campo
 
 - Busca rápida por apartamento ou morador na tela do celular.
 - Resumo da rota com pendentes, leituras feitas, sem acesso e alertas.
@@ -1571,3 +1571,36 @@ Quando nenhum mês foi encerrado, a caixa informa que ainda não há histórico 
 - Observação da leitura preenchida diretamente no celular.
 - Motivo do sem acesso selecionável em campo.
 - Opção de reabrir leitura salva para corrigir imediatamente.
+
+---
+
+## Atualização v5.3.8 — Central de lançamentos na tela Leituras
+
+Nesta versão, os lançamentos individuais por apartamento foram reunidos na tela **Leituras**, no bloco **Lançamentos e ajustes por apartamento**.
+
+Agora ficam no mesmo lugar:
+
+- multas/outros e valor da multa;
+- observação específica da multa/outros;
+- descontos, isenções, motivo, vigência e autorização;
+- valores adicionais;
+- abatimentos avulsos com valor negativo;
+- observação individual que aparece no boleto do morador.
+
+A tela **Regras e descontos** foi removida do menu para reduzir duplicidade. A tela **Boletos** ficou concentrada apenas na configuração geral do vencimento, datas, valor do condomínio, serviço de leitura, observações gerais e impressão.
+
+Para lançar adicionais ou abatimentos, use uma linha por item:
+
+```text
+2ª via; 10,00
+Abatimento combinado; -15,00
+```
+
+## Atualização v5.3.8 — modelo de cálculo da planilha
+
+A tela **Configurações → Tarifa da água** agora permite escolher entre dois modelos:
+
+1. **Faixas do site / SABESP simplificado**: mantém o cálculo anterior por faixas de consumo.
+2. **Planilha Bloco 1938 · mínimo + excedente**: cobra um valor mínimo até a franquia e, acima dela, soma o valor por m³ excedente. O padrão vem configurado como **R$ 70,00 até 10 m³ + R$ 7,00 por m³ excedente**, igual ao cálculo identificado na planilha.
+
+Ao salvar o modelo, o sistema recalcula automaticamente a água nas leituras, boletos, relatórios, fechamento mensal e modo leiturista.

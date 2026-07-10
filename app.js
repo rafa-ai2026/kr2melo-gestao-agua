@@ -2,7 +2,7 @@
   'use strict';
 
   const KEY = 'kr2melo.hidrometro.v1';
-  const APP_VERSION = '5.3.6';
+  const APP_VERSION = '5.3.8';
   const DEFAULT_TARIFF = { minimum: 64.6, tier1: 8.94, tier2: 13.82 };
   const money = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
   const monthFmt = new Intl.DateTimeFormat('pt-BR', { month: 'long', year: 'numeric' });
@@ -19,7 +19,6 @@
   const routes = {
     dashboard: ['PAINEL', 'Visão geral'],
     leituras: ['OPERAÇÃO', 'Leituras do mês'],
-    regras: ['COBRANÇA', 'Regras e descontos'],
     fechamento: ['CICLO MENSAL', 'Fechamento do mês'],
     historico: ['REGISTROS', 'Histórico mensal'],
     relatorios: ['GESTÃO', 'Relatórios'],
@@ -150,10 +149,12 @@
       extraCharge: Math.max(0, n(u.extraCharge)),
       extraCharges: Array.isArray(u.extraCharges) ? u.extraCharges.map(item => ({
         label: String(item?.label || 'VALOR ADICIONAL'),
-        value: Math.max(0, n(item?.value))
+        value: n(item?.value)
       })).filter(item => item.label || item.value) : [],
       billingFineLabel: String(u.billingFineLabel || 'MULTAS / OUTROS'),
       billingFine: Math.max(0, n(u.billingFine)),
+      billingFineNote: String(u.billingFineNote || ''),
+      billingNote: String(u.billingNote || ''),
       condoRule: normalizeRule(migratedRule),
       paid: Boolean(u.paid),
       paymentDate: String(u.paymentDate || ''),
@@ -527,7 +528,7 @@ Esta ação remove os apartamentos da competência atual. O histórico já fecha
     const groups = chunk(block.units, 16);
     const content = groups.map((units, index) => `<div class="bill-group-title no-print">Bloco ${blockLetter(index)} · ${units.length} apartamento(s)</div>${coverSheet(block, units, index)}${billPages(block, units, index)}`).join('');
     const b = block.billing;
-    return `<section class="billing-controls no-print"><div class="section-actions"><div><h2>Boletos mensais</h2><span class="muted">Cada boleto mostra água, condomínio, desconto/isenção, serviço e outros separadamente.</span></div><div class="button-row"><button class="secondary" data-go="regras">Regras por apartamento</button><button class="primary" data-print-bills>Imprimir conjunto</button></div></div><form class="card form-grid" id="billingForm"><div class="field"><label>Vencimento</label><input name="dueDate" type="date" value="${esc(b.dueDate)}" required></div><div class="field"><label>Conta global de água (R$)</label><input name="waterBill" type="number" min="0" step="0.01" value="${b.waterBill || ''}"></div><div class="field"><label>Data da leitura anterior</label><input name="previousReadDate" type="date" value="${esc(b.previousReadDate)}"></div><div class="field"><label>Data da leitura atual</label><input name="currentReadDate" type="date" value="${esc(b.currentReadDate)}"></div><div class="field"><label>Próxima leitura</label><input name="nextReadDate" type="date" value="${esc(b.nextReadDate)}"></div><div class="field"><label>Condomínio bruto (R$)</label><input name="condoFee" type="number" min="0" step="0.01" value="${b.condoFee}"></div><div class="field"><label>Serviço de leitura (R$)</label><input name="serviceFee" type="number" min="0" step="0.01" value="${b.serviceFee}"></div><div class="field"><label>Descrição do serviço</label><input name="serviceLabel" value="${esc(b.serviceLabel)}"></div><div class="field full"><label><input name="chargeService" type="checkbox" ${b.chargeService !== false ? 'checked' : ''}> Cobrar serviço de leitura neste mês</label></div><div class="field full"><label>Observações — uma por linha</label><textarea name="notes" rows="4">${esc(b.notes)}</textarea></div><div class="form-foot"><button class="primary" type="submit">Salvar e atualizar boletos</button></div></form></section><div class="billing-preview">${content || '<div class="card empty">Cadastre apartamentos antes de gerar boletos.</div>'}</div>`;
+    return `<section class="billing-controls no-print"><div class="section-actions"><div><h2>Boletos mensais</h2><span class="muted">Cada boleto mostra água, condomínio, desconto/isenção, serviço e outros separadamente.</span></div><div class="button-row"><button class="secondary" data-go="leituras">Lançamentos nas leituras</button><button class="primary" data-print-bills>Imprimir conjunto</button></div></div><form class="card form-grid" id="billingForm"><div class="field"><label>Vencimento</label><input name="dueDate" type="date" value="${esc(b.dueDate)}" required></div><div class="field"><label>Conta global de água (R$)</label><input name="waterBill" type="number" min="0" step="0.01" value="${b.waterBill || ''}"></div><div class="field"><label>Data da leitura anterior</label><input name="previousReadDate" type="date" value="${esc(b.previousReadDate)}"></div><div class="field"><label>Data da leitura atual</label><input name="currentReadDate" type="date" value="${esc(b.currentReadDate)}"></div><div class="field"><label>Próxima leitura</label><input name="nextReadDate" type="date" value="${esc(b.nextReadDate)}"></div><div class="field"><label>Condomínio bruto (R$)</label><input name="condoFee" type="number" min="0" step="0.01" value="${b.condoFee}"></div><div class="field"><label>Serviço de leitura (R$)</label><input name="serviceFee" type="number" min="0" step="0.01" value="${b.serviceFee}"></div><div class="field"><label>Descrição do serviço</label><input name="serviceLabel" value="${esc(b.serviceLabel)}"></div><div class="field full"><label><input name="chargeService" type="checkbox" ${b.chargeService !== false ? 'checked' : ''}> Cobrar serviço de leitura neste mês</label></div><div class="field full"><label>Observações — uma por linha</label><textarea name="notes" rows="4">${esc(b.notes)}</textarea></div><div class="form-foot"><button class="primary" type="submit">Salvar e atualizar boletos</button></div></form></section><div class="billing-preview">${content || '<div class="card empty">Cadastre apartamentos antes de gerar boletos.</div>'}</div>`;
   }
   function renderSettings(block) {
     return `<section class="settings"><article class="card"><div class="card-head"><h3>Dados do condomínio</h3></div><form class="form-grid" id="blockForm"><div class="field"><label>Nome</label><input name="name" value="${esc(block.name)}" required></div><div class="field"><label>Referência atual</label><input name="month" type="month" value="${esc(block.month)}" required></div><div class="field full"><label>Endereço</label><input name="address" value="${esc(block.address)}"></div><div class="field full"><label>Responsável / síndico</label><input name="manager" value="${esc(block.manager)}"></div><div class="form-foot"><button class="primary" type="submit">Salvar alterações</button></div></form></article><article class="card"><div class="card-head"><h3>Tarifa da água</h3></div><form class="form-grid" id="tariffForm"><div class="field full"><label>Mínimo até 10 m³ (R$)</label><input name="minimum" type="number" min="0" step="0.01" value="${block.tariff.minimum}"></div><div class="field"><label>De 11 a 20 m³ (R$/m³)</label><input name="tier1" type="number" min="0" step="0.01" value="${block.tariff.tier1}"></div><div class="field"><label>Acima de 20 m³ (R$/m³)</label><input name="tier2" type="number" min="0" step="0.01" value="${block.tariff.tier2}"></div><div class="form-foot"><button class="primary" type="submit">Salvar e recalcular</button></div></form></article><article class="card"><h3>Backup e restauração</h3><p class="muted">O backup JSON protege leituras, regras, boletos, histórico e recibos. Fotos novas capturadas no celular ficam no armazenamento local do aparelho.</p><div class="button-row"><button class="secondary" data-export>Baixar backup</button><button class="secondary" data-import>Restaurar backup</button></div></article><article class="card"><h3>Zona de atenção</h3><p class="muted">A exclusão remove o condomínio, as leituras e o histórico armazenado neste navegador.</p><button class="danger" data-delete-block>Excluir condomínio</button></article></section>`;
@@ -1730,7 +1731,7 @@ Esta ação remove os apartamentos da competência atual. O histórico já fecha
     const content = groups.map((units, index) => `<div class="bill-group-title no-print">Bloco ${blockLetter(index)} · ${units.length} apartamento(s)</div>${coverSheet(block, units, index)}${billPages(block, units, index)}`).join('');
     const b = block.billing;
     const unitNotes = `<section class="card billing-unit-notes"><div class="card-head"><h3>Observações individuais nos boletos</h3><span class="muted">Aparecem somente no boleto do respectivo apartamento.</span></div><div class="table-wrap"><table><thead><tr><th>Apto</th><th>Responsável</th><th>Observação individual</th></tr></thead><tbody>${block.units.map(unit => `<tr><td><strong>${esc(unit.number)}</strong></td><td>${esc(unit.resident || '—')}</td><td><textarea name="billingNote_${esc(unit.id)}" rows="2" placeholder="Ex.: Acordo, aviso, orientação específica">${esc(unit.billingNote || '')}</textarea></td></tr>`).join('')}</tbody></table></div></section>`;
-    return `<section class="billing-controls no-print"><div class="section-actions"><div><h2>Boletos mensais</h2><span class="muted">Cada boleto mostra água, condomínio, desconto/isenção, serviço e outros separadamente.</span></div><div class="button-row"><button class="secondary" data-go="regras">Regras por apartamento</button><button class="primary" data-print-bills>Imprimir conjunto</button></div></div><form class="card form-grid" id="billingForm"><div class="field"><label>Vencimento</label><input name="dueDate" type="date" value="${esc(b.dueDate)}" required></div><div class="field"><label>Conta global de água (R$)</label><input name="waterBill" type="number" min="0" step="0.01" value="${b.waterBill || ''}"></div><div class="field"><label>Data da leitura anterior</label><input name="previousReadDate" type="date" value="${esc(b.previousReadDate)}"></div><div class="field"><label>Data da leitura atual</label><input name="currentReadDate" type="date" value="${esc(b.currentReadDate)}"></div><div class="field"><label>Próxima leitura</label><input name="nextReadDate" type="date" value="${esc(b.nextReadDate)}"></div><div class="field"><label>Condomínio bruto (R$)</label><input name="condoFee" type="number" min="0" step="0.01" value="${b.condoFee}"></div><div class="field"><label>Serviço de leitura (R$)</label><input name="serviceFee" type="number" min="0" step="0.01" value="${b.serviceFee}"></div><div class="field"><label>Descrição do serviço</label><input name="serviceLabel" value="${esc(b.serviceLabel)}"></div><div class="field full"><label><input name="chargeService" type="checkbox" ${b.chargeService !== false ? 'checked' : ''}> Cobrar serviço de leitura neste mês</label></div><div class="field full"><label>Observações gerais — uma por linha</label><textarea name="notes" rows="5" placeholder="Cada linha aparece no boleto. Linhas em branco são ignoradas.">${esc(b.notes)}</textarea></div><div class="field full">${unitNotes}</div><div class="form-foot"><button class="primary" type="submit">Salvar e atualizar boletos</button></div></form></section><div class="billing-preview">${content || '<div class="card empty">Cadastre apartamentos antes de gerar boletos.</div>'}</div>`;
+    return `<section class="billing-controls no-print"><div class="section-actions"><div><h2>Boletos mensais</h2><span class="muted">Cada boleto mostra água, condomínio, desconto/isenção, serviço e outros separadamente.</span></div><div class="button-row"><button class="secondary" data-go="leituras">Lançamentos nas leituras</button><button class="primary" data-print-bills>Imprimir conjunto</button></div></div><form class="card form-grid" id="billingForm"><div class="field"><label>Vencimento</label><input name="dueDate" type="date" value="${esc(b.dueDate)}" required></div><div class="field"><label>Conta global de água (R$)</label><input name="waterBill" type="number" min="0" step="0.01" value="${b.waterBill || ''}"></div><div class="field"><label>Data da leitura anterior</label><input name="previousReadDate" type="date" value="${esc(b.previousReadDate)}"></div><div class="field"><label>Data da leitura atual</label><input name="currentReadDate" type="date" value="${esc(b.currentReadDate)}"></div><div class="field"><label>Próxima leitura</label><input name="nextReadDate" type="date" value="${esc(b.nextReadDate)}"></div><div class="field"><label>Condomínio bruto (R$)</label><input name="condoFee" type="number" min="0" step="0.01" value="${b.condoFee}"></div><div class="field"><label>Serviço de leitura (R$)</label><input name="serviceFee" type="number" min="0" step="0.01" value="${b.serviceFee}"></div><div class="field"><label>Descrição do serviço</label><input name="serviceLabel" value="${esc(b.serviceLabel)}"></div><div class="field full"><label><input name="chargeService" type="checkbox" ${b.chargeService !== false ? 'checked' : ''}> Cobrar serviço de leitura neste mês</label></div><div class="field full"><label>Observações gerais — uma por linha</label><textarea name="notes" rows="5" placeholder="Cada linha aparece no boleto. Linhas em branco são ignoradas.">${esc(b.notes)}</textarea></div><div class="field full">${unitNotes}</div><div class="form-foot"><button class="primary" type="submit">Salvar e atualizar boletos</button></div></form></section><div class="billing-preview">${content || '<div class="card empty">Cadastre apartamentos antes de gerar boletos.</div>'}</div>`;
   };
   saveBilling = function(form) {
     const block = selected(); if (!block) return;
@@ -1808,7 +1809,7 @@ Esta ação remove os apartamentos da competência atual. O histórico já fecha
   uploadCloudV52 = uploadCloudV53;
   downloadCloudV52 = downloadCloudV53;
 
-  // ===================== KR2MELO v5.3.6 =====================
+  // ===================== KR2MELO v5.3.8 =====================
   delete routes.financeiro;
 
   function extraChargeItems(unit) {
@@ -1968,6 +1969,220 @@ Esta ação remove os apartamentos da competência atual. O histórico já fecha
     if (target.closest('[data-sync-push]')) { await uploadCloudV53(); return; }
     if (target.closest('[data-sync-pull]')) { await downloadCloudV53(); return; }
     return handleClickV53Base(event);
+  };
+
+
+  // ===================== KR2MELO v5.3.8 =====================
+  // Centraliza multas, descontos, adicionais e abatimentos avulsos dentro da tela Leituras.
+  delete routes.regras;
+
+  function moneyValueFromTextV537(value) {
+    const raw = String(value ?? '').trim();
+    if (!raw) return 0;
+    const cleaned = raw.replace(/[^\d,.-]/g, '').replace(/\.(?=\d{3}(\D|$))/g, '').replace(',', '.');
+    const number = Number(cleaned);
+    return Number.isFinite(number) ? number : 0;
+  }
+  function ensureV537(block) {
+    if (!block) return;
+    ensureV53(block);
+    block.units.forEach(unit => {
+      unit.billingFineNote = String(unit.billingFineNote || '');
+      unit.billingNote = String(unit.billingNote || '');
+      unit.extraCharges = Array.isArray(unit.extraCharges) ? unit.extraCharges.map(item => ({
+        label: String(item?.label || '').trim() || 'AJUSTE AVULSO',
+        value: moneyValueFromTextV537(item?.value)
+      })).filter(item => item.value !== 0 || item.label !== 'AJUSTE AVULSO') : [];
+    });
+  }
+
+  const normalizeUnitV537Base = normalizeUnit;
+  normalizeUnit = function(raw, index = 0) {
+    const unit = normalizeUnitV537Base(raw, index);
+    unit.billingFineNote = String(raw?.billingFineNote || '');
+    unit.billingNote = String(raw?.billingNote || unit.billingNote || '');
+    unit.extraCharges = Array.isArray(raw?.extraCharges) ? raw.extraCharges.map(item => ({
+      label: String(item?.label || '').trim() || 'AJUSTE AVULSO',
+      value: moneyValueFromTextV537(item?.value)
+    })).filter(item => item.value !== 0 || item.label !== 'AJUSTE AVULSO') : unit.extraCharges;
+    return unit;
+  };
+
+  extraChargeItems = function(unit) {
+    const items = Array.isArray(unit.extraCharges) ? unit.extraCharges.map(item => ({
+      label: String(item?.label || '').trim() || 'AJUSTE AVULSO',
+      value: moneyValueFromTextV537(item?.value)
+    })).filter(item => item.value !== 0) : [];
+    const legacy = moneyValueFromTextV537(unit.extraCharge);
+    if (legacy !== 0) items.unshift({ label: String(unit.extraChargeLabel || 'VALOR ADICIONAL'), value: legacy });
+    return items;
+  };
+  extraChargesText = function(unit) {
+    return extraChargeItems(unit).map(item => `${item.label}; ${Number(item.value).toFixed(2).replace('.', ',')}`).join('\n');
+  };
+  parseExtraCharges = function(text) {
+    return String(text || '').split(/\r?\n/).map(line => line.trim()).filter(Boolean).map(line => {
+      const parts = line.split(/[;|]/);
+      const valueText = parts.length > 1 ? parts.pop() : (line.match(/[-+]?\s*R?\$?\s*\d[\d.,]*/)?.[0] || '0');
+      const label = (parts.length > 0 ? parts.join(';').trim() : line.replace(valueText, '').trim()).replace(/;+$/, '').trim() || 'AJUSTE AVULSO';
+      const value = moneyValueFromTextV537(valueText);
+      return { label: label.slice(0, 80), value };
+    }).filter(item => item.value !== 0);
+  };
+
+  const billingNoteLinesV537Base = billingNoteLines;
+  billingNoteLines = function(unit, billing) {
+    const global = cleanNoteLines(billing?.notes, 4);
+    const fineNote = cleanNoteLines(unit?.billingFineNote ? `Multas/outros: ${unit.billingFineNote}` : '', 1);
+    const individual = cleanNoteLines(unit?.billingNote, 3);
+    return [...global, ...fineNote, ...individual].slice(0, 6);
+  };
+
+  function adjustmentCenterV537(block) {
+    ensureV537(block);
+    const totals = chargeTotals(block);
+    const activeRules = block.units.filter(unit => ruleActive(unit.condoRule, block.month) && unit.condoRule.mode !== 'normal').length;
+    const extras = block.units.reduce((sum, unit) => sum + extraChargeItems(unit).reduce((a, item) => a + n(item.value), 0), 0);
+    const fines = block.units.reduce((sum, unit) => sum + Math.max(0, n(unit.billingFine)), 0);
+    return `<section class="card adjustment-center no-print" data-adjustment-center><div class="card-head"><div><h3>Lançamentos e ajustes por apartamento</h3><span class="muted">Multas/outros, observações, descontos, valores adicionais e abatimentos ficam juntos nesta tela.</span></div><div class="button-row"><span class="pill info">${activeRules} regra(s)</span><span class="pill warn">${money.format(totals.discount)} desconto</span><span class="pill ${extras < 0 ? 'ok' : 'info'}">${money.format(extras)} extras ±</span><span class="pill danger">${money.format(fines)} multas</span></div></div><div class="info-box"><strong>Como lançar extras:</strong> em “Adicionais / abatimentos”, use uma linha por item no formato <b>Descrição; valor</b>. Para subtrair, coloque valor negativo, por exemplo: <b>Abatimento combinado; -15,00</b>.</div><div class="table-wrap"><table class="adjustment-table"><thead><tr><th>Apto</th><th>Desconto / isenção</th><th>Valor</th><th>Observação do desconto</th><th>Vigência / autorização</th><th>Adicionais / abatimentos</th><th>Multas / outros</th><th>Obs. da multa</th><th>Obs. no boleto</th><th>Total</th></tr></thead><tbody>${block.units.map(unit => { const r = normalizeRule(unit.condoRule), c = unitCharges(unit, block); return `<tr data-rule-row="${unit.id}"><td><strong>${esc(unit.number)}</strong><br><small>${esc(unit.resident || 'Sem responsável')}</small></td><td><select data-rule-field="role" title="Função">${Object.entries(roleLabels).map(([value, label]) => `<option value="${value}" ${r.role === value ? 'selected' : ''}>${label}</option>`).join('')}</select><select data-rule-field="mode" title="Regra de desconto">${Object.entries(ruleLabels).map(([value, label]) => `<option value="${value}" ${r.mode === value ? 'selected' : ''}>${label}</option>`).join('')}</select></td><td><input data-rule-field="value" type="number" min="0" step="0.01" value="${r.value || ''}" placeholder="R$ ou %"></td><td><textarea data-rule-field="reason" rows="3" placeholder="Motivo do desconto, isenção ou benefício">${esc(r.reason)}</textarea></td><td><div class="mini-grid"><input data-rule-field="startsAt" type="month" value="${esc(r.startsAt)}" title="Início"><input data-rule-field="endsAt" type="month" value="${esc(r.endsAt)}" title="Fim"></div><input data-rule-field="authorizedBy" value="${esc(r.authorizedBy)}" placeholder="Autorizado por"></td><td><textarea class="extra-charge-editor" data-rule-field="extraChargesText" rows="4" placeholder="Ex.: 2ª via; 10,00\nAbatimento; -15,00">${esc(extraChargesText(unit))}</textarea></td><td><input data-rule-field="billingFineLabel" value="${esc(unit.billingFineLabel || 'MULTAS / OUTROS')}" placeholder="Descrição"><input data-rule-field="billingFine" type="number" min="0" step="0.01" value="${unit.billingFine || ''}" placeholder="Valor"></td><td><textarea data-rule-field="billingFineNote" rows="3" placeholder="Observação da multa/outros">${esc(unit.billingFineNote || '')}</textarea></td><td><textarea data-rule-field="billingNote" rows="3" placeholder="Observação individual para o boleto">${esc(unit.billingNote || '')}</textarea></td><td><strong>${money.format(c.total)}</strong>${c.condoDiscount ? `<br><small class="adjustment">Desconto: − ${money.format(c.condoDiscount)}</small>` : ''}${c.extraCharge ? `<br><small>Extras: ${money.format(c.extraCharge)}</small>` : ''}${c.fine ? `<br><small>${esc(unit.billingFineLabel || 'Multas/outros')}: ${money.format(c.fine)}</small>` : ''}</td></tr>`; }).join('')}</tbody></table></div></section>`;
+  }
+
+  renderReadings = function(block) {
+    ensureV537(block);
+    const totals = chargeTotals(block), selectedIds = readingSelectionFor(block), selectedCount = selectedIds.size;
+    return `${waterCoverageCard(block)}<div class="section-actions"><div><h2>${monthLabel(block.month)}</h2><span class="muted">Digite a leitura atual e ajuste multas, descontos, adicionais e observações no mesmo bloco de trabalho.</span></div><div class="button-row"><button class="secondary" data-import-readings type="button">⇧ Importar Excel/CSV</button><button class="secondary" data-export-readings type="button">⇩ Planilha Excel (.csv)</button><button class="secondary" data-export-readings-xlsx type="button">⇩ Modelo .xlsx</button><button class="secondary" data-add-unit type="button">+ Unidade</button><button class="primary" data-go="fechamento" type="button">Fechamento mensal</button></div></div>${adjustmentCenterV537(block)}<section class="reading-bulk-actions card no-print"><div><strong><span data-reading-selection-count>${selectedCount}</span> selecionada(s)</strong><small>Use a caixa da primeira coluna para escolher leituras. “Limpar” preserva apartamento, leitura anterior e lançamentos financeiros.</small></div><div class="button-row"><button class="secondary" data-select-all-readings type="button">Selecionar todas</button><button class="secondary" data-clear-selected-readings type="button" ${selectedCount ? '' : 'disabled'}>Limpar selecionadas</button><button class="danger" data-clear-all-readings type="button">Limpar todas as leituras</button><button class="danger" data-remove-selected-units type="button" ${selectedCount ? '' : 'disabled'}>Excluir cadastros selecionados</button></div></section><div class="table-wrap"><table><thead><tr><th class="reading-check"><input type="checkbox" data-select-all-readings aria-label="Selecionar todas as leituras"></th><th>Apto / Hidrômetro</th><th>Responsável</th><th>Anterior</th><th>Atual</th><th>Consumo</th><th>Status</th><th>Água</th><th>Observação operacional</th><th></th></tr></thead><tbody>${block.units.map(unit => { const issue = readingIssue(unit), checked = selectedIds.has(unit.id); return `<tr data-reading-row="${unit.id}" class="${issue ? `reading-issue ${issue.type}` : ''}"><td class="reading-check"><input data-reading-select type="checkbox" value="${unit.id}" ${checked ? 'checked' : ''} aria-label="Selecionar apartamento ${esc(unit.number)}"></td><td><input data-reading-field="number" value="${esc(unit.number)}" aria-label="Apartamento"></td><td><input data-reading-field="resident" value="${esc(unit.resident)}" placeholder="Nome"></td><td><input data-reading-field="previous" type="number" min="0" step="0.001" value="${unit.previous}"></td><td><input data-reading-field="current" type="number" min="0" step="0.001" value="${unit.current}"></td><td class="value">${fmtM3(unit.m3)} m³</td><td>${readingBadge(unit)}</td><td class="value">${money.format(unit.value)}</td><td><input data-reading-field="note" value="${esc(unit.note)}" placeholder="Observação da leitura"></td><td><div class="row-actions"><button class="danger" data-remove-unit title="Excluir cadastro do apartamento" type="button">×</button></div></td></tr>`; }).join('')}</tbody><tfoot><tr><td></td><td colspan="4">TOTAL DE ÁGUA</td><td>${fmtM3(totals.m3)} m³</td><td></td><td>${money.format(totals.water)}</td><td colspan="2"></td></tr></tfoot></table></div>`;
+  };
+
+  renderBills = function(block) {
+    ensureV537(block);
+    const content = billPrintContent(block, 'complete');
+    const b = block.billing;
+    return `<section class="billing-controls no-print"><div class="section-actions"><div><h2>Boletos mensais</h2><span class="muted">Monte o bloco, confira a impressão e imprima por partes se preferir.</span></div><div class="button-row"><button class="secondary" data-print-check type="button">Conferir impressão</button><button class="primary" data-print-bill-part="complete" type="button">Imprimir bloco completo</button></div></div><section class="card bill-builder"><div class="card-head"><h3>Gerar bloco de boletos</h3><span class="muted">Útil para impressão manual</span></div><div class="button-row"><button class="secondary" data-print-bill-part="cover" type="button">Só capa</button><button class="secondary" data-print-bill-part="bills" type="button">Só boletos</button><button class="secondary" data-print-bill-part="back" type="button">Só contracapa</button></div></section><form class="card form-grid" id="billingForm"><div class="field full"><div class="info-box"><strong>Lançamentos individuais:</strong> multas, descontos, adicionais, abatimentos e observações por apartamento agora ficam na tela <b>Leituras</b>, no bloco “Lançamentos e ajustes por apartamento”.</div></div><div class="field"><label>Vencimento</label><input name="dueDate" type="date" value="${esc(b.dueDate)}" required></div><div class="field"><label>Conta global de água (R$)</label><input name="waterBill" type="number" min="0" step="0.01" value="${b.waterBill || ''}"></div><div class="field"><label>Data da leitura anterior</label><input name="previousReadDate" type="date" value="${esc(b.previousReadDate)}"></div><div class="field"><label>Data da leitura atual</label><input name="currentReadDate" type="date" value="${esc(b.currentReadDate)}"></div><div class="field"><label>Próxima leitura</label><input name="nextReadDate" type="date" value="${esc(b.nextReadDate)}"></div><div class="field"><label>Apartamentos por bloco</label><input name="groupSize" type="number" min="2" max="64" step="1" value="${billGroupSize(block)}"></div><div class="field"><label>Condomínio bruto (R$)</label><input name="condoFee" type="number" min="0" step="0.01" value="${b.condoFee}"></div><div class="field"><label>Serviço de leitura (R$)</label><input name="serviceFee" type="number" min="0" step="0.01" value="${b.serviceFee}"></div><div class="field"><label>Descrição do serviço</label><input name="serviceLabel" value="${esc(b.serviceLabel)}"></div><div class="field full"><label><input name="chargeService" type="checkbox" ${b.chargeService !== false ? 'checked' : ''}> Cobrar serviço de leitura neste mês</label></div><div class="field full"><label>Observações gerais — uma por linha</label><textarea name="notes" rows="5" placeholder="Cada linha aparece no boleto. Linhas em branco são ignoradas.">${esc(b.notes)}</textarea></div><div class="form-foot"><button class="primary" type="submit">Salvar e atualizar boletos</button></div></form></section><div class="billing-preview">${content || '<div class="card empty">Cadastre apartamentos antes de gerar boletos.</div>'}</div>`;
+  };
+
+  saveBilling = function(form) {
+    const block = selected(); if (!block) return;
+    const data = Object.fromEntries(new FormData(form));
+    block.billing = normalizeBilling({ ...block.billing, ...data, groupSize: Math.min(64, Math.max(2, n(data.groupSize) || 16)), chargeService: data.chargeService === 'on', waterBill: n(data.waterBill), serviceFee: n(data.serviceFee), condoFee: n(data.condoFee) }, block.month);
+    block.units.forEach(unit => {
+      if (Object.prototype.hasOwnProperty.call(data, `billingNote_${unit.id}`)) unit.billingNote = String(data[`billingNote_${unit.id}`] || '');
+    });
+    save('Configuração de boletos atualizada'); render();
+  };
+
+  const handleChangeV537Base = handleChange;
+  handleChange = function(event) {
+    const target = event.target;
+    const ruleField = target.closest('[data-rule-field]');
+    if (ruleField) {
+      const row = target.closest('[data-rule-row]'); const block = selected(); const unit = findUnit(block, row?.dataset.ruleRow); if (!unit) return;
+      const field = target.dataset.ruleField;
+      if (field === 'extraChargesText') {
+        unit.extraCharge = 0; unit.extraChargeLabel = 'VALOR ADICIONAL'; unit.extraCharges = parseExtraCharges(target.value);
+        save('Adicionais e abatimentos atualizados'); render(); return;
+      }
+      if (field === 'billingFineNote') { unit.billingFineNote = String(target.value || ''); save('Observação de multa atualizada'); render(); return; }
+      if (field === 'billingNote') { unit.billingNote = String(target.value || ''); save('Observação do boleto atualizada'); render(); return; }
+    }
+    return handleChangeV537Base(event);
+  };
+
+  const renderV537Base = render;
+  render = function() {
+    if (location.hash === '#regras') location.hash = '#leituras';
+    state.blocks.forEach(ensureV537);
+    renderV537Base();
+    refreshVersionLabelsV53();
+  };
+
+
+
+  // ===================== KR2MELO v5.3.8 =====================
+  // Opção de cálculo igual à planilha Bloco 1938: mínimo fixo até 10 m³ + excedente por m³.
+  function tariffV538(raw = {}) {
+    const t = { ...DEFAULT_TARIFF, ...(raw || {}) };
+    const mode = String(t.calculationMode || t.mode || '').trim();
+    const nonNegative = (value, fallback) => {
+      const source = value === '' || value === null || value === undefined ? fallback : value;
+      return Math.max(0, n(source));
+    };
+    return {
+      ...t,
+      calculationMode: mode === 'spreadsheet_1938' ? 'spreadsheet_1938' : 'tiered',
+      minimum: nonNegative(t.minimum, DEFAULT_TARIFF.minimum),
+      tier1: nonNegative(t.tier1, DEFAULT_TARIFF.tier1),
+      tier2: nonNegative(t.tier2, DEFAULT_TARIFF.tier2),
+      sheetMinimum: nonNegative(t.sheetMinimum, 70),
+      sheetAllowance: nonNegative(t.sheetAllowance, 10),
+      sheetExcess: nonNegative(t.sheetExcess, 7)
+    };
+  }
+  function tariffModeLabelV538(tariff) {
+    const t = tariffV538(tariff);
+    if (t.calculationMode === 'spreadsheet_1938') return `Planilha Bloco 1938 · ${money.format(t.sheetMinimum)} até ${fmtM3(t.sheetAllowance)} m³ + ${money.format(t.sheetExcess)}/m³ excedente`;
+    return `Faixas do site · ${money.format(t.minimum)} até 10 m³; ${money.format(t.tier1)}/m³ de 11 a 20; ${money.format(t.tier2)}/m³ acima de 20`;
+  }
+  waterCost = function(m3, tariff) {
+    const use = Math.max(0, n(m3));
+    const t = tariffV538(tariff);
+    if (t.calculationMode === 'spreadsheet_1938') {
+      if (use <= t.sheetAllowance) return t.sheetMinimum;
+      return t.sheetMinimum + (use - t.sheetAllowance) * t.sheetExcess;
+    }
+    if (use <= 10) return n(t.minimum);
+    if (use <= 20) return n(t.minimum) + (use - 10) * n(t.tier1);
+    return n(t.minimum) + 10 * n(t.tier1) + (use - 20) * n(t.tier2);
+  };
+  function ensureV538(block) {
+    if (!block) return;
+    ensureV537(block);
+    block.tariff = tariffV538(block.tariff);
+    recalculateBlock(block);
+  }
+
+  const waterCoverageCardV538Base = waterCoverageCard;
+  waterCoverageCard = function(block) {
+    ensureV538(block);
+    const markup = waterCoverageCardV538Base(block);
+    const summary = `<div class="info-box tariff-mode-box"><strong>Modelo de água ativo:</strong> ${esc(tariffModeLabelV538(block.tariff))}<br><small>Para trocar, vá em Configurações → Tarifa da água.</small></div>`;
+    return markup.replace('</section>', `${summary}</section>`);
+  };
+
+  renderSettings = function(block) {
+    ensureV538(block);
+    const t = tariffV538(block.tariff);
+    return `<section class="settings"><article class="card"><div class="card-head"><h3>Dados do condomínio</h3></div><form class="form-grid" id="blockForm"><div class="field"><label>Nome</label><input name="name" value="${esc(block.name)}" required></div><div class="field"><label>Referência atual</label><input name="month" type="month" value="${esc(block.month)}" required></div><div class="field full"><label>Endereço</label><input name="address" value="${esc(block.address)}"></div><div class="field full"><label>Responsável / síndico</label><input name="manager" value="${esc(block.manager)}"></div><div class="form-foot"><button class="primary" type="submit">Salvar alterações</button></div></form></article><article class="card"><div class="card-head"><div><h3>Tarifa da água</h3><span class="muted">Escolha o modelo de cálculo usado nas leituras, boletos, relatórios e fechamento.</span></div></div><form class="form-grid" id="tariffForm"><div class="field full"><label>Modelo de cálculo</label><select name="calculationMode"><option value="tiered" ${t.calculationMode === 'tiered' ? 'selected' : ''}>Faixas do site / SABESP simplificado</option><option value="spreadsheet_1938" ${t.calculationMode === 'spreadsheet_1938' ? 'selected' : ''}>Planilha Bloco 1938 · mínimo + excedente</option></select><small class="muted">Modelo ativo: ${esc(tariffModeLabelV538(t))}</small></div><div class="field full"><div class="info-box"><strong>Planilha Bloco 1938:</strong> até 10 m³ cobra o mínimo. Acima de 10 m³ cobra o mínimo + cada m³ excedente.</div></div><div class="field full"><h4>Modelo Planilha Bloco 1938</h4></div><div class="field"><label>Mínimo até a franquia (R$)</label><input name="sheetMinimum" type="number" min="0" step="0.01" value="${t.sheetMinimum}"></div><div class="field"><label>Franquia em m³</label><input name="sheetAllowance" type="number" min="0" step="0.001" value="${t.sheetAllowance}"></div><div class="field"><label>Excedente por m³ (R$)</label><input name="sheetExcess" type="number" min="0" step="0.01" value="${t.sheetExcess}"></div><div class="field full"><h4>Modelo por faixas do site</h4></div><div class="field full"><label>Mínimo até 10 m³ (R$)</label><input name="minimum" type="number" min="0" step="0.01" value="${t.minimum}"></div><div class="field"><label>De 11 a 20 m³ (R$/m³)</label><input name="tier1" type="number" min="0" step="0.01" value="${t.tier1}"></div><div class="field"><label>Acima de 20 m³ (R$/m³)</label><input name="tier2" type="number" min="0" step="0.01" value="${t.tier2}"></div><div class="form-foot"><button class="primary" type="submit">Salvar modelo e recalcular</button></div></form></article><article class="card"><h3>Backup e restauração</h3><p class="muted">O backup JSON protege leituras, regras, boletos, histórico e recibos. Fotos novas capturadas no celular ficam no armazenamento local do aparelho.</p><div class="button-row"><button class="secondary" data-export>Baixar backup</button><button class="secondary" data-import>Restaurar backup</button></div></article><article class="card"><h3>Zona de atenção</h3><p class="muted">A exclusão remove o condomínio, as leituras e o histórico armazenado neste navegador.</p><button class="danger" data-delete-block>Excluir condomínio</button></article></section>`;
+  };
+
+  const handleSubmitV538Base = handleSubmit;
+  handleSubmit = function(event) {
+    if (event.target.id === 'tariffForm') {
+      event.preventDefault();
+      const block = selected(); if (!block) return;
+      const data = Object.fromEntries(new FormData(event.target));
+      block.tariff = tariffV538({
+        ...block.tariff,
+        calculationMode: data.calculationMode === 'spreadsheet_1938' ? 'spreadsheet_1938' : 'tiered',
+        minimum: n(data.minimum),
+        tier1: n(data.tier1),
+        tier2: n(data.tier2),
+        sheetMinimum: n(data.sheetMinimum),
+        sheetAllowance: n(data.sheetAllowance),
+        sheetExcess: n(data.sheetExcess)
+      });
+      recalculateBlock(block);
+      save(block.tariff.calculationMode === 'spreadsheet_1938' ? 'Modelo da planilha aplicado e água recalculada' : 'Modelo por faixas salvo e água recalculada');
+      render();
+      return;
+    }
+    return handleSubmitV538Base(event);
+  };
+
+  const renderV538Base = render;
+  render = function() {
+    state.blocks.forEach(ensureV538);
+    renderV538Base();
+    refreshVersionLabelsV53();
   };
 
   setTimeout(bootstrapCloudV52, 250);
