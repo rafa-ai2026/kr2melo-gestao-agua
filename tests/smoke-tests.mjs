@@ -10,9 +10,9 @@ const manifest = readFileSync(new URL('../manifest.webmanifest', import.meta.url
 const sw = readFileSync(new URL('../sw.js', import.meta.url), 'utf8');
 const css = readFileSync(new URL('../styles.css', import.meta.url), 'utf8');
 
-assert.match(app, /const APP_VERSION = '5\.3\.12'/, 'APP_VERSION deve estar em v5.3.12');
+assert.match(app, /const APP_VERSION = '5\.3\.13'/, 'APP_VERSION deve estar em v5.3.13');
 for (const file of [html, mobile, manifest, sw]) {
-  assert.match(file, /5\.3\.12/, 'todos os arquivos publicados devem carregar a versao nova');
+  assert.match(file, /5\.3\.13/, 'todos os arquivos publicados devem carregar a versao nova');
 }
 
 assert.match(app, /billingNote_/, 'boletos devem salvar observacao individual por unidade');
@@ -83,9 +83,13 @@ assert.match(mobileJs, /unitHistory/, 'mobile deve mostrar historico rapido por 
 assert.match(mobileJs, /historyMarkup/, 'mobile deve renderizar historico rapido');
 assert.match(mobileJs, /tariffForMonth/, 'mobile deve respeitar tarifa por vigencia no historico');
 assert.match(html, /data-route="proposta"/, 'menu deve mostrar a proposta comercial');
-assert.match(app, /proposalDocumentMarkup/, 'app deve gerar documento de proposta');
+assert.match(app, /proposalDocumentMarkup/, 'app deve gerar documento de apresentacao');
 assert.match(app, /data-print-proposal/, 'proposta deve ter botao para salvar PDF ou imprimir');
 assert.match(app, /assets\/assinatura\.png/, 'proposta deve usar assinatura existente');
+assert.match(app, /Carta de apresentacao/, 'documento deve ser carta de apresentacao');
+assert.match(app, /instrumento de trabalho|instrumento de apoio/, 'carta deve apresentar o site como instrumento de trabalho');
+assert.doesNotMatch(app, /Contratante \/ Administradora/, 'carta nao deve parecer contrato');
 assert.match(css, /proposal-document/, 'proposta deve ter estilo proprio para PDF');
+assert.match(css, /presentation-letter/, 'carta deve ter estilo de apresentacao');
 
-console.log('Smoke tests KR2MELO v5.3.12: OK');
+console.log('Smoke tests KR2MELO v5.3.13: OK');

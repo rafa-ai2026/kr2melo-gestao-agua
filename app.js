@@ -2,7 +2,7 @@
   'use strict';
 
   const KEY = 'kr2melo.hidrometro.v1';
-  const APP_VERSION = '5.3.12';
+  const APP_VERSION = '5.3.13';
   const DEFAULT_TARIFF = { minimum: 80.84, minimumM3: 10, tier1: 8.37, tier1Limit: 20, tier2: 10.87, tier2Limit: 30 };
   const money = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
   const monthFmt = new Intl.DateTimeFormat('pt-BR', { month: 'long', year: 'numeric' });
@@ -1811,7 +1811,7 @@ Esta ação remove os apartamentos da competência atual. O histórico já fecha
   uploadCloudV52 = uploadCloudV53;
   downloadCloudV52 = downloadCloudV53;
 
-  // ===================== KR2MELO v5.3.12 =====================
+  // ===================== KR2MELO v5.3.13 =====================
   delete routes.financeiro;
 
   function extraChargeItems(unit) {
@@ -1974,7 +1974,7 @@ Esta ação remove os apartamentos da competência atual. O histórico já fecha
   };
 
 
-  // ===================== KR2MELO v5.3.12 =====================
+  // ===================== KR2MELO v5.3.13 =====================
   // Centraliza multas, descontos, adicionais e abatimentos avulsos dentro da tela Leituras.
   delete routes.regras;
 
@@ -2099,7 +2099,7 @@ Esta ação remove os apartamentos da competência atual. O histórico já fecha
 
 
 
-  // ===================== KR2MELO v5.3.12 =====================
+  // ===================== KR2MELO v5.3.13 =====================
   // Opção de cálculo igual à planilha Bloco 1938: mínimo fixo até 10 m³ + excedente por m³.
   function tariffV538(raw = {}) {
     const t = { ...DEFAULT_TARIFF, ...(raw || {}) };
@@ -2272,19 +2272,19 @@ Esta ação remove os apartamentos da competência atual. O histórico já fecha
     recalculateBlock(block);
   };
 
-  routes.proposta = ['COMERCIAL', 'Proposta de trabalho'];
+  routes.proposta = ['COMERCIAL', 'Carta de apresentação'];
 
   function proposalDocumentMarkup() {
     const issued = dateBr(today());
-    return `<article class="proposal-document" id="proposalDocument"><header class="proposal-header"><div><img src="assets/logo.png" alt="KR2MELO"><span>KR2MELO CONTRATADA</span></div><aside><strong>Proposta de trabalho</strong><small>Gestao de leitura individual de hidrometros</small><small>Emitida em ${issued}</small></aside></header><section class="proposal-hero"><p class="eyebrow">SERVICO PARA ADMINISTRADORAS, CONDOMINIOS E BLOCOS</p><h1>Leitura de hidrometros, calculo individual de consumo e emissao organizada dos boletos mensais.</h1><p>A KR2MELO oferece um processo completo para condominios e blocos de apartamentos que precisam controlar o consumo individual de agua com clareza, rapidez e documentacao pronta para conferencia.</p></section><section class="proposal-grid"><div><h2>Como o servico funciona</h2><ol><li>Cadastro do condominio, bloco e apartamentos no sistema.</li><li>Coleta das leituras in loco pelo celular, com historico rapido por apartamento.</li><li>Calculo automatico do consumo individual, tarifa, condominio, servico e lancamentos extras.</li><li>Geracao de boletos organizados por bloco, com capa, contracapa e vias de sindico/morador.</li><li>Relatorios para sindico, recibos, historico mensal e backup dos dados.</li></ol></div><div><h2>Beneficios para a administradora</h2><ul><li>Menos retrabalho na conferencia das leituras e valores.</li><li>Padronizacao dos boletos entregues aos moradores.</li><li>Historico mensal preservado para consultas futuras.</li><li>Reducao de erros manuais em calculos por faixa de consumo.</li><li>Mais transparencia para sindicos, tesoureiros e moradores.</li></ul></div></section><section class="proposal-services"><h2>Servicos prestados</h2><div><span>Leitura mensal de hidrometros</span><span>Cadastro de apartamentos e responsaveis</span><span>Calculo individual de agua</span><span>Configuracao de tarifas por vigencia</span><span>Emissao de boletos para impressao</span><span>Relatorio mensal do sindico</span><span>Recibos de servico</span><span>Backup e restauracao dos dados</span></div></section><section class="proposal-benefit"><h2>Por que contratar</h2><p>Com o sistema KR2MELO, a administradora passa a receber um fechamento mensal mais organizado, com dados conferiveis, documentos padronizados e reducao de falhas comuns em controles feitos apenas por planilhas. O servico ajuda o condominio a cobrar de forma mais justa, com base no consumo real de cada unidade.</p></section><section class="proposal-conditions"><h2>Escopo da proposta</h2><p>Esta proposta contempla a prestacao de servico de leitura e organizacao mensal dos documentos de cobranca de agua individualizada. Valores, periodicidade, quantidade de unidades atendidas e condicoes comerciais podem ser ajustados conforme cada condominio ou bloco.</p></section><footer class="proposal-signatures"><div><span>Contratante / Administradora</span></div><div><img src="assets/assinatura.png" alt="Assinatura KR2MELO"><span>KR2MELO CONTRATADA</span></div></footer></article>`;
+    return `<article class="proposal-document presentation-letter" id="proposalDocument"><header class="proposal-header"><div><img src="assets/logo.png" alt="KR2MELO"><span>KR2MELO CONTRATADA</span></div><aside><strong>Carta de apresentacao</strong><small>Leitura de hidrometros e organizacao mensal</small><small>${issued}</small></aside></header><section class="letter-title"><p class="eyebrow">AOS ADMINISTRADORES, SINDICOS E RESPONSAVEIS POR CONDOMINIOS</p><h1>Apresentacao dos servicos de leitura individual de agua</h1></section><section class="letter-body"><p>Prezados,</p><p>Meu trabalho tem como objetivo auxiliar administradoras, condominios e blocos de apartamentos na organizacao da leitura mensal de hidrometros, no calculo individual do consumo de agua e na preparacao dos documentos usados para cobranca e conferencia dos moradores.</p><p>Para tornar esse processo mais seguro, claro e eficiente, utilizo um sistema proprio da KR2MELO como instrumento de trabalho. Nele sao cadastrados os apartamentos, responsaveis, leituras anteriores e atuais, tarifas por vigencia, observacoes, valores adicionais, relatorios e historico mensal. Dessa forma, cada fechamento fica organizado e pode ser consultado posteriormente com mais facilidade.</p><p>O site tambem permite realizar a leitura em campo pelo celular, registrar apartamentos sem acesso, conferir consumos fora do padrao, gerar boletos organizados por blocos, emitir relatorios para o sindico, recibos de servico e backups dos dados. A proposta nao e apenas fazer a leitura, mas entregar um processo mais transparente e padronizado para quem administra e para quem mora no condominio.</p></section><section class="letter-highlight"><h2>Como essa organizacao ajuda a administradora</h2><div><span>Reduz erros de calculo e retrabalho manual.</span><span>Facilita a conferencia do sindico e da administradora.</span><span>Padroniza boletos, relatorios e recibos.</span><span>Mantem historico mensal das leituras e valores.</span><span>Ajuda a explicar a cobranca individual ao morador.</span><span>Organiza a rotina de leitura in loco pelo celular.</span></div></section><section class="letter-body"><p>Coloco-me a disposicao para apresentar o funcionamento do sistema, demonstrar os modelos de boleto e relatorio, e avaliar a rotina de leitura de cada condominio ou bloco de apartamentos.</p><p>Atenciosamente,</p></section><footer class="letter-signature"><img src="assets/assinatura.png" alt="Assinatura KR2MELO"><div></div><strong>KR2MELO CONTRATADA</strong><span>Prestacao de servico de leitura de hidrometros</span></footer></article>`;
   }
   function renderProposal() {
-    const subject = encodeURIComponent('Proposta de trabalho - KR2MELO Contratada');
-    const body = encodeURIComponent('Ola,\n\nSegue proposta de trabalho da KR2MELO para leitura de hidrometros, calculo individual de consumo e organizacao mensal dos boletos.\n\nAbra o anexo/PDF gerado pelo sistema para avaliacao.\n\nAtenciosamente,\nKR2MELO Contratada');
-    return `<section class="section-actions no-print"><div><h2>Proposta de trabalho</h2><span class="muted">Documento comercial para salvar em PDF, imprimir ou enviar para administradoras.</span></div><div class="button-row"><button class="primary" data-print-proposal type="button">Salvar PDF / imprimir</button><a class="secondary" href="mailto:?subject=${subject}&body=${body}">Enviar por e-mail</a></div></section>${proposalDocumentMarkup()}`;
+    const subject = encodeURIComponent('Carta de apresentacao - KR2MELO Contratada');
+    const body = encodeURIComponent('Ola,\n\nSegue minha carta de apresentacao dos servicos de leitura de hidrometros e organizacao mensal de agua individualizada.\n\nO documento apresenta meu trabalho e o sistema KR2MELO usado como instrumento de apoio para leituras, calculos, boletos, relatorios e historico.\n\nAtenciosamente,\nKR2MELO Contratada');
+    return `<section class="section-actions no-print"><div><h2>Carta de apresentacao</h2><span class="muted">Documento para apresentar seu trabalho e o site como instrumento de apoio.</span></div><div class="button-row"><button class="primary" data-print-proposal type="button">Salvar PDF / imprimir</button><a class="secondary" href="mailto:?subject=${subject}&body=${body}">Enviar por e-mail</a></div></section>${proposalDocumentMarkup()}`;
   }
   function printProposal() {
-    printHtml('Proposta de trabalho KR2MELO', proposalDocumentMarkup());
+    printHtml('Carta de apresentacao KR2MELO', proposalDocumentMarkup());
   }
 
   const handleClickV5312Base = handleClick;
