@@ -1,7 +1,7 @@
 (() => {
   'use strict';
   const KEY = 'kr2melo.hidrometro.v1';
-  const APP_VERSION = '5.3.14';
+  const APP_VERSION = '5.3.15';
   const $ = (selector, parent = document) => parent.querySelector(selector);
   const monthFmt = new Intl.DateTimeFormat('pt-BR', { month: 'long', year: 'numeric' });
   const n = value => Number(value) || 0;
@@ -35,6 +35,13 @@
     el.className = `toast show${error ? ' error' : ''}`;
     clearTimeout(toast.timer);
     toast.timer = setTimeout(() => { el.className = 'toast'; }, 2200);
+  }
+  function checkVersionNotice() {
+    const key = 'kr2melo.mobileVersionSeen';
+    const seen = localStorage.getItem(key);
+    if (seen && seen !== APP_VERSION) toast(`Mobile atualizado para v${APP_VERSION}. Atualize a página se algo parecer antigo.`);
+    localStorage.setItem(key, APP_VERSION);
+    if ('serviceWorker' in navigator) navigator.serviceWorker.getRegistration?.().then(reg => reg?.update?.()).catch(() => {});
   }
   function cost(m3, tariff) {
     const use = Math.max(0, n(m3));
@@ -98,6 +105,34 @@
   }
   function uploadMobileBackup() {
     $('#mobileImportInput')?.click();
+  }
+  async function syncMobilePush() {
+    if (!window.KR2Sync?.connected?.()) return toast('Entre na sincronizacao pelo painel antes de enviar.', true);
+    try {
+      await window.KR2Sync.pushState(JSON.parse(JSON.stringify(state)));
+      toast('Dados enviados para a nuvem.');
+    } catch (error) {
+      toast(error.message || 'Falha ao enviar para nuvem.', true);
+    }
+  }
+  async function syncMobilePull() {
+    if (!window.KR2Sync?.connected?.()) return toast('Entre na sincronizacao pelo painel antes de baixar.', true);
+    if (state.blocks.length && !confirm('Baixar da nuvem substitui os dados atuais deste celular. Continuar?')) return;
+    try {
+      const remote = await window.KR2Sync.pullState();
+      if (!remote || !Array.isArray(remote.blocks)) return toast('Nenhum dado encontrado na nuvem.');
+      state = remote;
+      state.version = APP_VERSION;
+      state.blocks?.forEach(sortBlockUnits);
+      state.selected = state.blocks.some(block => block.id === state.selected) ? state.selected : (state.blocks[0]?.id || null);
+      localStorage.setItem(KEY, JSON.stringify(state));
+      searchText = '';
+      initIndexes();
+      toast('Dados baixados da nuvem.');
+      render();
+    } catch (error) {
+      toast(error.message || 'Falha ao baixar da nuvem.', true);
+    }
   }
   async function importMobileBackup(event) {
     const file = event.target.files?.[0];
@@ -215,6 +250,12 @@
     unit.m3 = Math.max(0, n(unit.current) - n(unit.previous));
     unit.value = cost(unit.m3, tariffForMonth(block, block.month));
   }
+  function recordUnitChange(unit, type, field, oldValue, newValue) {
+    if (!unit || String(oldValue ?? '') === String(newValue ?? '')) return;
+    unit.changeLog = Array.isArray(unit.changeLog) ? unit.changeLog : [];
+    unit.changeLog.unshift({ id: `${Date.now()}-${Math.random().toString(16).slice(2)}`, at: new Date().toISOString(), operator: 'Mobile', type, field, oldValue: String(oldValue ?? ''), newValue: String(newValue ?? '') });
+    unit.changeLog = unit.changeLog.slice(0, 50);
+  }
   function pinHash(value) {
     let hash = 2166136261;
     for (const char of String(value || '')) {
@@ -254,6 +295,9 @@
     if (previousRaw === null) return;
     const previous = Number(String(previousRaw).replace(',', '.').trim());
     if (!Number.isFinite(previous) || previous < 0) return toast('Leitura anterior invalida.', true);
+    recordUnitChange(unit, 'Edicao mobile', 'number', unit.number, cleanNumber);
+    recordUnitChange(unit, 'Edicao mobile', 'resident', unit.resident, resident.trim());
+    recordUnitChange(unit, 'Edicao mobile', 'previous', unit.previous, previous);
     unit.number = cleanNumber;
     unit.resident = resident.trim();
     unit.previous = previous;
@@ -286,7 +330,7 @@
     app.innerHTML = `<section class="card hero"><p>Leitura in loco</p><h1>${esc(block.name)}</h1><p>${monthLabel(block.month)} - ${done}/${block.units.length} leituras</p><div class="progress"><i style="width:${percent}%"></i></div></section>
       <section class="card compact-card"><label class="muted"><b>Condominio</b></label><select id="blockPick">${state.blocks.map((item, index) => `<option value="${index}" ${item.id === block.id ? 'selected' : ''}>${esc(item.name)}</option>`).join('')}</select></section>
       <section class="card route-summary" id="routeSummary"><div><small>Pendentes</small><strong>${pending}</strong></div><div><small>Lidas</small><strong>${real}</strong></div><div><small>Sem acesso</small><strong>${noAccess}</strong></div><div><small>Alertas</small><strong>${alerts}</strong></div></section>
-      <section class="card mobile-tools"><input id="aptSearch" autocomplete="off" value="${esc(searchText)}" placeholder="Buscar apto ou morador"><button class="secondary pending-button" id="jumpPending">Ir para pendente</button><button class="secondary backup-button" id="mobileBackupBtn">Baixar BKP</button><button class="secondary backup-button" id="mobileImportBtn">Upar BKP</button></section>
+      <section class="card mobile-tools"><input id="aptSearch" autocomplete="off" value="${esc(searchText)}" placeholder="Buscar apto ou morador"><button class="secondary pending-button" id="jumpPending">Ir para pendente</button><button class="secondary backup-button" id="mobileBackupBtn">Baixar BKP</button><button class="secondary backup-button" id="mobileImportBtn">Upar BKP</button><button class="secondary sync-button" id="mobileSyncPushBtn">Enviar nuvem</button><button class="secondary sync-button" id="mobileSyncPullBtn">Baixar nuvem</button></section>
       <section class="card reading-card"><div class="unit-head"><div><span class="muted">Apartamento</span><div class="unit-number">${esc(unit.number)}</div></div><span class="pill ${isDone(unit) ? 'ok' : 'warn'}">${isDone(unit) ? 'Salvo' : 'Pendente'}</span></div><p class="muted resident-line">${esc(unit.resident || 'Responsavel nao informado')}</p>${savedAt ? `<p class="saved-line">Salvo em ${esc(savedAt)}</p>` : ''}<button class="secondary edit-unit" id="editUnitBtn">Editar apto</button><div class="read-kpis"><div><small>Anterior</small><strong>${fmt(unit.previous)}</strong></div><div><small>Consumo</small><strong>${fmt(consumption)} m3</strong></div></div><div class="reading-big"><label>Leitura atual</label><input id="currentReading" inputmode="decimal" autocomplete="off" value="${unit.current === '' ? '' : esc(unit.current)}" placeholder="Digite e aperte Enter"></div><label class="note-field">Observacao da leitura<textarea id="mobileNote" rows="2" placeholder="Ex.: visor embacado, lacre rompido">${esc(unit.note || '')}</textarea></label><div id="alertBox"></div><button class="primary save-reading" id="saveBtn">Salvar e proximo</button><div class="no-access-row"><select id="noAccessReason">${reasonOption('Sem acesso')}${reasonOption('Morador ausente')}${reasonOption('Hidrometro inacessivel')}${reasonOption('Portao fechado')}</select><button class="secondary no-access" id="noAccessBtn">Marcar</button></div>${isDone(unit) ? '<button class="secondary reopen" id="reopenBtn">Reabrir leitura</button>' : ''}<div class="row nav-row"><button class="secondary" id="prevBtn">Anterior</button><button class="secondary" id="nextBtn">Proximo</button></div></section>
       ${historyMarkup(block, unit)}
       <section class="card apt-card"><h3>Pendentes primeiro</h3><div class="apt-list">${orderedUnits.length ? orderedUnits.map(({ item, index }) => `<button data-jump="${index}" class="${index === unitIndex ? 'active' : ''} ${isDone(item) ? 'done' : ''}">${esc(item.number)}</button>`).join('') : '<p class="muted empty-list">Nenhum apartamento encontrado.</p>'}</div></section>`;
@@ -310,6 +354,8 @@
     $('#jumpPending').onclick = jumpPending;
     $('#mobileBackupBtn').onclick = downloadMobileBackup;
     $('#mobileImportBtn').onclick = uploadMobileBackup;
+    $('#mobileSyncPushBtn').onclick = syncMobilePush;
+    $('#mobileSyncPullBtn').onclick = syncMobilePull;
     $('#editUnitBtn').onclick = editCurrentUnit;
     $('#currentReading').oninput = event => checkAlert(event.target.value);
     $('#currentReading').onkeydown = event => { if (event.key === 'Enter') { event.preventDefault(); saveReading(); } };
@@ -340,6 +386,7 @@
     if (!Number.isFinite(current) || current < 0) return toast('Digite uma leitura valida.', true);
     const issue = issueFor(unit, current);
     if (issue && !confirm(`${issue.text}\n\nDeseja manter esta leitura?`)) return;
+    const oldCurrent = unit.current;
     unit.current = current;
     unit.readingType = 'real';
     unit.estimatedReason = '';
@@ -349,6 +396,7 @@
     unit.mobileDone = true;
     unit.mobileSavedAt = new Date().toISOString();
     state.selected = block.id;
+    recordUnitChange(unit, 'Leitura mobile', 'current', oldCurrent, current);
     if (!save(`Apto ${unit.number} salvo`)) return;
     unitIndex = nextPendingIndex(block, unitIndex);
     render();
@@ -357,6 +405,7 @@
     const block = currentBlock(), unit = currentUnit();
     if (!block || !unit) return;
     const reason = $('#noAccessReason')?.value || 'Sem acesso';
+    const oldReadingType = unit.readingType || 'real';
     unit.current = '';
     unit.readingType = 'estimated';
     unit.estimatedReason = reason;
@@ -366,6 +415,7 @@
     unit.mobileDone = true;
     unit.mobileSavedAt = new Date().toISOString();
     state.selected = block.id;
+    recordUnitChange(unit, 'Sem acesso mobile', 'readingType', oldReadingType, 'estimated');
     if (!save(`Apto ${unit.number} marcado sem acesso`)) return;
     unitIndex = nextPendingIndex(block, unitIndex);
     render();
@@ -383,7 +433,7 @@
       }
     } catch {}
   }
-  initIndexes(); render(); bootstrapCloudMobile();
+  initIndexes(); render(); checkVersionNotice(); bootstrapCloudMobile();
   $('#mobileImportInput')?.addEventListener('change', importMobileBackup);
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
 })();

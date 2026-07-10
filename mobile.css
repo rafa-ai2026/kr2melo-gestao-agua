@@ -24,9 +24,9 @@ button{border:0;padding:15px 16px;font-weight:900;cursor:pointer}
 .route-summary div{background:#fafafa;border:1px solid var(--line);border-radius:12px;padding:10px 6px;text-align:center}
 .route-summary small{display:block;color:var(--muted);font-size:10px;font-weight:900;text-transform:uppercase}
 .route-summary strong{display:block;margin-top:3px;font-size:24px}
-.mobile-tools{display:grid;grid-template-columns:1fr auto auto auto;gap:8px;align-items:center;padding:12px}
+.mobile-tools{display:grid;grid-template-columns:1fr repeat(5,auto);gap:8px;align-items:center;padding:12px}
 .mobile-tools input{min-width:0}
-.pending-button,.backup-button{white-space:nowrap;padding-left:14px;padding-right:14px}
+.pending-button,.backup-button,.sync-button{white-space:nowrap;padding-left:14px;padding-right:14px}
 .unit-head{display:flex;justify-content:space-between;align-items:center;gap:12px}
 .unit-number{font-size:54px;font-weight:950;letter-spacing:.03em}
 .resident-line{margin-top:-4px}

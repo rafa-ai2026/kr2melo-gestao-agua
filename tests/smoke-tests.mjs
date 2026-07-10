@@ -10,9 +10,9 @@ const manifest = readFileSync(new URL('../manifest.webmanifest', import.meta.url
 const sw = readFileSync(new URL('../sw.js', import.meta.url), 'utf8');
 const css = readFileSync(new URL('../styles.css', import.meta.url), 'utf8');
 
-assert.match(app, /const APP_VERSION = '5\.3\.14'/, 'APP_VERSION deve estar em v5.3.14');
+assert.match(app, /const APP_VERSION = '5\.3\.15'/, 'APP_VERSION deve estar em v5.3.15');
 for (const file of [html, mobile, manifest, sw]) {
-  assert.match(file, /5\.3\.14/, 'todos os arquivos publicados devem carregar a versao nova');
+  assert.match(file, /5\.3\.15/, 'todos os arquivos publicados devem carregar a versao nova');
 }
 
 assert.match(app, /billingNote_/, 'boletos devem salvar observacao individual por unidade');
@@ -64,7 +64,7 @@ assert.match(css, /cover-front\{[\s\S]*align-content:start!important/, 'capa fro
 assert.match(css, /\.bill-copy-manager\{padding-left:8\.5mm!important\}/, 'via do sindico deve ter area maior para grampear');
 assert.match(css, /\.bill-copy-resident:before,[\s\S]*\.bill-copy-resident:after[\s\S]*content:none!important/, 'via do morador nao deve receber marca de grampo');
 assert.match(mobile, /Leitura in loco/, 'mobile deve ser dedicado a leitura in loco');
-assert.doesNotMatch(mobile, /syncMobile|photoBtn|gpsBtn|exportMobile/, 'mobile simplificado nao deve mostrar sincronizacao, fotos, GPS ou backup');
+assert.doesNotMatch(mobile, /photoBtn|gpsBtn|exportMobile/, 'mobile simplificado nao deve mostrar fotos, GPS ou exportacao antiga');
 assert.match(mobileJs, /event\.key === 'Enter'/, 'mobile deve salvar com Enter');
 assert.match(mobileJs, /markNoAccess/, 'mobile deve permitir marcar sem acesso');
 assert.match(mobileJs, /id="aptSearch"/, 'mobile deve ter busca rapida de apartamento');
@@ -85,6 +85,13 @@ assert.match(mobileJs, /tariffForMonth/, 'mobile deve respeitar tarifa por vigen
 assert.match(mobileJs, /routeSortKey/, 'mobile deve ordenar apartamentos pela rota fisica do hidrometro');
 assert.match(app, /orderBlockUnits/, 'painel deve ordenar apartamentos pela rota fisica em todo o site');
 assert.match(mobileJs, /mobileAdminPinHash/, 'mobile deve proteger a edicao de apartamentos por PIN administrativo');
+assert.match(mobileJs, /syncMobilePush/, 'mobile deve permitir enviar dados para a nuvem manualmente');
+assert.match(mobileJs, /syncMobilePull/, 'mobile deve permitir baixar dados da nuvem manualmente');
+assert.match(app, /adminPinForm/, 'configuracoes deve permitir cadastrar PIN administrativo do mobile');
+assert.match(app, /data-reorder-units/, 'configuracoes deve permitir reordenar apartamentos pela rota fisica');
+assert.match(app, /unit-change-history/, 'unidades deve mostrar historico de alteracao por apartamento');
+assert.match(app, /checkVersionNoticeV5315/, 'site deve avisar sobre versao/cache antigo');
+assert.doesNotMatch(app + mobileJs + html, /VisÃ|KRÂ|condomÃ|mÂ³|ConfiguraÃ/, 'arquivos publicados nao devem ter mojibake comum');
 assert.match(html, /data-route="proposta"/, 'menu deve mostrar a proposta comercial');
 assert.match(app, /proposalDocumentMarkup/, 'app deve gerar documento de apresentacao');
 assert.match(app, /data-print-proposal/, 'proposta deve ter botao para salvar PDF ou imprimir');
@@ -95,4 +102,4 @@ assert.doesNotMatch(app, /Contratante \/ Administradora/, 'carta nao deve parece
 assert.match(css, /proposal-document/, 'proposta deve ter estilo proprio para PDF');
 assert.match(css, /presentation-letter/, 'carta deve ter estilo de apresentacao');
 
-console.log('Smoke tests KR2MELO v5.3.14: OK');
+console.log('Smoke tests KR2MELO v5.3.15: OK');

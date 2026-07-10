@@ -2,7 +2,7 @@
   'use strict';
 
   const KEY = 'kr2melo.hidrometro.v1';
-  const APP_VERSION = '5.3.14';
+  const APP_VERSION = '5.3.15';
   const DEFAULT_TARIFF = { minimum: 80.84, minimumM3: 10, tier1: 8.37, tier1Limit: 20, tier2: 10.87, tier2Limit: 30 };
   const money = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
   const monthFmt = new Intl.DateTimeFormat('pt-BR', { month: 'long', year: 'numeric' });
@@ -85,6 +85,34 @@
   function orderBlockUnits(block) {
     if (Array.isArray(block?.units)) block.units = orderUnits(block.units);
     return block;
+  }
+  function pinHash(value) {
+    let hash = 2166136261;
+    for (const char of String(value || '')) {
+      hash ^= char.charCodeAt(0);
+      hash = Math.imul(hash, 16777619);
+    }
+    return String(hash >>> 0);
+  }
+  function recordUnitChange(block, unit, type, field, oldValue, newValue) {
+    if (!block || !unit || String(oldValue ?? '') === String(newValue ?? '')) return;
+    const entry = {
+      id: uid(),
+      at: new Date().toISOString(),
+      operator: block.operator || 'Operador',
+      type,
+      field,
+      oldValue: String(oldValue ?? ''),
+      newValue: String(newValue ?? '')
+    };
+    unit.changeLog = Array.isArray(unit.changeLog) ? unit.changeLog : [];
+    unit.changeLog.unshift(entry);
+    unit.changeLog = unit.changeLog.slice(0, 50);
+  }
+  function unitChangeSummary(unit) {
+    const items = Array.isArray(unit.changeLog) ? unit.changeLog.slice(0, 3) : [];
+    if (!items.length) return '<small class="muted">Sem alterações registradas.</small>';
+    return `<div class="unit-change-log">${items.map(item => `<small>${esc(auditDate(item.at))} · ${esc(item.field)}: ${esc(item.oldValue || '—')} → ${esc(item.newValue || '—')}</small>`).join('')}</div>`;
   }
 
   function defaultBilling(month) {
@@ -174,6 +202,7 @@
       billingFine: Math.max(0, n(u.billingFine)),
       billingFineNote: String(u.billingFineNote || ''),
       billingNote: String(u.billingNote || ''),
+      changeLog: Array.isArray(u.changeLog) ? u.changeLog.slice(0, 50) : [],
       condoRule: normalizeRule(migratedRule),
       paid: Boolean(u.paid),
       paymentDate: String(u.paymentDate || ''),
@@ -2290,6 +2319,88 @@ Esta ação remove os apartamentos da competência atual. O histórico já fecha
     block.tariffPeriods = tariffPeriodsV5311(block);
     block.tariff = tariffForMonthV5311(block, block.month);
     recalculateBlock(block);
+  };
+
+  // ===================== KR2MELO v5.3.15 =====================
+  function renderUnitChangeHistory(block) {
+    const rows = (block?.units || []).flatMap(unit => (Array.isArray(unit.changeLog) ? unit.changeLog : []).slice(0, 5).map(item => ({ unit, item })))
+      .sort((a, b) => String(b.item.at).localeCompare(String(a.item.at))).slice(0, 40);
+    return `<section class="card unit-change-history"><div class="card-head"><div><h3>Histórico de alteração por apartamento</h3><span class="muted">Mostra as últimas mudanças feitas em leituras, cadastro técnico e edição protegida.</span></div></div><div class="table-wrap"><table><thead><tr><th>Data</th><th>Apto</th><th>Campo</th><th>Antes</th><th>Depois</th><th>Origem</th></tr></thead><tbody>${rows.map(({ unit, item }) => `<tr><td>${esc(auditDate(item.at))}</td><td><strong>${esc(unit.number)}</strong></td><td>${esc(item.field)}</td><td>${esc(item.oldValue || '—')}</td><td>${esc(item.newValue || '—')}</td><td>${esc(item.type || 'Alteração')}</td></tr>`).join('') || '<tr><td colspan="6" class="empty">Nenhuma alteração registrada ainda.</td></tr>'}</tbody></table></div></section>`;
+  }
+  const renderUnitsV5315Base = renderUnitsV51;
+  renderUnitsV51 = function(block) {
+    return `${renderUnitsV5315Base(block)}${renderUnitChangeHistory(block)}`;
+  };
+
+  function adminPinCardV5315() {
+    const hasPin = Boolean(state.mobileAdminPinHash);
+    return `<article class="card admin-pin-card"><div class="card-head"><div><h3>PIN administrativo do mobile</h3><span class="muted">${hasPin ? 'PIN configurado para edição protegida no celular.' : 'Crie um PIN para liberar edição de apartamentos no mobile.'}</span></div><span class="pill ${hasPin ? 'ok' : 'warn'}">${hasPin ? 'Ativo' : 'Pendente'}</span></div><form class="form-grid" id="adminPinForm"><div class="field"><label>Novo PIN</label><input name="pin" type="password" inputmode="numeric" pattern="[0-9]{4,8}" minlength="4" maxlength="8" autocomplete="new-password" placeholder="4 a 8 números"></div><div class="field"><label>Confirmar PIN</label><input name="pinConfirm" type="password" inputmode="numeric" pattern="[0-9]{4,8}" minlength="4" maxlength="8" autocomplete="new-password" placeholder="Repita o PIN"></div><div class="form-foot"><button class="primary" type="submit">Salvar PIN</button></div></form></article>`;
+  }
+  function reorderUnitsCardV5315() {
+    return `<article class="card reorder-units-card"><div class="card-head"><div><h3>Rota física dos apartamentos</h3><span class="muted">Organiza cadastros, leituras, boletos e relatórios em 01, 11, 21, 31; 02, 12, 22, 32.</span></div></div><div class="button-row"><button class="secondary" data-reorder-units type="button">Reordenar apartamentos agora</button></div></article>`;
+  }
+  const renderSettingsV5315Base = renderSettings;
+  renderSettings = function(block) {
+    return `${renderSettingsV5315Base(block)}<section class="settings settings-v5315">${adminPinCardV5315()}${reorderUnitsCardV5315()}</section>`;
+  };
+
+  function checkVersionNoticeV5315() {
+    const key = 'kr2melo.appVersionSeen';
+    const seen = localStorage.getItem(key);
+    if (seen && seen !== APP_VERSION) toast(`Site atualizado para v${APP_VERSION}. Se algo aparecer estranho, atualize a página.`);
+    localStorage.setItem(key, APP_VERSION);
+    if ('serviceWorker' in navigator) navigator.serviceWorker.getRegistration?.().then(reg => reg?.update?.()).catch(() => {});
+  }
+
+  const handleChangeV5315Base = handleChange;
+  handleChange = function(event) {
+    const target = event.target;
+    const reading = target.closest('[data-reading-field]');
+    const tech = target.closest('[data-tech-field]');
+    const rule = target.closest('[data-rule-field]');
+    let block = null, unit = null, field = '', oldValue = '';
+    if (reading) { const row = target.closest('[data-reading-row]'); block = selected(); unit = findUnit(block, row?.dataset.readingRow); field = target.dataset.readingField; oldValue = unit ? unit[field] : ''; }
+    if (tech) { const row = target.closest('[data-tech-row]'); block = selected(); unit = findUnit(block, row?.dataset.techRow); field = target.dataset.techField; oldValue = unit ? field.split('.').reduce((obj, key) => obj?.[key], unit) : ''; }
+    if (rule) { const row = target.closest('[data-rule-row]'); block = selected(); unit = findUnit(block, row?.dataset.ruleRow); field = target.dataset.ruleField; oldValue = unit ? (unit[field] ?? unit.condoRule?.[field]) : ''; }
+    const result = handleChangeV5315Base(event);
+    if (unit && field) {
+      const newValue = field.includes('.') ? field.split('.').reduce((obj, key) => obj?.[key], unit) : (unit[field] ?? unit.condoRule?.[field]);
+      recordUnitChange(block, unit, reading ? 'Leitura' : tech ? 'Cadastro técnico' : 'Lançamento', field, oldValue, newValue);
+      save();
+    }
+    return result;
+  };
+
+  const handleClickV5315Base = handleClick;
+  handleClick = async function(event) {
+    const target = event.target;
+    if (target.closest('[data-reorder-units]')) {
+      const block = selected(); if (!block) return;
+      orderBlockUnits(block);
+      audit(block, 'Apartamentos reordenados', 'Cadastros reorganizados pela rota física.', { unitIds: block.units.map(unit => unit.id) });
+      save('Apartamentos reordenados pela rota física'); render(); return;
+    }
+    return handleClickV5315Base(event);
+  };
+
+  const handleSubmitV5315Base = handleSubmit;
+  handleSubmit = function(event) {
+    if (event.target.id === 'adminPinForm') {
+      event.preventDefault();
+      const data = Object.fromEntries(new FormData(event.target));
+      const pin = String(data.pin || '').trim();
+      if (!/^\d{4,8}$/.test(pin)) return toast('PIN deve ter 4 a 8 números.', true);
+      if (pin !== String(data.pinConfirm || '').trim()) return toast('Confirmação do PIN não confere.', true);
+      state.mobileAdminPinHash = pinHash(pin);
+      save('PIN administrativo do mobile atualizado'); render(); return;
+    }
+    return handleSubmitV5315Base(event);
+  };
+
+  const renderV5315Base = render;
+  render = function() {
+    renderV5315Base();
+    checkVersionNoticeV5315();
   };
 
   routes.proposta = ['COMERCIAL', 'Carta de apresentação'];
