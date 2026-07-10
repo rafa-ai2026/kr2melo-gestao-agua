@@ -176,6 +176,7 @@
       .sort((a, b) => Number(isDone(a.item)) - Number(isDone(b.item)) || routeCompare(a.item, b.item));
   }
   function nextPendingIndex(block, start) {
+    sortBlockUnits(block);
     const ordered = routeOrderedIndexes(block, { search: false }).filter(({ item }) => !isDone(item));
     const afterCurrent = ordered.find(({ index }) => index > start);
     if (afterCurrent) return afterCurrent.index;
@@ -188,6 +189,7 @@
   function jumpPending() {
     const block = currentBlock();
     if (!block) return;
+    sortBlockUnits(block);
     const next = routeOrderedIndexes(block, { search: false }).find(({ item }) => !isDone(item));
     if (!next) return toast('Todas as leituras foram conferidas.');
     unitIndex = next.index;

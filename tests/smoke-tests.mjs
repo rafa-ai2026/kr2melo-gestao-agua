@@ -54,7 +54,7 @@ assert.doesNotMatch(html, /data-route="financeiro"/, 'menu Financeiro nao deve a
 assert.match(app, /amountToWordsV53/, 'recibo deve gerar valor por extenso automaticamente');
 assert.match(app, /receipt-preview-branded/, 'recibo deve usar layout com marca');
 assert.match(sync, /async function remoteInfo/, 'sincronizacao deve consultar data remota');
-assert.match(app, /A copia na nuvem|A cópia na nuvem|A cÃ³pia na nuvem/, 'app deve avisar conflito antes de sobrescrever nuvem');
+assert.match(app, /A copia na nuvem|A cópia na nuvem/, 'app deve avisar conflito antes de sobrescrever nuvem');
 assert.match(css, /grid-template-columns:repeat\(2,50%\)!important/, 'boletos devem usar grade 2x2 igual');
 assert.match(css, /bill-notes p\{[\s\S]*font-size:6\.9px/, 'observacoes dos boletos devem ter fonte maior em tela');
 assert.match(app, /cover-simple-kv/, 'capa frontal deve usar informacoes simplificadas');

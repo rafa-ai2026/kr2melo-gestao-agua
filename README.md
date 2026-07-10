@@ -1,7 +1,7 @@
 # KR²MELO — Gestão de Água
 
 > **Manual completo de operação, impressão, histórico, sincronização e segurança**  
-> Versão do sistema: **v5.3.13**
+> Versão do sistema: **v5.3.14**
 
 O KR²MELO é um sistema para administrar leituras individuais de hidrômetros, rateio de água, cobranças, boletos, recibos, histórico mensal e controle financeiro de condomínios ou blocos residenciais.
 
@@ -1644,6 +1644,7 @@ Ao salvar o modelo, o sistema recalcula automaticamente a água nas leituras, bo
 - A tela Proposta foi ajustada para formato de carta de apresentacao.
 - O texto apresenta o trabalho e o site como instrumento de organizacao.
 - Removido o tom de contrato, aceite e contratante.
+
 ---
 
 ## Atualizacao v5.3.14 - Rota fisica e edicao protegida no mobile
@@ -1652,5 +1653,3 @@ Ao salvar o modelo, o sistema recalcula automaticamente a água nas leituras, bo
 - A mesma regra separa os blocos por sufixo, como A antes de B.
 - O modo mobile ganhou edicao protegida por PIN administrativo para apartamento, responsavel e leitura anterior.
 - Backups mobile passam a gravar a versao atual do sistema.
-- Fixtures e checklist duplicados foram removidos da raiz, mantendo as copias usadas em `tests/`.
-
