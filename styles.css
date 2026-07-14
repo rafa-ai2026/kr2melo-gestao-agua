@@ -674,3 +674,13 @@
 .smart-search-result{display:block!important;width:100%;text-align:left;line-height:1.35}
 .smart-search-result small{display:block;color:var(--muted);font-weight:700;margin-top:4px}
 @media(max-width:900px){.report-columns{grid-template-columns:1fr}.audit-mini-list>div{grid-template-columns:52px minmax(0,1fr)}.audit-mini-list small{grid-column:1/-1}}
+
+
+/* Ajuste de impressão KR²MELO - Paisagem forçada */
+@media print {
+  @page { size: A4 landscape; margin: 8mm; }
+  .monthly-report, #monthlyReportPrint {
+    width: 281mm !important;
+    max-width: 281mm !important;
+  }
+}
