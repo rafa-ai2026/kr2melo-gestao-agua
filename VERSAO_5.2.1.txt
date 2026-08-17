@@ -1,4 +1,0 @@
-KR²MELO v5.2.1
-- Relatórios por competências salvas no Histórico mensal
-- CSV e impressão A4 retrato do período selecionado
-- Recibos em meia folha A4, retrato
