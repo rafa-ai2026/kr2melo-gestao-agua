@@ -1,0 +1,1471 @@
+:root{
+  --red:#ff1100;--red-dark:#c90d00;--ink:#111;--paper:#f7f7f5;--card:#fff;--line:#dedede;
+  --muted:#697077;--green:#15966b;--green-soft:#eaf8f1;--amber:#a96900;--amber-soft:#fff5df;
+  --danger-soft:#fff0ef;--blue:#176eb0;--blue-soft:#eaf4fd;--shadow:0 12px 35px rgba(17,17,17,.08);
+  font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--ink);background:var(--paper)
+}
+*{box-sizing:border-box}body{margin:0;min-width:320px;background:var(--paper)}button,input,select,textarea{font:inherit}button{cursor:pointer}.app-shell{display:grid;grid-template-columns:244px minmax(0,1fr);min-height:100vh}.sidebar{position:sticky;top:0;height:100vh;background:var(--ink);color:#fff;padding:26px 16px;display:flex;flex-direction:column}.brand{display:flex;align-items:center;gap:12px;color:#fff;text-decoration:none;padding:0 8px 26px}.brand img{width:45px;height:54px;object-fit:contain}.brand strong{font-size:17px;letter-spacing:.07em}.brand small{display:block;color:#999;margin-top:3px}.sidebar nav{display:grid;gap:6px}.sidebar nav a{color:#a9a9a9;text-decoration:none;padding:11px 13px;border-radius:10px;display:flex;gap:13px;align-items:center;font-weight:700;font-size:14px}.sidebar nav a:hover,.sidebar nav a.active{color:#fff;background:#282828}.sidebar nav a.active{box-shadow:inset 3px 0 var(--red)}.sidebar nav span{font-size:18px;width:20px;text-align:center}.sidebar-foot{margin-top:auto;padding:14px 9px;color:#888;font-size:12px;border-top:1px solid #2b2b2b}.status-dot{display:inline-block;width:7px;height:7px;background:#53d99f;border-radius:50%;margin-right:7px}.main-area{min-width:0}.topbar{height:92px;background:rgba(247,247,245,.94);backdrop-filter:blur(12px);border-bottom:1px solid var(--line);padding:16px 30px;display:flex;align-items:center;gap:18px;position:sticky;top:0;z-index:10}.page-heading{min-width:0}.topbar h1{margin:1px 0 0;font-size:22px}.eyebrow{margin:0;color:var(--red-dark);font-weight:900;letter-spacing:.14em;font-size:10px}.top-actions{margin-left:auto;display:flex;gap:9px;align-items:center}.block-picker{display:grid;font-size:10px;color:var(--muted);gap:2px;background:#fff;border:1px solid var(--line);padding:6px 11px;border-radius:9px}.block-picker select{border:0;background:transparent;font:700 13px inherit;min-width:155px;outline:0}.menu-btn{display:none;background:transparent;border:0;font-size:22px}.primary,.secondary,.danger,.icon-btn,.ghost{border:0;border-radius:9px;font-weight:800;font-size:13px}.primary{background:var(--red);color:#fff;padding:12px 16px}.primary:hover{background:var(--red-dark)}.secondary{background:#fff;border:1px solid var(--line);padding:11px 14px;color:var(--ink)}.danger{background:var(--danger-soft);color:var(--red-dark);padding:11px 14px}.ghost{background:transparent;color:var(--ink);padding:7px 9px}.icon-btn{width:40px;height:40px;background:#fff;border:1px solid var(--line);font-size:18px}.pill{display:inline-flex;align-items:center;gap:5px;border-radius:999px;padding:5px 8px;font-size:11px;font-weight:850;background:#eee;color:#555}.pill.ok{background:var(--green-soft);color:#08724e}.pill.warn{background:var(--amber-soft);color:#815400}.pill.danger{background:var(--danger-soft);color:var(--red-dark)}.pill.info{background:var(--blue-soft);color:var(--blue)}main{padding:28px 30px 64px;max-width:1560px;margin:auto}.hero{background:var(--ink);color:#fff;border-radius:18px;padding:28px 30px;display:flex;justify-content:space-between;align-items:center;gap:18px;overflow:hidden;position:relative}.hero:after{content:"";position:absolute;width:260px;height:260px;border:60px solid var(--red);border-radius:50%;right:-125px;top:-125px;opacity:.88}.hero>div{position:relative;z-index:1}.hero h2{margin:0 0 8px;font-size:27px}.hero p{margin:0;color:#bbb;line-height:1.5}.hero .secondary{position:relative;z-index:1}.metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin:16px 0}.metric,.card{background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow)}.metric{padding:20px}.metric.red{border-top:3px solid var(--red)}.metric.green{border-top:3px solid var(--green)}.metric .label{color:var(--muted);font-size:11px;font-weight:800;letter-spacing:.035em;text-transform:uppercase}.metric strong{display:block;font-size:24px;margin:10px 0 4px;overflow-wrap:anywhere}.metric small{color:var(--muted);line-height:1.35}.grid-2{display:grid;grid-template-columns:1.45fr 1fr;gap:16px}.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}.card{padding:20px}.card-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:16px}.card h3{margin:0;font-size:16px}.muted{color:var(--muted)}.empty{text-align:center;padding:40px;color:var(--muted)}.section-actions{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:16px}.section-actions h2{margin:0;font-size:20px}.button-row{display:flex;gap:8px;flex-wrap:wrap}.bar-list,.activity,.alert-list{display:grid;gap:10px}.bar-row{display:grid;grid-template-columns:86px minmax(80px,1fr) 72px;align-items:center;gap:12px;font-size:13px}.bar{height:8px;background:#eee;border-radius:99px;overflow:hidden}.bar i{display:block;height:100%;background:var(--red);border-radius:99px}.activity-item{display:grid;grid-template-columns:10px 1fr auto;gap:12px;padding:12px 0;border-bottom:1px solid #eee;align-items:center}.activity-item:last-child{border:0}.activity-item i{width:8px;height:8px;border-radius:50%;background:var(--red)}.activity-item small{color:var(--muted)}.table-wrap{overflow:auto;background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow)}table{width:100%;border-collapse:collapse;min-width:880px}th{text-align:left;background:#f1f1ef;color:#666;font-size:10px;letter-spacing:.08em;text-transform:uppercase;padding:13px}td{padding:10px 12px;border-top:1px solid #eee;font-size:13px;vertical-align:middle}td input,td select{width:100%;min-width:80px;padding:9px;border:1px solid transparent;border-radius:7px;background:#f5f5f3}td input:focus,td select:focus{outline:2px solid rgba(255,17,0,.2);border-color:var(--red)}tfoot td{font-weight:850;background:#fafafa}.value{font-weight:850;white-space:nowrap}.row-actions{display:flex;gap:6px}.row-actions button{padding:7px 9px}.reading-issue td{background:var(--danger-soft)!important}.reading-issue.warn td{background:var(--amber-soft)!important}.row-alert td{background:#fffbea}.settings,.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.field{display:grid;gap:6px}.field.full,.form-foot{grid-column:1/-1}.field label,.field>span{font-size:12px;color:var(--muted);font-weight:800}.field input,.field textarea,.field select,dialog input,dialog textarea,dialog select{padding:11px;border:1px solid var(--line);border-radius:8px;background:#fff;width:100%}.field input:focus,.field textarea:focus,.field select:focus{outline:2px solid rgba(255,17,0,.17);border-color:var(--red)}.form-foot{display:flex;justify-content:flex-end;gap:8px;margin-top:6px}.form-note{color:var(--muted);font-size:12px;line-height:1.45}.water-rate-card{border-left:4px solid var(--red);margin-bottom:16px}.water-rate-grid{display:grid;grid-template-columns:1.4fr repeat(4,minmax(0,1fr));gap:14px;align-items:end}.water-rate-grid small{display:block;color:var(--muted);font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.05em}.water-rate-grid strong{display:block;font-size:20px;margin-top:5px}.water-rate-grid strong.ok{color:var(--green)}.water-rate-grid strong.bad{color:var(--red-dark)}.water-rate-grid strong.neutral{color:var(--muted)}.info-box{border-left:4px solid var(--blue);background:var(--blue-soft);padding:13px 15px;border-radius:10px;margin:14px 0;color:#174c76;font-size:13px;line-height:1.5}.warning-box{border-left:4px solid #e8a500;background:var(--amber-soft);padding:13px 15px;border-radius:10px;margin:14px 0;color:#775000;font-size:13px;line-height:1.5}.danger-box{border-left:4px solid var(--red);background:var(--danger-soft);padding:13px 15px;border-radius:10px;margin:14px 0;color:#7b150d;font-size:13px;line-height:1.5}.rule-summary{display:flex;gap:10px;flex-wrap:wrap;margin:12px 0}.rule-summary .pill{padding:7px 10px}.adjustment{color:#08724e;font-weight:800}.fine-editor{display:grid;gap:7px}.fine-row{display:grid;grid-template-columns:80px 1.2fr 120px;gap:8px;align-items:center}.history-list{display:grid;gap:12px}.history-row{background:#fff;border:1px solid var(--line);border-radius:13px;padding:18px;display:flex;align-items:center;gap:18px}.history-date{width:54px;height:54px;border-radius:12px;background:var(--ink);color:#fff;display:grid;place-content:center;text-align:center}.history-date strong{font-size:18px}.history-date small{font-size:9px;text-transform:uppercase}.history-data{display:flex;gap:26px;margin-left:auto}.history-data span{display:grid;gap:3px}.history-data small{color:var(--muted)}.history-actions{display:flex;gap:8px}.alert-item{border:1px solid var(--line);border-left:4px solid var(--blue);border-radius:10px;padding:12px}.alert-item.warn{border-left-color:#e9a400;background:#fffaf0}.alert-item.danger{border-left-color:var(--red);background:var(--danger-soft)}.alert-item.ok{border-left-color:var(--green);background:var(--green-soft)}.alert-item strong,.alert-item small{display:block}.alert-item small{margin-top:4px;color:var(--muted)}.close-result{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:18px 0}.close-result span{border:1px solid var(--line);background:#fafafa;border-radius:10px;padding:12px}.close-result b{display:block;margin-top:4px}.help-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}.help-card h3{margin-top:0}.help-card p,.help-card li{line-height:1.58}.simple-calc{background:#111;color:#fff;border-radius:14px;padding:18px;margin:12px 0}.resident-note{background:#fff7e6;border:1px solid #ffe1a3;border-radius:12px;padding:14px;margin:12px 0}.billing-controls{margin-bottom:22px}.billing-preview{display:grid;gap:18px}.bill-group-title{font-weight:900;letter-spacing:.08em;text-transform:uppercase;margin:8px 0 0}.cover-sheet{background:#fff;border:1px solid var(--line);box-shadow:var(--shadow);padding:10mm;display:grid;grid-template-rows:1fr 1fr;gap:5mm;aspect-ratio:297/210;position:relative}.cover-half{border:1.5px solid #111;padding:9mm;display:grid;align-content:space-between;position:relative;overflow:hidden}.cover-half:after{content:"";position:absolute;right:-50px;top:-60px;width:150px;height:150px;border:35px solid var(--red);border-radius:50%;opacity:.12}.cover-half header{display:flex;align-items:center;gap:14px}.cover-half header img{width:70px;height:60px;object-fit:contain}.cover-half h1{margin:2px 0 4px;font-size:24px}.cover-half h2{margin:0;font-size:19px}.cover-kv{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px}.cover-kv span{border:1px solid #ddd;border-radius:8px;padding:8px;font-size:10px}.cover-kv b{display:block;font-size:9px;color:#666;text-transform:uppercase;margin-bottom:4px}.cover-stamp{background:#111;color:#fff;border-radius:12px;padding:10px;display:flex;justify-content:space-between;align-items:center}.cover-stamp strong{font-size:20px}.provider-services{display:grid;grid-template-columns:1fr 1fr;gap:7px;font-size:11px}.provider-services span{border-bottom:1px dotted #aaa;padding-bottom:3px}.cut-line-horizontal{position:absolute;left:0;right:0;top:50%;border-top:1.2px dashed #555}.block-summary-page{background:#fff;border:1px solid var(--line);box-shadow:var(--shadow);padding:12mm;aspect-ratio:297/210;break-after:page;page-break-after:always}.summary-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:18px}.summary-grid div{border:1px solid #ddd;border-radius:10px;padding:14px}.summary-grid small{display:block;color:#777;text-transform:uppercase;font-weight:800}.summary-grid strong{display:block;font-size:21px;margin-top:6px}.bill-page{background:#fff;border:1px solid var(--line);box-shadow:var(--shadow);padding:10mm;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:3mm;aspect-ratio:297/210;position:relative}.bill-page-group-label{position:absolute;left:5mm;top:2mm;font-size:7pt;font-weight:800;color:#666}.bill-copy{position:relative;border:1.5px solid #111;min-width:0;display:flex;flex-direction:column;font-family:Arial,sans-serif;font-size:7.5px;overflow:hidden}.bill-copy-tag{position:absolute;right:5px;top:23px;font-size:5.5px;color:#666;letter-spacing:.06em}.bill-head{display:grid;grid-template-columns:1.15fr 1fr;background:#e5e5e5;font-size:10px}.bill-head>*{padding:5px 8px}.bill-head strong{border-right:1px dotted #555}.bill-head b{text-align:center}.bill-resident{display:grid;grid-template-columns:1.15fr 1fr;padding:5px 8px;gap:10px}.bill-resident span,.bill-lines span{font-weight:700}.bill-resident strong{font-size:7px}.bill-copy h3{margin:2px 8px 5px;font-size:8.5px;display:flex;justify-content:space-between}.bill-copy h3 b{font-size:10px}.bill-lines{display:grid;grid-template-columns:1.6fr .55fr .65fr;margin:0 8px;line-height:1.38}.bill-lines small{text-align:center}.bill-lines b{text-align:right;border-bottom:1px dotted #777;white-space:nowrap}.bill-total{display:grid;grid-template-columns:1.6fr .55fr .65fr;background:#ddd;padding:4px 8px;margin-top:3px}.bill-total span{text-align:center}.bill-total b{text-align:right}.bill-notes{display:grid;grid-template-columns:42px 1fr;border-top:1px solid #111;border-bottom:1px solid #111;margin-top:4px}.bill-notes>strong{display:grid;place-items:center;background:#ddd;font-size:8px}.bill-notes p{margin:0;padding:2px 6px;border-bottom:1px solid #aaa;font-size:5.5px}.bill-notes p:last-child{border-bottom:0}.bill-copy footer{margin-top:auto;text-align:center;padding:5px 12px 3px}.bill-copy footer div{border-bottom:1px solid #111;height:16px}.bill-copy footer small{font-size:5.5px}.bill-adjustment{color:#0d724f}.receipt-layout{display:grid;grid-template-columns:.9fr 1.1fr;gap:16px}.receipt-preview{font-family:Arial,sans-serif;border:1.5px solid #111;padding:18mm;min-height:440px;position:relative}.receipt-preview h2{text-align:center;margin:0 0 30px;letter-spacing:.16em}.receipt-preview p{line-height:1.8;font-size:15px}.receipt-signature{display:block;max-height:62px;max-width:180px;object-fit:contain;margin:36px auto 0}.receipt-preview footer{text-align:center}.receipt-preview footer div{border-bottom:1px solid #111;max-width:280px;margin:0 auto 6px}.finance-summary{display:grid;grid-template-columns:repeat(6,1fr);gap:10px}.finance-summary div{border:1px solid var(--line);border-radius:10px;padding:12px}.finance-summary small{display:block;color:var(--muted);font-size:10px;text-transform:uppercase;font-weight:800}.finance-summary strong{display:block;margin-top:5px;font-size:18px}.search-card{margin:16px 0}.search-card input{width:100%;padding:12px;border:1px solid var(--line);border-radius:9px;background:#fff}.notice-list{display:grid;gap:8px}.no-print{display:block}dialog{border:0;border-radius:15px;padding:0;width:min(720px,calc(100% - 28px));box-shadow:0 30px 100px #0005}dialog::backdrop{background:#111a;backdrop-filter:blur(3px)}.modal-inner{padding:24px}.modal-inner h2{margin:0 0 6px}.modal-inner>p{color:var(--muted);margin:0 0 18px}.modal-actions{display:flex;justify-content:flex-end;gap:9px;margin-top:20px}.toast{position:fixed;right:20px;bottom:20px;background:var(--ink);color:#fff;padding:13px 18px;border-radius:10px;transform:translateY(110px);opacity:0;transition:.25s;z-index:30;max-width:min(540px,calc(100vw - 40px));font-weight:750}.toast.show{transform:none;opacity:1}.toast.error{background:var(--red-dark)}
+@media(max-width:1050px){.finance-summary{grid-template-columns:repeat(3,1fr)}.water-rate-grid{grid-template-columns:1fr 1fr 1fr}.water-rate-grid .field{grid-column:1/-1}}
+@media(max-width:900px){.app-shell{grid-template-columns:1fr}.sidebar{position:fixed;z-index:20;width:244px;transform:translateX(-100%);transition:.25s}.sidebar.open{transform:none}.menu-btn{display:block}.topbar{padding:14px 18px}.top-actions .primary{font-size:0}.top-actions .primary:after{content:"+";font-size:18px}.metrics{grid-template-columns:1fr 1fr}.grid-2,.grid-3,.settings,.receipt-layout{grid-template-columns:1fr}main{padding:20px 18px 50px}.bill-page{grid-template-columns:1fr;grid-template-rows:auto;aspect-ratio:auto;padding:12px}.bill-copy{min-height:270px}.cover-sheet,.block-summary-page{aspect-ratio:auto}.cover-kv,.summary-grid{grid-template-columns:1fr 1fr}.history-row{flex-wrap:wrap}.history-data{margin:0;width:100%;justify-content:space-between}}
+@media(max-width:560px){.topbar{height:auto;flex-wrap:wrap}.top-actions{width:100%}.block-picker{flex:1}.block-picker select{min-width:0}.metrics,.finance-summary{grid-template-columns:1fr}.hero{padding:23px;align-items:flex-start;flex-direction:column}.hero h2{font-size:22px}.form-grid{grid-template-columns:1fr}.field.full,.form-foot{grid-column:auto}.section-actions{align-items:flex-start;flex-direction:column}.bar-row{grid-template-columns:70px 1fr 55px}.cover-kv,.summary-grid{grid-template-columns:1fr}.history-actions{width:100%}.history-actions button{flex:1}.water-rate-grid{grid-template-columns:1fr}.fine-row{grid-template-columns:1fr}.rule-table td{min-width:130px}}
+@media print{@page{size:A4 landscape;margin:8mm}body{background:#fff}.sidebar,.topbar,.no-print,.section-actions button,.row-actions{display:none!important}.app-shell{display:block}main{padding:0;max-width:none}.card,.table-wrap{box-shadow:none}.table-wrap{overflow:visible}table{min-width:0}.cover-sheet{width:281mm;height:194mm;aspect-ratio:auto;padding:0;border:0;box-shadow:none;gap:0;break-after:page;page-break-after:always}.cover-half{border:1.2pt solid #111;margin:0;height:97mm;padding:7mm}.cover-kv span{font-size:7pt}.cover-half h1{font-size:18pt}.cover-half h2{font-size:13pt}.block-summary-page{width:281mm;height:194mm;aspect-ratio:auto;padding:10mm;border:0;box-shadow:none}.summary-grid strong{font-size:17pt}.bill-page{width:281mm;height:194mm;aspect-ratio:auto;padding:0;border:0;box-shadow:none;gap:3mm;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;break-after:page;page-break-after:always}.bill-page:last-child{break-after:auto;page-break-after:auto}.bill-copy{break-inside:avoid}.receipt-preview{border:0;padding:0;min-height:0}.receipt-layout{display:block}.history-actions,.history-row .danger{display:none!important}}
+
+
+/* ===================== KR²MELO v5.1 — Histórico e operação ===================== */
+.tabs{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0}.tab-button{background:#fff;border:1px solid var(--line);padding:10px 13px;border-radius:9px;font:700 13px inherit;cursor:pointer}.tab-button.active{background:var(--ink);border-color:var(--ink);color:#fff}.history-row-v51{align-items:center}.history-row-v51 .history-actions{display:flex;gap:8px;margin-left:16px;flex-wrap:wrap}.analysis-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:12px 0}.analysis-kpis>div{background:#fafafa;border:1px solid var(--line);border-radius:10px;padding:14px}.analysis-kpis small{display:block;color:var(--muted);font-weight:700;font-size:11px;text-transform:uppercase}.analysis-kpis strong{display:block;font-size:22px;margin-top:5px}.history-chart{display:flex;height:220px;align-items:flex-end;gap:9px;padding:20px 10px 0;border:1px solid var(--line);background:#fafafa;border-radius:12px;overflow-x:auto}.history-bar{height:100%;min-width:46px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:6px;font-size:10px;color:var(--muted)}.history-bar-fill{width:20px;background:var(--red);border-radius:6px 6px 2px 2px;min-height:4px}.history-bar b{font-size:10px;color:var(--ink)}.compact-field{min-width:240px}.technical-table input,.technical-table select,.finance-table input,.finance-table select{min-width:120px}.snapshot-list{display:grid;gap:6px;margin-top:12px}.snapshot-list small{color:var(--muted);padding:7px 9px;background:#fafafa;border-radius:7px}.alert-item{display:flex;align-items:center;justify-content:space-between;gap:12px}.alert-item>div{display:grid;gap:4px}.alert-list.big{display:grid;gap:10px}.alert-list.big .alert-item{padding:13px;border-left:4px solid var(--line)}.alert-list.big .alert-item.danger{border-left-color:var(--red);background:#fff0ef}.alert-list.big .alert-item.warn{border-left-color:#f0a000;background:#fff8e8}.alert-list.big .alert-item.ok{border-left-color:var(--green);background:#eefaf5}.finance-table .row-actions{white-space:nowrap}.technical-table{min-width:1750px}.finance-table{min-width:1550px}@media(max-width:900px){.analysis-kpis{grid-template-columns:1fr 1fr}.history-row-v51{align-items:flex-start}.history-row-v51 .history-actions{margin:0;width:100%}.compact-field{width:100%}}@media(max-width:560px){.analysis-kpis{grid-template-columns:1fr}.tabs{display:grid;grid-template-columns:1fr 1fr}.tab-button{width:100%}}
+
+
+/* v5.1.2 — seleção e limpeza segura de leituras */
+.reading-bulk-actions{display:flex;align-items:center;justify-content:space-between;gap:14px;margin:0 0 16px;padding:14px 16px}.reading-bulk-actions>div:first-child{display:grid;gap:4px}.reading-bulk-actions small{color:var(--muted);font-size:12px;line-height:1.4}.reading-check{width:44px;text-align:center}.reading-check input{width:17px;height:17px;min-width:0;accent-color:var(--red);cursor:pointer}.reading-bulk-actions button:disabled{cursor:not-allowed;opacity:.48}.table-wrap tr:has(input[data-reading-select]:checked) td{background:#fff8f7}@media(max-width:760px){.reading-bulk-actions{align-items:flex-start;flex-direction:column}.reading-bulk-actions .button-row{width:100%}.reading-bulk-actions .button-row button{flex:1 1 175px}}@media print{.reading-bulk-actions{display:none!important}}
+
+.modal-inner a.secondary{align-items:center;justify-content:center;text-decoration:none}
+
+
+/* ===================== KR²MELO v5.1.4 — impressão e layout refinados ===================== */
+.closing-refresh-status{display:block;margin-top:4px;font-size:11px;font-weight:700;color:var(--green)}
+.closing-refresh-status.muted{color:var(--muted);font-weight:600}
+
+/* Boletos: grade de corte explícita e conteúdo distribuído para leitura confortável. */
+.bill-page.bill-page-with-cuts{padding:0;gap:0;overflow:hidden;background:#fff;position:relative}
+.bill-page-with-cuts .bill-copy{border:0.55pt solid #111;border-radius:0;box-shadow:none;padding:4.8mm 5.2mm 4mm;font-size:8.7px;line-height:1.25;z-index:1;background:#fff}
+.bill-page-with-cuts .bill-copy-tag{top:4.6mm;right:5.2mm;font-size:6.3px;letter-spacing:.08em;color:#767676}
+.bill-page-with-cuts .bill-head{grid-template-columns:1fr 1.12fr;background:#f0f0f0;font-size:11px;border-bottom:1px solid #111}
+.bill-page-with-cuts .bill-head>*{padding:3.1mm 3.5mm}
+.bill-page-with-cuts .bill-head b{font-size:9.4px}
+.bill-party{display:grid;grid-template-columns:72px 1fr;gap:2px 8px;padding:3mm 0 2.4mm;border-bottom:1px solid #c7c7c7}
+.bill-party span{font-size:7.2px;font-weight:900;letter-spacing:.03em;color:#333}
+.bill-party strong{font-size:9.1px}
+.bill-party small{grid-column:1/-1;font-size:7px;color:#555;font-weight:800}
+.bill-reading-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2mm;padding:3mm 0}
+.bill-reading-grid>div{border:1px solid #bdbdbd;border-radius:2mm;padding:2.1mm 2.4mm;background:#fafafa;display:grid;gap:1px}
+.bill-reading-grid span{font-size:6.5px;font-weight:900;color:#333}
+.bill-reading-grid small{font-size:6.3px;color:#666}
+.bill-reading-grid b{font-size:10px;text-align:right;white-space:nowrap}
+.bill-charge-list{display:grid;border-top:1px solid #111;border-bottom:1px solid #111}
+.bill-charge-line{display:grid;grid-template-columns:1fr auto;gap:6px;align-items:center;padding:1.65mm 0;border-bottom:1px dotted #8f8f8f;font-size:8.2px}
+.bill-charge-line:last-child{border-bottom:0}
+.bill-charge-line span{font-weight:800}.bill-charge-line b{font-size:8.7px;white-space:nowrap;text-align:right}.bill-charge-line.bill-condo-net{background:#f2f2f2;margin:0 -2mm;padding-left:2mm;padding-right:2mm}.bill-charge-line.bill-adjustment{color:#08724e}
+.bill-page-with-cuts .bill-total{grid-template-columns:1fr .86fr auto;align-items:center;margin:2.6mm 0 0;padding:2.25mm 2.5mm;background:#1a1a1a;color:#fff;font-size:9px}
+.bill-page-with-cuts .bill-total b{font-size:11.2px;white-space:nowrap;text-align:right}.bill-page-with-cuts .bill-total span{text-align:center;font-size:7px;font-weight:700}
+.bill-copy-bottom{margin-top:auto}
+.bill-page-with-cuts .bill-notes{margin-top:auto;grid-template-columns:36px 1fr;min-height:12mm;border-color:#111}
+.bill-page-with-cuts .bill-notes>strong{font-size:7.5px}.bill-page-with-cuts .bill-notes p{font-size:6.2px;line-height:1.25;padding:1.2mm 2mm}
+.bill-page-with-cuts .bill-signature{margin-top:auto;text-align:center;padding-top:6mm}.bill-page-with-cuts .bill-signature div{border-bottom:1px solid #111;height:10mm}.bill-page-with-cuts .bill-signature small{display:block;margin-top:1.5mm;font-size:6.2px;font-weight:800}
+.bill-cut-guide{position:absolute;z-index:4;pointer-events:none;color:#555;font:700 6.5pt Arial,sans-serif;letter-spacing:.08em;background:#fff;padding:1mm 1.5mm}
+.bill-cut-guide-v{left:50%;top:2mm;bottom:2mm;transform:translateX(-50%);border-left:1.3pt dashed #555;writing-mode:vertical-rl;text-orientation:mixed;display:flex;align-items:center;justify-content:center}
+.bill-cut-guide-h{top:50%;left:2mm;right:2mm;transform:translateY(-50%);border-top:1.3pt dashed #555;text-align:center}
+.bill-page-with-cuts .bill-page-group-label{z-index:5;background:#fff;padding:0 1.5mm;color:#555}
+
+/* Relatório: tela organizada e versão compacta para uma única A4 retrato. */
+.monthly-report{display:grid;gap:12px}.report-print-header{display:flex;justify-content:space-between;align-items:flex-end;gap:18px;padding:4px 2px 2px}.report-print-header h2{margin:3px 0;font-size:22px}.report-print-header p{margin:0;color:var(--muted)}.report-print-meta{display:grid;gap:4px;text-align:right;font-size:12px;color:var(--muted)}.report-print-meta b{color:var(--ink)}.report-table-wrap{margin-top:0!important}.monthly-report-table{min-width:1020px}.report-print-footer{display:none}
+@media print{
+  .monthly-report{display:block!important;width:194mm!important;min-height:281mm!important;margin:0!important;color:#111!important;font-family:Arial,sans-serif}
+  .monthly-report .section-actions{display:none!important}.monthly-report .report-print-header{display:flex!important;padding:0 0 2.2mm!important;border-bottom:1.2pt solid #111!important;margin-bottom:2.2mm!important}.monthly-report .report-print-header .eyebrow{font-size:6.3pt!important}.monthly-report .report-print-header h2{font-size:15pt!important;margin:1mm 0!important}.monthly-report .report-print-header p,.monthly-report .report-print-meta{font-size:7pt!important}.monthly-report .report-print-meta{gap:1.2mm!important}
+  .monthly-report .water-rate-card{border:0.8pt solid #111!important;border-left:3pt solid #ff1100!important;border-radius:2mm!important;padding:2.4mm 3mm!important;margin:0 0 2.2mm!important;box-shadow:none!important}.monthly-report .water-rate-card .card-head{margin-bottom:1.7mm!important}.monthly-report .water-rate-card h3{font-size:9pt!important}.monthly-report .water-rate-card .muted{font-size:6.6pt!important}.monthly-report .water-rate-card .pill{font-size:6.3pt!important;padding:1.1mm 1.6mm!important}.monthly-report .water-rate-grid{grid-template-columns:repeat(4,1fr)!important;gap:2mm!important}.monthly-report .water-rate-grid .field{display:none!important}.monthly-report .water-rate-grid>div small{font-size:5.8pt!important}.monthly-report .water-rate-grid>div strong{font-size:8.8pt!important;margin-top:.5mm!important}
+  .monthly-report .finance-summary{grid-template-columns:repeat(6,1fr)!important;gap:1.5mm!important;margin:0 0 2.2mm!important}.monthly-report .finance-summary div{border:0.55pt solid #a9a9a9!important;border-radius:1.5mm!important;padding:1.8mm!important}.monthly-report .finance-summary small{font-size:5.3pt!important}.monthly-report .finance-summary strong{font-size:7.7pt!important;margin-top:.7mm!important}
+  .monthly-report .report-table-wrap{border:0!important;border-radius:0!important;box-shadow:none!important;overflow:visible!important}.monthly-report .monthly-report-table{width:100%!important;min-width:0!important;table-layout:fixed!important;border-collapse:collapse!important;font-size:5.45pt!important}.monthly-report .monthly-report-table th{font-size:5pt!important;padding:1.25mm .65mm!important;background:#111!important;color:#fff!important;line-height:1.05!important}.monthly-report .monthly-report-table td{padding:1.05mm .65mm!important;font-size:5.45pt!important;line-height:1.05!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}.monthly-report .monthly-report-table th:nth-child(1),.monthly-report .monthly-report-table td:nth-child(1){width:10%}.monthly-report .monthly-report-table th:nth-child(2),.monthly-report .monthly-report-table td:nth-child(2){width:17%;white-space:normal!important}.monthly-report .monthly-report-table th:nth-child(n+3),.monthly-report .monthly-report-table td:nth-child(n+3){width:9.125%;text-align:right!important}.monthly-report .monthly-report-table tfoot td{font-size:5.55pt!important;font-weight:900!important;background:#eee!important}.monthly-report .report-print-footer{display:block!important;border-top:.5pt solid #999!important;margin-top:1.5mm!important;padding-top:1mm!important;font-size:5.5pt!important;color:#555!important;text-align:center!important}
+  .bill-page.bill-page-with-cuts{width:281mm!important;height:194mm!important;min-height:194mm!important;break-after:page!important;page-break-after:always!important}.bill-page-with-cuts .bill-copy{font-size:8.7pt!important}.bill-page-with-cuts .bill-head{font-size:11pt!important}.bill-page-with-cuts .bill-head b{font-size:9.4pt!important}.bill-party strong{font-size:9.1pt!important}.bill-reading-grid b{font-size:10pt!important}.bill-charge-line{font-size:8.2pt!important}.bill-charge-line b{font-size:8.7pt!important}.bill-page-with-cuts .bill-total{font-size:9pt!important}.bill-page-with-cuts .bill-total b{font-size:11.2pt!important}
+}
+
+/* ===================== KR²MELO v5.3.1 — grampo e capas simplificadas ===================== */
+.cover-sheet-v531 .cover-front{align-content:center}
+.cover-sheet-v531 .cover-front header{margin-bottom:10mm}
+.cover-simple-kv{display:grid;grid-template-columns:1fr;gap:7mm;max-width:170mm}
+.cover-simple-kv span{border:1.2pt solid #111;border-left:5pt solid var(--red);border-radius:3mm;padding:5mm 7mm;font-size:18pt;background:#fff}
+.cover-simple-kv b{display:block;font-size:8.5pt;color:#555;text-transform:uppercase;letter-spacing:.08em;margin-bottom:2mm}
+.cover-sheet-v531 .cover-back{align-content:center;text-align:center}
+.cover-sheet-v531 .cover-back header{justify-content:center}
+.cover-sheet-v531 .cover-back .provider-services{max-width:150mm;margin:8mm auto 0}
+.cover-back-inverted{transform:rotate(180deg);transform-origin:center}
+
+.bill-page-with-cuts .bill-copy{
+  padding-left:8.5mm!important;
+}
+.bill-page-with-cuts .bill-copy:before{
+  content:"";
+  position:absolute;
+  left:2.3mm;
+  top:8mm;
+  bottom:8mm;
+  width:3.2mm;
+  border-left:1.4pt solid #b9b9b9;
+  opacity:.95;
+  pointer-events:none;
+}
+.bill-page-with-cuts .bill-copy:after{
+  content:"";
+  position:absolute;
+  left:1.65mm;
+  top:50%;
+  width:4.6mm;
+  height:4.6mm;
+  border:1.2pt solid #b9b9b9;
+  border-radius:50%;
+  background:#fff;
+  transform:translateY(-50%);
+  pointer-events:none;
+}
+.bill-page-with-cuts .bill-copy-tag{right:3.8mm!important}
+
+@media print{
+  .cover-sheet-v531 .cover-half{height:97mm!important}
+  .cover-sheet-v531 .cover-front{align-content:center!important}
+  .cover-simple-kv span{font-size:18pt!important;padding:5mm 7mm!important}
+  .cover-simple-kv b{font-size:8.5pt!important}
+  .cover-back-inverted{transform:rotate(180deg)!important;transform-origin:center!important}
+  .bill-page-with-cuts .bill-copy{padding-left:8.5mm!important}
+  .bill-page-with-cuts .bill-copy:before{border-left:1.4pt solid #b9b9b9!important}
+}
+
+/* Regra final: mantém a área de grampo mesmo após os perfis compactos de impressão. */
+.bill-page-with-cuts .bill-copy{padding-left:8.5mm!important}
+.bill-page-with-cuts .bill-copy:before{
+  content:""!important;
+  position:absolute!important;
+  left:2.3mm!important;
+  top:8mm!important;
+  bottom:8mm!important;
+  width:3.2mm!important;
+  border-left:1.4pt solid #b9b9b9!important;
+  opacity:.95!important;
+}
+.bill-page-with-cuts .bill-copy:after{
+  content:""!important;
+  position:absolute!important;
+  left:1.65mm!important;
+  top:50%!important;
+  width:4.6mm!important;
+  height:4.6mm!important;
+  border:1.2pt solid #b9b9b9!important;
+  border-radius:50%!important;
+  background:#fff!important;
+  transform:translateY(-50%)!important;
+}
+
+
+/* ===================== KR²MELO v5.1.5 — impressão segura de boletos =====================
+   A grade usa trilhas com altura rígida e conteúdo compacto; evita que a segunda linha
+   cresça além da A4 e seja recortada pelo navegador. */
+.bill-page.bill-page-with-cuts{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  grid-template-rows:repeat(2,minmax(0,1fr));
+  align-items:stretch;
+  justify-items:stretch;
+  overflow:hidden;
+}
+.bill-page-with-cuts .bill-copy{
+  min-width:0;
+  min-height:0;
+  height:100%;
+  overflow:hidden;
+  padding:3mm 3.8mm 2.5mm;
+  line-height:1.12;
+}
+.bill-page-with-cuts .bill-head{min-height:8.2mm;font-size:9.7px}
+.bill-page-with-cuts .bill-head>*{padding:2.2mm 2.7mm}
+.bill-page-with-cuts .bill-head b{font-size:8.25px}
+.bill-page-with-cuts .bill-copy-tag{top:3.2mm;right:3.8mm;font-size:5.6px}
+.bill-party{grid-template-columns:58px minmax(0,1fr);gap:1px 5px;padding:1.7mm 0 1.55mm}
+.bill-party span{font-size:6.35px}.bill-party strong{font-size:8.15px;min-width:0;overflow-wrap:anywhere;white-space:normal}.bill-party small{font-size:5.95px}
+.bill-reading-grid{gap:1.3mm;padding:1.75mm 0}
+.bill-reading-grid>div{min-width:0;padding:1.25mm 1.35mm;border-radius:1.45mm}
+.bill-reading-grid span{font-size:5.7px}.bill-reading-grid small{font-size:5.45px}.bill-reading-grid b{font-size:8.6px}
+.bill-charge-list{min-height:0}
+.bill-charge-line{min-height:4.1mm;gap:4px;padding:.7mm 0;font-size:6.85px;line-height:1.1}
+.bill-charge-line span{min-width:0;overflow-wrap:anywhere}.bill-charge-line b{font-size:7.4px}
+.bill-charge-line.bill-condo-net{margin:0 -1.35mm;padding-left:1.35mm;padding-right:1.35mm}
+.bill-page-with-cuts .bill-total{min-height:7.5mm;margin:1.45mm 0 0;padding:1.35mm 1.55mm;font-size:7.2px}
+.bill-page-with-cuts .bill-total span{font-size:5.7px}.bill-page-with-cuts .bill-total b{font-size:9.4px}
+.bill-page-with-cuts .bill-notes{min-height:10mm;margin-top:auto;grid-template-columns:27px minmax(0,1fr)}
+.bill-page-with-cuts .bill-notes>strong{font-size:6.25px}.bill-page-with-cuts .bill-notes p{font-size:5.05px;line-height:1.12;padding:.75mm 1.25mm;white-space:normal;overflow-wrap:anywhere}
+.bill-page-with-cuts .bill-signature{margin-top:auto;padding-top:2.1mm}.bill-page-with-cuts .bill-signature div{height:6.6mm}.bill-page-with-cuts .bill-signature small{margin-top:.9mm;font-size:5.35px}
+.bill-cut-guide{z-index:10;font-size:5.8pt;padding:.45mm 1.1mm}
+.bill-cut-guide-v{top:0;bottom:0;border-left:1pt dashed #555}
+.bill-cut-guide-h{left:0;right:0;border-top:1pt dashed #555}
+.bill-page-with-cuts .bill-page-group-label{top:.8mm;left:1.5mm;font-size:5.5pt}
+
+@media print{
+  @page{size:A4 landscape;margin:8mm}
+  html,body{width:100%;height:auto!important;overflow:visible!important}
+  .bill-page.bill-page-with-cuts{
+    width:281mm!important;
+    height:194mm!important;
+    min-height:194mm!important;
+    max-height:194mm!important;
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    grid-template-rows:repeat(2,minmax(0,1fr))!important;
+    overflow:hidden!important;
+    break-inside:avoid-page!important;
+    break-after:page!important;
+    page-break-inside:avoid!important;
+    page-break-after:always!important;
+  }
+  .bill-page-with-cuts .bill-copy{
+    min-height:0!important;
+    height:100%!important;
+    overflow:hidden!important;
+    padding:3mm 3.8mm 2.5mm!important;
+  }
+  .bill-page-with-cuts .bill-head{font-size:9.7pt!important}.bill-page-with-cuts .bill-head b{font-size:8.25pt!important}
+  .bill-party strong{font-size:8.15pt!important}.bill-reading-grid b{font-size:8.6pt!important}
+  .bill-charge-line{font-size:6.85pt!important}.bill-charge-line b{font-size:7.4pt!important}
+  .bill-page-with-cuts .bill-total{font-size:7.2pt!important}.bill-page-with-cuts .bill-total b{font-size:9.4pt!important}
+}
+
+/* ===================== KR²MELO v5.1.6 — impressão com cores fortes =====================
+   Perfil de alto contraste: não depende apenas de áreas preenchidas para manter
+   legibilidade quando a impressora reduz ou ignora gráficos de plano de fundo. */
+@media print {
+  html, body, .bill-page, .bill-copy, .bill-copy * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+
+  .bill-page.bill-page-with-cuts {
+    background: #fff !important;
+  }
+
+  .bill-page-with-cuts .bill-copy {
+    color: #000 !important;
+    border: 1.1pt solid #000 !important;
+    background: #fff !important;
+  }
+
+  .bill-page-with-cuts .bill-head {
+    background: #e4e4e4 !important;
+    border-top: 2.2pt solid #ff1100 !important;
+    border-bottom: 1.2pt solid #000 !important;
+  }
+  .bill-page-with-cuts .bill-head strong,
+  .bill-page-with-cuts .bill-head b,
+  .bill-page-with-cuts .bill-copy-tag {
+    color: #000 !important;
+    font-weight: 900 !important;
+  }
+
+  .bill-party {
+    border-bottom: .9pt solid #000 !important;
+  }
+  .bill-party span,
+  .bill-party strong,
+  .bill-party small,
+  .bill-reading-grid span,
+  .bill-reading-grid small,
+  .bill-reading-grid b,
+  .bill-charge-line span,
+  .bill-charge-line b {
+    color: #000 !important;
+  }
+  .bill-party span,
+  .bill-reading-grid span,
+  .bill-charge-line span {
+    font-weight: 900 !important;
+  }
+  .bill-party strong,
+  .bill-reading-grid b,
+  .bill-charge-line b {
+    font-weight: 900 !important;
+  }
+
+  .bill-reading-grid > div {
+    background: #f0f0f0 !important;
+    border: .8pt solid #111 !important;
+  }
+  .bill-charge-list {
+    border-top: 1.1pt solid #000 !important;
+    border-bottom: 1.1pt solid #000 !important;
+  }
+  .bill-charge-line {
+    border-bottom: .55pt dotted #222 !important;
+  }
+  .bill-charge-line.bill-condo-net {
+    background: #dfdfdf !important;
+  }
+  .bill-charge-line.bill-adjustment,
+  .bill-charge-line.bill-adjustment span,
+  .bill-charge-line.bill-adjustment b {
+    color: #006b42 !important;
+    font-weight: 900 !important;
+  }
+
+  .bill-page-with-cuts .bill-total {
+    background: #111 !important;
+    color: #fff !important;
+    border: 1.2pt solid #000 !important;
+  }
+  .bill-page-with-cuts .bill-total strong,
+  .bill-page-with-cuts .bill-total span,
+  .bill-page-with-cuts .bill-total b {
+    color: #fff !important;
+    font-weight: 900 !important;
+  }
+
+  .bill-page-with-cuts .bill-notes,
+  .bill-page-with-cuts .bill-notes > strong {
+    border-color: #000 !important;
+  }
+  .bill-page-with-cuts .bill-notes > strong {
+    background: #e5e5e5 !important;
+    color: #000 !important;
+    font-weight: 900 !important;
+  }
+  .bill-page-with-cuts .bill-notes p {
+    color: #000 !important;
+    border-bottom-color: #555 !important;
+    font-weight: 700 !important;
+  }
+  .bill-page-with-cuts .bill-signature div {
+    border-bottom: 1.15pt solid #000 !important;
+  }
+  .bill-page-with-cuts .bill-signature small {
+    color: #000 !important;
+    font-weight: 900 !important;
+  }
+
+  .bill-cut-guide,
+  .bill-page-with-cuts .bill-page-group-label {
+    color: #000 !important;
+    background: #fff !important;
+    font-weight: 900 !important;
+  }
+  .bill-cut-guide-v {
+    border-left: 1.45pt dashed #000 !important;
+  }
+  .bill-cut-guide-h {
+    border-top: 1.45pt dashed #000 !important;
+  }
+}
+
+/* ===================== KR²MELO v5.1.7 — Acesso completo no celular ===================== */
+.mobile-shortcuts{display:none}
+@media(max-width:900px){
+  html,body{overflow-x:hidden}
+  .sidebar{
+    inset:0 auto 0 0;
+    height:100dvh;
+    max-height:100dvh;
+    max-width:calc(100vw - 32px);
+    overflow-y:auto;
+    overflow-x:hidden;
+    -webkit-overflow-scrolling:touch;
+    overscroll-behavior:contain;
+    scrollbar-width:thin;
+    scrollbar-color:#555 #111;
+    padding-bottom:18px;
+  }
+  .sidebar nav{padding-bottom:14px}
+  .sidebar-foot{margin-top:18px;flex:0 0 auto}
+  .mobile-shortcuts{
+    position:fixed;
+    left:12px;
+    right:12px;
+    bottom:max(12px,env(safe-area-inset-bottom));
+    z-index:19;
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:8px;
+    padding:8px;
+    border:1px solid #d6d6d6;
+    border-radius:15px;
+    background:rgba(255,255,255,.97);
+    box-shadow:0 12px 34px rgba(17,17,17,.18);
+    backdrop-filter:blur(10px);
+  }
+  .mobile-shortcuts a{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:7px;
+    min-height:44px;
+    border-radius:10px;
+    background:#111;
+    color:#fff;
+    text-decoration:none;
+    font-size:13px;
+    font-weight:850;
+  }
+  .mobile-shortcuts a:last-child{background:var(--red)}
+  main{padding-bottom:132px}
+}
+@media print{.mobile-shortcuts{display:none!important}}
+
+
+/* ===================== KR²MELO v5.2 — Nuvem, reset e dashboard anual ===================== */
+.sync-grid,.annual-grid{align-items:start}.sync-hero .pill{display:inline-flex}.annual-controls{display:flex;align-items:end;justify-content:space-between;gap:16px}.annual-controls .field{min-width:180px}.annual-bars{display:grid;gap:13px}.annual-bar-row{display:grid;grid-template-columns:44px 1fr 84px;align-items:center;gap:10px;font-size:13px}.annual-bar{height:12px;background:#ececec;border-radius:99px;overflow:hidden}.annual-bar i{display:block;height:100%;background:var(--red);border-radius:99px}.annual-bar-row>b{text-align:right;font-size:12px}.annual-summary{display:grid;gap:12px;margin:0}.annual-summary div{display:flex;justify-content:space-between;gap:14px;padding:12px;border:1px solid var(--line);border-radius:10px;background:#fafafa}.annual-summary dt{font-weight:700;color:var(--muted)}.annual-summary dd{margin:0;font-weight:900}.sync-setup-card ol{margin:10px 0 0;padding-left:20px;line-height:1.65}.sync-setup-card code{background:#f0f0f0;padding:2px 5px;border-radius:4px}.danger-zone{border:1px solid #f0b2ac;background:#fff4f2;border-radius:11px;padding:14px}.danger-zone p{color:#7d3028;margin:6px 0 12px}.danger-zone ul{margin:10px 0 14px;padding-left:20px;line-height:1.55}.reset-total-card{border-color:#f0b2ac}.reset-total-card .card-head{margin-bottom:10px}.annual-table-card{margin-top:16px}.annual-table td,.annual-table th{white-space:nowrap}
+@media(max-width:700px){.annual-controls{display:grid;align-items:stretch}.annual-controls .field{min-width:0}.annual-bar-row{grid-template-columns:38px 1fr 72px}.sync-grid,.annual-grid{grid-template-columns:1fr}.sync-hero{flex-direction:column;align-items:flex-start}.annual-hero .button-row{width:100%}.annual-hero .button-row>*{flex:1}}
+@media print{.annual-print-document .hero,.annual-print-document .annual-controls,.annual-print-document .button-row,.annual-print-document .no-print{display:none!important}.annual-print-document{font-family:Arial,sans-serif}.annual-print-document .metrics{grid-template-columns:repeat(4,1fr);gap:5mm;margin:0 0 4mm}.annual-print-document .metric{padding:4mm;box-shadow:none}.annual-print-document .grid-2{grid-template-columns:1fr 1fr;gap:4mm}.annual-print-document .card,.annual-print-document .table-wrap{box-shadow:none}.annual-print-document .annual-bar-row{font-size:9pt;gap:3mm}.annual-print-document .annual-table{min-width:0;font-size:7.6pt}.annual-print-document .annual-table th,.annual-print-document .annual-table td{padding:2.2mm 1.4mm}.annual-print-document .annual-table-card{margin-top:4mm}}
+
+
+/* ===================== KR²MELO v5.2.1 — Relatórios históricos e recibos em meia A4 ===================== */
+.report-period-controls{display:flex;align-items:flex-end;justify-content:flex-end;gap:12px;flex-wrap:wrap}.report-period-field{min-width:300px;margin:0}.report-period-field select{min-width:300px}.report-context-note{display:flex;align-items:center;gap:10px;flex-wrap:wrap;border:1px solid var(--line);border-left:4px solid #1377c8;border-radius:10px;padding:11px 14px;margin:0 0 12px;background:#f7fbff}.report-context-note.current{border-left-color:#168957;background:#f5fcf8}.report-context-note strong{font-size:13px}.report-context-note span{font-size:12px;color:var(--muted)}.report-dates{display:flex;flex-wrap:wrap;gap:8px 16px;padding:10px 12px;border:1px solid var(--line);border-radius:9px;background:#fff;margin:0 0 10px;font-size:12px}.report-coverage-static .water-rate-grid{grid-template-columns:repeat(4,1fr)}
+@media(max-width:760px){.report-period-controls{width:100%;align-items:stretch}.report-period-field,.report-period-field select{width:100%;min-width:0}.report-period-controls .button-row{width:100%}.report-period-controls .button-row button{flex:1 1 150px}.report-dates{display:grid;grid-template-columns:1fr}.report-context-note{align-items:flex-start;flex-direction:column}}
+@media print{.report-period-controls,.report-context-note{display:none!important}.monthly-report .report-dates{display:flex!important;gap:1.3mm 2.8mm!important;padding:1.2mm 1.6mm!important;border:.45pt solid #aaa!important;border-radius:0!important;margin:0 0 1.8mm!important;font-size:5.7pt!important}.monthly-report .report-dates span{font-size:5.7pt!important}.monthly-report .report-coverage-static .water-rate-grid{grid-template-columns:repeat(4,1fr)!important}.monthly-report .report-coverage-static .water-rate-grid>div{display:block!important}}
+.tariff-preview{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.tariff-preview div{border:1px solid var(--line);border-radius:8px;background:#fafafa;padding:12px;text-align:center}.tariff-preview small{display:block;color:var(--muted);font-weight:800;text-transform:uppercase;font-size:11px}.tariff-preview strong{display:block;margin-top:4px;font-size:18px}@media(max-width:560px){.tariff-preview{grid-template-columns:1fr}}
+.proposal-document{width:min(210mm,100%);min-height:297mm;margin:0 auto;background:#fff;border:1px solid var(--line);box-shadow:var(--shadow);padding:18mm;color:#111;font-family:Arial,sans-serif}.proposal-header{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #111;padding-bottom:10mm;margin-bottom:10mm}.proposal-header img{width:58px;height:70px;object-fit:contain}.proposal-header div{display:flex;align-items:center;gap:12px;font-weight:900;letter-spacing:.08em}.proposal-header aside{text-align:right;display:grid;gap:3px}.proposal-header aside strong{text-transform:uppercase;font-size:16px}.proposal-header aside small{color:#555}.proposal-hero{border-left:5px solid var(--red);padding-left:8mm;margin-bottom:9mm}.proposal-hero h1{font-size:25px;line-height:1.16;margin:3mm 0}.proposal-hero p{font-size:13px;line-height:1.55;margin:0}.proposal-grid{display:grid;grid-template-columns:1fr 1fr;gap:8mm;margin:8mm 0}.proposal-grid h2,.proposal-services h2,.proposal-benefit h2,.proposal-conditions h2{font-size:15px;margin:0 0 4mm;text-transform:uppercase;letter-spacing:.04em}.proposal-grid li{margin:0 0 2.2mm;line-height:1.4}.proposal-services{border:1px solid #ddd;border-radius:8px;padding:7mm;margin:8mm 0}.proposal-services div{display:grid;grid-template-columns:1fr 1fr;gap:3mm}.proposal-services span{border-left:3px solid var(--red);background:#fafafa;padding:3mm;font-weight:700;font-size:12px}.proposal-benefit,.proposal-conditions{margin:8mm 0}.proposal-benefit p,.proposal-conditions p{line-height:1.58;margin:0}.proposal-signatures{display:grid;grid-template-columns:1fr 1fr;gap:18mm;margin-top:16mm;align-items:end}.proposal-signatures div{text-align:center}.proposal-signatures div:before{content:"";display:block;border-top:1.3px solid #111;margin-bottom:2mm}.proposal-signatures img{display:block;max-width:58mm;max-height:22mm;object-fit:contain;margin:0 auto -1mm}.proposal-signatures span{font-weight:800;font-size:11px;text-transform:uppercase}@media(max-width:760px){.proposal-document{padding:10mm;min-height:0}.proposal-header,.proposal-grid,.proposal-services div,.proposal-signatures{grid-template-columns:1fr;display:grid}.proposal-header aside{text-align:left}.proposal-hero h1{font-size:21px}}@media print{@page{size:A4 portrait;margin:9mm}.proposal-document{width:192mm!important;min-height:279mm!important;margin:0!important;border:0!important;box-shadow:none!important;padding:0!important}.proposal-document *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}}
+.presentation-letter{padding:20mm 22mm}.letter-title{margin:8mm 0 10mm}.letter-title h1{font-size:24px;line-height:1.2;margin:3mm 0 0}.letter-body{font-size:13.5px;line-height:1.72}.letter-body p{margin:0 0 5mm}.letter-highlight{border:1px solid #ddd;border-left:5px solid var(--red);border-radius:8px;padding:7mm;margin:9mm 0}.letter-highlight h2{font-size:15px;text-transform:uppercase;letter-spacing:.04em;margin:0 0 4mm}.letter-highlight div{display:grid;grid-template-columns:1fr 1fr;gap:3mm}.letter-highlight span{background:#fafafa;border:1px solid #eee;border-radius:6px;padding:3mm;font-weight:700;font-size:12px}.letter-signature{margin-top:13mm;width:86mm;text-align:center}.letter-signature img{max-width:58mm;max-height:22mm;object-fit:contain}.letter-signature div{border-top:1.3px solid #111;margin:0 auto 2mm}.letter-signature strong{display:block;font-size:12px}.letter-signature span{display:block;color:#555;font-size:11px;margin-top:1mm}@media(max-width:760px){.presentation-letter{padding:10mm}.letter-highlight div{grid-template-columns:1fr}.letter-signature{width:100%}}
+
+
+/* ===================== KR²MELO v5.2.2 — seletor de relatórios sempre visível ===================== */
+.report-period-picker{border:2px solid #111;border-left:7px solid #ff1100;border-radius:14px;background:#fff;padding:18px;margin:0 0 18px;box-shadow:0 10px 24px rgba(17,17,17,.08)}
+.report-period-picker-head{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;flex-wrap:wrap}
+.report-period-picker-head .eyebrow{margin:0 0 4px;color:#ff1100;font-weight:900;letter-spacing:.1em;font-size:11px}
+.report-period-picker-head h3{margin:0;font-size:20px;color:#111}
+.report-period-picker-head p{margin:5px 0 0;color:var(--muted);font-size:13px}
+.report-period-picker .report-period-field{min-width:330px;margin:0}
+.report-period-picker .report-period-field span{font-weight:900;color:#111}
+.report-period-picker .report-period-field select{min-width:330px;border:2px solid #111;font-weight:800;background:#fff}
+.report-period-choices{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px;margin-top:16px}
+.report-period-choice{appearance:none;text-align:left;border:1.5px solid #b9b9b9;border-radius:10px;background:#fff;padding:12px 13px;cursor:pointer;display:grid;gap:4px;min-height:86px;transition:transform .12s ease,border-color .12s ease,box-shadow .12s ease}
+.report-period-choice:hover{border-color:#111;box-shadow:0 5px 14px rgba(17,17,17,.12);transform:translateY(-1px)}
+.report-period-choice.active{border:2px solid #ff1100;background:#fff5f3;box-shadow:0 5px 14px rgba(255,17,0,.15)}
+.report-period-choice strong{font-size:15px;color:#111}
+.report-period-choice small{font-size:11px;color:var(--muted);line-height:1.25}
+.report-choice-tag{display:inline-flex;align-items:center;justify-content:center;width:max-content;min-width:64px;padding:3px 7px;border-radius:999px;background:#111;color:#fff;font-size:9px;font-weight:900;letter-spacing:.08em}
+.report-period-choice.active .report-choice-tag{background:#ff1100}
+.report-history-empty{display:flex;flex-direction:column;gap:3px;margin-top:14px;padding:11px 13px;border:1px dashed #a8a8a8;border-radius:9px;background:#fafafa;color:#444;font-size:12px}
+.report-history-empty strong{color:#111}
+@media(max-width:760px){.report-period-picker{padding:14px;border-left-width:5px}.report-period-picker-head{align-items:stretch}.report-period-picker .report-period-field,.report-period-picker .report-period-field select{width:100%;min-width:0}.report-period-choices{grid-template-columns:1fr}.report-period-choice{min-height:76px}}
+@media print{.report-period-picker{display:none!important}}
+
+/* ===================== Boletos iguais, observações e recibos ===================== */
+.billing-unit-notes{margin-top:14px;padding:0;border:0;box-shadow:none;background:transparent}
+.billing-unit-notes .card-head{margin-bottom:10px}
+.billing-unit-notes table{min-width:720px}
+.billing-unit-notes textarea{width:100%;min-height:54px;resize:vertical;border:1px solid var(--line);border-radius:8px;padding:9px;background:#fff}
+
+.bill-page.bill-page-with-cuts{
+  grid-template-columns:repeat(2,50%)!important;
+  grid-template-rows:repeat(2,50%)!important;
+  gap:0!important;
+  padding:0!important;
+  align-items:stretch!important;
+  justify-items:stretch!important;
+}
+.bill-page-with-cuts .bill-copy{
+  width:100%!important;
+  height:100%!important;
+  min-width:0!important;
+  min-height:0!important;
+  border:.75pt solid #111!important;
+  padding:3.2mm 3.8mm 2.8mm!important;
+  display:flex!important;
+  flex-direction:column!important;
+  overflow:hidden!important;
+}
+.bill-page-with-cuts .bill-copy>*{min-width:0}
+.bill-page-with-cuts .bill-cut-guide-v{left:50%!important;top:0!important;bottom:0!important;border-left:1.1pt dashed #333!important}
+.bill-page-with-cuts .bill-cut-guide-h{top:50%!important;left:0!important;right:0!important;border-top:1.1pt dashed #333!important}
+.bill-page-with-cuts .bill-notes{
+  min-height:18mm!important;
+  margin-top:auto!important;
+  grid-template-columns:30px minmax(0,1fr)!important;
+}
+.bill-page-with-cuts .bill-notes>strong{font-size:7.2px!important}
+.bill-page-with-cuts .bill-notes p{
+  font-size:6.9px!important;
+  line-height:1.22!important;
+  padding:.85mm 1.35mm!important;
+  white-space:normal!important;
+  overflow-wrap:anywhere!important;
+}
+.bill-page-with-cuts .bill-signature{min-height:18mm!important;padding-top:4mm!important}
+.bill-page-with-cuts .bill-charge-line{min-height:4mm!important}
+
+.receipt-preview-branded{
+  border:1.4pt solid var(--ink);
+  border-top:5pt solid var(--red);
+  box-shadow:none;
+  background:#fff;
+  color:#111;
+}
+.receipt-brand{display:flex;align-items:center;gap:14px;margin:0 0 18px;border-bottom:1px solid #ddd;padding-bottom:12px}
+.receipt-brand img{width:62px;height:74px;object-fit:contain}
+.receipt-brand h2{margin:2px 0 0!important;text-align:left!important;letter-spacing:.11em!important;color:#111}
+.receipt-preview-branded p{line-height:1.65}
+.receipt-preview-branded strong{color:#111}
+.receipt-preview-branded footer{margin-top:auto}
+.receipt-preview-branded footer div{border-bottom:1.2pt solid #111}
+.receipt-preview-branded .receipt-signature{max-height:58px}
+
+@media print{
+  .bill-page.bill-page-with-cuts{
+    width:281mm!important;
+    height:194mm!important;
+    max-height:194mm!important;
+    grid-template-columns:repeat(2,50%)!important;
+    grid-template-rows:repeat(2,50%)!important;
+    gap:0!important;
+    padding:0!important;
+    overflow:hidden!important;
+  }
+  .bill-page-with-cuts .bill-copy{
+    width:100%!important;
+    height:100%!important;
+    max-height:97mm!important;
+    border:.75pt solid #111!important;
+    padding:3.2mm 3.8mm 2.8mm!important;
+    box-shadow:none!important;
+  }
+  .bill-page-with-cuts .bill-notes{min-height:18mm!important}
+  .bill-page-with-cuts .bill-notes p{font-size:6.9pt!important;line-height:1.18!important}
+  .bill-page-with-cuts .bill-notes>strong{font-size:7.2pt!important}
+  .receipt-half-page .receipt-preview-branded{
+    width:100%!important;
+    height:100%!important;
+    min-height:0!important;
+    margin:0!important;
+    padding:8mm 11mm 7mm!important;
+    border:1.3pt solid #111!important;
+    border-top:5pt solid #ff1100!important;
+    display:flex!important;
+    flex-direction:column!important;
+    background:#fff!important;
+    color:#111!important;
+    -webkit-print-color-adjust:exact!important;
+    print-color-adjust:exact!important;
+  }
+  .receipt-half-page .receipt-brand{margin-bottom:5mm!important;padding-bottom:3mm!important}
+  .receipt-half-page .receipt-brand img{width:20mm!important;height:22mm!important;object-fit:contain!important}
+  .receipt-half-page .receipt-preview h2{font-size:15.5pt!important;margin:0!important}
+  .receipt-half-page .receipt-preview p{font-size:10.2pt!important;line-height:1.42!important;margin:0 0 3.2mm!important}
+  .receipt-half-page .receipt-preview footer{margin-top:auto!important;text-align:center!important}
+  .receipt-half-page .receipt-signature{display:block!important;max-height:20mm!important;max-width:62mm!important;object-fit:contain!important;margin:1.5mm auto 1mm!important}
+  .receipt-half-page .receipt-preview footer div{border-bottom:1pt solid #111!important;max-width:82mm!important;margin:0 auto 2mm!important}
+}
+
+/* Override final v5.3.3: capa mais compacta e área de grampo somente na via do síndico. */
+.cover-sheet-v531 .cover-front{
+  align-content:start!important;
+  padding:6mm 8mm!important;
+}
+.cover-sheet-v531 .cover-front header{display:none!important}
+.cover-simple-kv{
+  gap:3.2mm!important;
+  max-width:178mm!important;
+  margin-top:0!important;
+}
+.cover-simple-kv span{
+  min-height:17mm!important;
+  padding:3mm 7mm!important;
+  font-size:13.5pt!important;
+  line-height:1.18!important;
+  overflow:hidden!important;
+}
+.cover-simple-kv b{
+  font-size:7.2pt!important;
+  margin-bottom:1.5mm!important;
+}
+@media print{
+  .cover-sheet-v531 .cover-half{height:97mm!important;max-height:97mm!important;overflow:hidden!important}
+  .cover-sheet-v531 .cover-front{align-content:start!important;padding:6mm 8mm!important}
+  .cover-simple-kv{gap:3.2mm!important;margin-top:0!important;max-width:178mm!important}
+  .cover-simple-kv span{min-height:17mm!important;padding:3mm 7mm!important;font-size:13.5pt!important;line-height:1.18!important}
+  .cover-simple-kv b{font-size:7.2pt!important;margin-bottom:1.5mm!important}
+}
+.bill-page-with-cuts .bill-copy-manager{padding-left:8.5mm!important}
+.bill-page-with-cuts .bill-copy-manager:before{
+  content:""!important;
+  position:absolute!important;
+  left:2.3mm!important;
+  top:8mm!important;
+  bottom:8mm!important;
+  width:3.2mm!important;
+  border-left:1.4pt solid #b9b9b9!important;
+  opacity:.95!important;
+}
+.bill-page-with-cuts .bill-copy-manager:after{
+  content:""!important;
+  position:absolute!important;
+  left:1.65mm!important;
+  top:50%!important;
+  width:4.6mm!important;
+  height:4.6mm!important;
+  border:1.2pt solid #b9b9b9!important;
+  border-radius:50%!important;
+  background:#fff!important;
+  transform:translateY(-50%)!important;
+}
+.bill-page-with-cuts .bill-copy-resident:before,
+.bill-page-with-cuts .bill-copy-resident:after{
+  content:none!important;
+  display:none!important;
+}
+.extra-charge-editor{width:100%;min-width:180px;resize:vertical;border:1px solid var(--line);border-radius:8px;padding:8px;background:#fff;font:inherit}
+.bill-builder{margin-bottom:14px}
+.cover-back-only{grid-template-rows:1fr!important}
+.cover-back-only .cover-back{height:100%!important}
+
+/* KR²MELO v5.3.8 — Central de lançamentos na tela Leituras */
+.adjustment-center{margin:16px 0}
+.adjustment-center .card-head{align-items:flex-start;gap:16px}
+.adjustment-center .card-head .button-row{justify-content:flex-end}
+.adjustment-table{min-width:1320px}
+.adjustment-table th{white-space:nowrap}
+.adjustment-table td{vertical-align:top}
+.adjustment-table input,.adjustment-table select,.adjustment-table textarea{width:100%;min-width:120px;border:1px solid var(--line);background:#fff;border-radius:8px;padding:8px;font-size:12px}
+.adjustment-table textarea{min-height:78px;resize:vertical;line-height:1.35}
+.adjustment-table select+select,.adjustment-table input+input,.adjustment-table textarea+input{margin-top:7px}
+.adjustment-table .extra-charge-editor{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;min-width:210px}
+.adjustment-table .mini-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:7px}
+.adjustment-table small.adjustment{color:var(--red-dark);font-weight:800}
+@media(max-width:900px){.adjustment-center .card-head{display:block}.adjustment-center .card-head .button-row{justify-content:flex-start;margin-top:10px}.adjustment-table{min-width:1180px}}
+
+/* KR2MELO v5.3.16 - conferencia de multas/outros e estrategia da conta de agua */
+.fine-units-card{margin:16px 0;border-left:4px solid var(--red)}
+.fine-unit-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px}
+.fine-unit-item{display:grid;grid-template-columns:64px minmax(0,1fr) auto;gap:10px;align-items:center;border:1px solid var(--line);border-radius:10px;background:#fff;padding:11px}
+.fine-unit-item>strong{font-size:18px;color:var(--red-dark);overflow-wrap:anywhere}
+.fine-unit-item b,.fine-unit-item small{display:block;min-width:0}
+.fine-unit-item small{color:var(--muted);line-height:1.35;overflow-wrap:anywhere}
+.fine-unit-item span{font-weight:900;white-space:nowrap}
+.water-strategy-card{margin:-4px 0 16px;border-left:4px solid #1377c8}
+.strategy-main{display:grid;gap:12px}
+.strategy-main>strong{font-size:15px;line-height:1.45}
+.strategy-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.strategy-kpis>div{border:1px solid var(--line);border-radius:10px;background:#fafafa;padding:11px}
+.strategy-kpis small{display:block;color:var(--muted);font-size:10px;font-weight:850;text-transform:uppercase;letter-spacing:.04em}
+.strategy-kpis b{display:block;margin-top:5px;font-size:17px;overflow-wrap:anywhere}
+.strategy-options{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:12px}
+.strategy-options article{border:1px solid var(--line);border-radius:10px;background:#fff;padding:12px}
+.strategy-options b,.strategy-options small{display:block}
+.strategy-options small{color:var(--muted);line-height:1.45;margin-top:5px}
+.strategy-watch{margin-top:12px;border:1px solid var(--line);border-radius:10px;background:#fff;padding:12px}
+.strategy-watch>b{display:block;margin-bottom:8px}
+.strategy-watch div{display:flex;gap:8px;flex-wrap:wrap}
+.strategy-watch span{border-radius:999px;background:#f1f1ef;padding:6px 9px;font-size:12px;font-weight:800}
+@media(max-width:900px){.strategy-kpis{grid-template-columns:1fr 1fr}.strategy-options{grid-template-columns:1fr}.fine-unit-item{grid-template-columns:54px minmax(0,1fr)}.fine-unit-item span{grid-column:1/-1}}
+@media(max-width:560px){.strategy-kpis{grid-template-columns:1fr}.fine-unit-list{grid-template-columns:1fr}.water-strategy-card{margin-top:0}}
+
+/* KR2MELO v5.3.17 - checklist, simulador, auditoria e analise */
+.status-legend{margin:16px 0}
+.status-legend>div:last-child{display:flex;gap:8px;flex-wrap:wrap}
+.status-chip{display:inline-flex;align-items:center;border-radius:999px;padding:7px 10px;font-size:12px;font-weight:900;border:1px solid var(--line);background:#fff}
+.status-chip.ok{border-color:#b8e6cf;background:#e9f8f1;color:#08724e}
+.status-chip.warn{border-color:#f2d28b;background:#fff8e8;color:#805400}
+.status-chip.danger{border-color:#f2b0aa;background:#fff0ef;color:#9d1a10}
+.status-chip.info{border-color:#b8d9f3;background:#eef7ff;color:#1767a8}
+.status-chip.fine{border-color:#f2b0aa;background:#fff4f2;color:#c90d00}
+.status-chip.discount{border-color:#d7cdf4;background:#f5f1ff;color:#6043a6}
+.closing-checklist{margin:0 0 16px;border-left:4px solid #e9a400}
+.checklist-grid,.executive-grid,.simulator-grid,.tariff-samples{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.checklist-grid>div,.executive-grid>div,.simulator-grid>article,.tariff-samples>div{border:1px solid var(--line);border-radius:10px;background:#fff;padding:12px}
+.checklist-grid small,.executive-grid small,.simulator-grid small,.tariff-samples small{display:block;color:var(--muted);font-size:10px;font-weight:850;text-transform:uppercase;letter-spacing:.04em}
+.checklist-grid strong,.executive-grid strong,.simulator-grid strong,.tariff-samples strong{display:block;margin-top:5px;font-size:18px;overflow-wrap:anywhere}
+.checklist-grid .ok{border-left:4px solid var(--green)}
+.checklist-grid .warn{border-left:4px solid #e9a400}
+.checklist-grid .danger{border-left:4px solid var(--red)}
+.checklist-grid .fine{border-left:4px solid var(--red-dark)}
+.checklist-grid .discount{border-left:4px solid #6043a6}
+.water-simulator,.manager-insights,.annual-insights{margin:16px 0}
+.water-simulator{border-left:4px solid #1377c8}
+.simulator-grid article p{margin:6px 0 0;color:var(--muted);font-size:12px;line-height:1.35}
+.simulator-table{margin-top:12px}
+.report-columns{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:12px}
+.report-columns article{border:1px solid var(--line);border-radius:10px;background:#fafafa;padding:12px}
+.report-columns b,.report-columns p{display:block;margin:0}
+.report-columns p{margin-top:6px;color:var(--muted);line-height:1.45}
+.settings-v5317{margin-top:14px}
+.audit-mini-list{display:grid;gap:8px}
+.audit-mini-list>div{display:grid;grid-template-columns:64px minmax(0,1fr) auto;gap:8px;align-items:center;border:1px solid var(--line);border-radius:9px;background:#fafafa;padding:9px}
+.audit-mini-list span,.audit-mini-list small{color:var(--muted);font-size:12px;overflow-wrap:anywhere}
+.backup-health-card .button-row{margin-top:12px}
+.smart-search-result{display:block!important;width:100%;text-align:left;line-height:1.35}
+.smart-search-result small{display:block;color:var(--muted);font-weight:700;margin-top:4px}
+@media(max-width:900px){.report-columns{grid-template-columns:1fr}.audit-mini-list>div{grid-template-columns:52px minmax(0,1fr)}.audit-mini-list small{grid-column:1/-1}}
+
+
+/* Relatórios da área Gestão Relatórios: A4 retrato em uma folha */
+@media print {
+  .monthly-report, #monthlyReportPrint {
+    width: 190mm !important;
+    max-width: 190mm !important;
+    min-height: 277mm !important;
+    margin: 0 auto !important;
+  }
+}
+
+/* KR2MELO v5.3.23 - leitura estimada acessivel no fluxo principal */
+.row-actions [data-estimate-unit]{white-space:nowrap}
+
+/* v5.3.23 — Lançamentos e ajustes recolhíveis */
+.adjustment-center-head{align-items:center;gap:14px}
+.adjustment-head-actions{display:flex;align-items:center;justify-content:flex-end;gap:10px;flex-wrap:wrap}
+.adjustment-collapse-btn{width:auto;min-width:112px;padding:9px 12px;display:inline-flex;align-items:center;justify-content:center;gap:7px;white-space:nowrap}
+.adjustment-collapse-icon{font-size:15px;line-height:1}
+.adjustment-center.is-collapsed{padding-bottom:14px}
+.adjustment-center-body[hidden]{display:none!important}
+@media(max-width:900px){
+  .adjustment-center-head{align-items:flex-start}
+  .adjustment-head-actions{width:100%;justify-content:flex-start}
+}
+
+
+/* v5.3.23 — impressão robusta do resumo A4 do síndico, sem pop-up */
+@media print {
+  @page { size: A4 portrait; margin: 10mm; }
+  body.printing-monthly-report * { visibility: hidden !important; }
+  body.printing-monthly-report .monthly-report-print-target,
+  body.printing-monthly-report .monthly-report-print-target * { visibility: visible !important; }
+  body.printing-monthly-report .monthly-report-print-target {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 190mm !important;
+    max-width: 190mm !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #fff !important;
+    box-shadow: none !important;
+    border: 0 !important;
+  }
+  body.printing-monthly-report .monthly-report-print-target .no-print { display: none !important; }
+  body.printing-monthly-report .monthly-report-print-target .table-wrap {
+    overflow: visible !important;
+    max-height: none !important;
+  }
+  body.printing-monthly-report .monthly-report-print-target table {
+    width: 100% !important;
+    table-layout: fixed !important;
+  }
+}
+
+
+/* v5.3.23 — Relatório A4 simplificado por apartamento */
+.monthly-report-print-simple{display:none}
+@media print{
+  body.printing-monthly-report .monthly-report-print-target > *{display:none!important}
+  body.printing-monthly-report .monthly-report-print-target .monthly-report-print-simple{
+    display:block!important;
+    visibility:visible!important;
+    position:static!important;
+    width:100%!important;
+  }
+  body.printing-monthly-report .monthly-report-print-target .monthly-report-print-simple *{
+    visibility:visible!important;
+  }
+  body.printing-monthly-report .manager-insights,
+  body.printing-monthly-report .report-context-note,
+  body.printing-monthly-report .report-finance-summary,
+  body.printing-monthly-report .report-coverage,
+  body.printing-monthly-report .report-dates,
+  body.printing-monthly-report .report-table-wrap,
+  body.printing-monthly-report .report-print-header,
+  body.printing-monthly-report .report-print-footer{
+    display:none!important;
+  }
+  .simple-report-head{
+    display:flex!important;
+    align-items:flex-end!important;
+    justify-content:space-between!important;
+    gap:12mm!important;
+    margin:0 0 7mm!important;
+    padding:0 0 4mm!important;
+    border-bottom:1px solid #bbb!important;
+  }
+  .simple-report-head h2{margin:1mm 0!important;font-size:18px!important}
+  .simple-report-head p{margin:0!important}
+  .simple-report-meta{font-size:10px!important;white-space:nowrap!important;color:#555!important}
+  .simple-monthly-table{
+    width:100%!important;
+    border-collapse:collapse!important;
+    table-layout:auto!important;
+    font-size:10px!important;
+  }
+  .simple-monthly-table th,
+  .simple-monthly-table td{
+    border:1px solid #cfcfcf!important;
+    padding:2.4mm 1.8mm!important;
+    text-align:right!important;
+    vertical-align:middle!important;
+    background:#fff!important;
+    color:#111!important;
+  }
+  .simple-monthly-table th{
+    font-size:9px!important;
+    text-transform:uppercase!important;
+    background:#f3f3f3!important;
+  }
+  .simple-monthly-table th:first-child,
+  .simple-monthly-table td:first-child{text-align:left!important}
+  .simple-monthly-table td small{display:block!important;margin-top:.6mm!important;font-size:8px!important;color:#555!important}
+  .simple-monthly-table tfoot td{font-weight:800!important;border-top:2px solid #777!important}
+}
+
+
+/* v5.3.23 — Relatório mensal em UMA única folha A4 retrato */
+@media print{
+  @page{size:A4 portrait;margin:5mm!important}
+
+  body.printing-monthly-report{
+    margin:0!important;
+    padding:0!important;
+    width:200mm!important;
+    height:287mm!important;
+    overflow:hidden!important;
+    background:#fff!important;
+  }
+
+  body.printing-monthly-report .monthly-report-print-target{
+    width:200mm!important;
+    max-width:200mm!important;
+    height:287mm!important;
+    min-height:0!important;
+    max-height:287mm!important;
+    overflow:hidden!important;
+    margin:0!important;
+    padding:0!important;
+    transform:none!important;
+  }
+
+  body.printing-monthly-report .monthly-report-print-simple{
+    width:100%!important;
+    height:auto!important;
+    max-height:287mm!important;
+    overflow:hidden!important;
+    page-break-before:avoid!important;
+    page-break-after:avoid!important;
+    page-break-inside:avoid!important;
+    break-before:avoid-page!important;
+    break-after:avoid-page!important;
+    break-inside:avoid-page!important;
+  }
+
+  .simple-report-head{
+    margin:0 0 2.5mm!important;
+    padding:0 0 2mm!important;
+    gap:5mm!important;
+    line-height:1.05!important;
+  }
+
+  .simple-report-head .eyebrow{
+    font-size:7px!important;
+    margin:0!important;
+  }
+
+  .simple-report-head h2{
+    font-size:13px!important;
+    line-height:1.05!important;
+    margin:.5mm 0!important;
+  }
+
+  .simple-report-head p,
+  .simple-report-meta{
+    font-size:7.5px!important;
+    line-height:1.1!important;
+  }
+
+  .simple-monthly-table{
+    width:100%!important;
+    border-collapse:collapse!important;
+    table-layout:fixed!important;
+    font-size:7.3px!important;
+    line-height:1.02!important;
+    page-break-inside:avoid!important;
+    break-inside:avoid-page!important;
+  }
+
+  .simple-monthly-table thead{display:table-header-group!important}
+  .simple-monthly-table tfoot{display:table-row-group!important}
+
+  .simple-monthly-table tr{
+    height:auto!important;
+    page-break-inside:avoid!important;
+    break-inside:avoid!important;
+  }
+
+  .simple-monthly-table th,
+  .simple-monthly-table td{
+    padding:1.15mm .8mm!important;
+    font-size:7.3px!important;
+    line-height:1.02!important;
+    white-space:nowrap!important;
+  }
+
+  .simple-monthly-table th{
+    font-size:6.6px!important;
+    letter-spacing:0!important;
+  }
+
+  .simple-monthly-table td:first-child,
+  .simple-monthly-table th:first-child{
+    width:23%!important;
+    white-space:normal!important;
+  }
+
+  .simple-monthly-table th:nth-child(2),
+  .simple-monthly-table td:nth-child(2),
+  .simple-monthly-table th:nth-child(3),
+  .simple-monthly-table td:nth-child(3){
+    width:10.5%!important;
+  }
+
+  .simple-monthly-table th:nth-child(4),
+  .simple-monthly-table td:nth-child(4){
+    width:11%!important;
+  }
+
+  .simple-monthly-table th:nth-child(5),
+  .simple-monthly-table td:nth-child(5){
+    width:13%!important;
+  }
+
+  .simple-monthly-table th:nth-child(6),
+  .simple-monthly-table td:nth-child(6){
+    width:17%!important;
+    white-space:normal!important;
+  }
+
+  .simple-monthly-table th:nth-child(7),
+  .simple-monthly-table td:nth-child(7){
+    width:15%!important;
+  }
+
+  .simple-monthly-table td small{
+    font-size:6.2px!important;
+    line-height:1!important;
+    margin-top:.25mm!important;
+  }
+
+  .simple-monthly-table tfoot td{
+    padding-top:1.4mm!important;
+    padding-bottom:1.4mm!important;
+    font-size:7.4px!important;
+  }
+}
+
+
+/* v5.3.23 — refinamento visual A4: cabeçalho e planilha centralizados */
+@media print{
+  body.printing-monthly-report .monthly-report-print-target{
+    display:flex!important;
+    align-items:flex-start!important;
+    justify-content:center!important;
+  }
+
+  body.printing-monthly-report .monthly-report-print-simple{
+    margin:0 auto!important;
+    max-width:194mm!important;
+    width:194mm!important;
+  }
+
+  .simple-report-head{
+    display:block!important;
+    width:100%!important;
+    margin:0 auto 3mm!important;
+    padding:0 0 2.5mm!important;
+    text-align:center!important;
+  }
+
+  .simple-report-head > div:first-child{
+    width:100%!important;
+    text-align:center!important;
+  }
+
+  .simple-report-head .eyebrow{
+    font-size:8.5px!important;
+    line-height:1.1!important;
+    text-align:center!important;
+  }
+
+  .simple-report-head h2{
+    font-size:16px!important;
+    line-height:1.1!important;
+    margin:.8mm 0!important;
+    text-align:center!important;
+  }
+
+  .simple-report-head p{
+    font-size:9.5px!important;
+    line-height:1.15!important;
+    text-align:center!important;
+  }
+
+  .simple-report-meta{
+    display:block!important;
+    margin-top:1mm!important;
+    font-size:8.5px!important;
+    line-height:1.1!important;
+    text-align:center!important;
+  }
+
+  .simple-monthly-table{
+    width:100%!important;
+    margin:0 auto!important;
+    font-size:8.6px!important;
+  }
+
+  .simple-monthly-table th,
+  .simple-monthly-table td{
+    padding:1.35mm 1mm!important;
+    font-size:8.6px!important;
+    line-height:1.08!important;
+    text-align:center!important;
+  }
+
+  .simple-monthly-table th{
+    font-size:7.7px!important;
+    line-height:1.08!important;
+    text-align:center!important;
+  }
+
+  .simple-monthly-table th:first-child,
+  .simple-monthly-table td:first-child{
+    text-align:center!important;
+  }
+
+  .simple-monthly-table td small{
+    font-size:7.1px!important;
+    line-height:1.05!important;
+    text-align:center!important;
+  }
+
+  .simple-monthly-table tfoot td{
+    font-size:8.8px!important;
+    line-height:1.08!important;
+    text-align:center!important;
+  }
+}
+
+
+/* v5.3.23 — seletor global de prédio */
+.global-building-picker{
+  position:relative;
+  min-width:230px;
+  padding:6px 10px 7px!important;
+  border:1px solid #cfd8e3!important;
+  border-left:4px solid var(--red)!important;
+  box-shadow:0 4px 14px #11111112;
+  background:#fff!important;
+}
+.global-building-picker>span{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  color:#5e6670;
+  font-size:10px;
+  font-weight:900;
+  letter-spacing:.04em;
+  text-transform:uppercase;
+}
+.global-building-picker>span b{
+  color:var(--red);
+  font-size:13px;
+}
+.global-building-picker select{
+  width:100%;
+  min-width:190px!important;
+  padding:2px 22px 1px 0!important;
+  color:#111!important;
+  font-size:14px!important;
+  font-weight:900!important;
+  cursor:pointer;
+}
+.global-building-picker:focus-within{
+  border-color:#ffb3ad!important;
+  box-shadow:0 0 0 3px #ff11001a,0 5px 16px #11111116;
+}
+@media(max-width:900px){
+  .topbar{z-index:30}
+  .global-building-picker{min-width:190px}
+  .global-building-picker select{min-width:145px!important}
+}
+@media(max-width:560px){
+  .top-actions{align-items:stretch}
+  .global-building-picker{
+    order:-1;
+    flex:1 1 100%!important;
+    width:100%;
+    min-width:0;
+  }
+  .global-building-picker select{
+    min-width:0!important;
+    font-size:15px!important;
+  }
+}
+
+
+/* v5.3.23 — Dashboard anual integrado Prédio + Apartamento */
+.annual-controls-v5321{display:grid;grid-template-columns:180px minmax(260px,1fr) minmax(260px,1fr);gap:14px;align-items:end}
+.annual-controls-v5321 .field{margin:0}
+.annual-control-note{min-height:56px;border:1px solid var(--line);border-radius:10px;background:#fafafa;padding:9px 12px;display:flex;flex-direction:column;justify-content:center}
+.annual-control-note strong{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.annual-control-note span{font-size:14px;font-weight:900;margin-top:3px}
+.annual-section-title{display:flex;align-items:center;justify-content:space-between;gap:14px;margin:24px 0 10px;padding:0 2px}
+.annual-section-title>div{display:flex;align-items:center;gap:10px}
+.annual-section-title h3{margin:0;font-size:20px}
+.annual-section-kicker{background:#111;color:#fff;border-radius:999px;padding:5px 9px;font-size:10px;font-weight:900;letter-spacing:.08em}
+.annual-section-kicker.apt{background:var(--red)}
+.annual-unit-metrics .metric{border-top:3px solid #e5e5e5}
+.annual-unit-metrics .metric.red{border-top-color:var(--red)}
+.annual-bars-unit .annual-bar i{background:linear-gradient(90deg,var(--red),#ff6559)}
+.annual-share-list{display:grid;gap:8px}
+.annual-share-row{display:grid;grid-template-columns:38px 1fr 68px;align-items:center;gap:10px;border-bottom:1px solid #eee;padding:8px 0}
+.annual-share-row>span{font-size:11px;font-weight:900;text-transform:uppercase;color:var(--muted)}
+.annual-share-row>div{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.annual-share-row>div small{color:var(--muted)}
+.annual-share-row>b{text-align:right;font-size:16px;color:var(--red-dark)}
+.annual-ranking-list{display:grid;gap:7px}
+.annual-ranking-row{width:100%;display:grid;grid-template-columns:42px minmax(160px,1fr) 110px 70px;align-items:center;gap:10px;background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px 12px;text-align:left;color:var(--ink)}
+.annual-ranking-row:hover{border-color:#bbb;background:#fafafa}
+.annual-ranking-row.active{border-color:var(--red);box-shadow:0 0 0 2px #ff110016}
+.annual-ranking-row>div{display:flex;flex-direction:column}
+.annual-ranking-row small{color:var(--muted);margin-top:2px}
+.annual-ranking-row>b,.annual-ranking-row>span:last-child{text-align:right}
+.annual-rank-number{width:34px;height:28px;border-radius:8px;background:#f0f0f0;display:grid;place-items:center;font-size:11px;font-weight:900}
+.annual-ranking-row.active .annual-rank-number{background:var(--red);color:#fff}
+.annual-unit-table td,.annual-unit-table th{white-space:nowrap}
+@media(max-width:900px){.annual-controls-v5321{grid-template-columns:1fr 1fr}.annual-control-note{grid-column:1/-1}.annual-ranking-row{grid-template-columns:42px 1fr 90px 58px}}
+@media(max-width:560px){.annual-controls-v5321{grid-template-columns:1fr}.annual-control-note{grid-column:auto}.annual-section-title{align-items:flex-start}.annual-section-title>div{align-items:flex-start;flex-direction:column;gap:5px}.annual-ranking-row{grid-template-columns:36px 1fr 76px}.annual-ranking-row>span:last-child{display:none}.annual-share-row{grid-template-columns:34px 1fr 56px}}
+
+/* v5.3.23 — Pop-up do mês anterior */
+.previous-month-launcher{position:fixed;right:22px;bottom:22px;z-index:45;display:flex;align-items:center;gap:9px;border:1px solid #d7d7d7;border-left:4px solid var(--red);border-radius:14px;background:#fff;color:#111;padding:10px 14px 10px 11px;box-shadow:0 12px 30px #1112;cursor:pointer}
+.previous-month-launcher[hidden]{display:none!important}
+.previous-month-launcher>span{width:32px;height:32px;border-radius:10px;background:var(--red);color:#fff;display:grid;place-items:center;font-size:18px;font-weight:900}
+.previous-month-launcher>div{display:flex;flex-direction:column;align-items:flex-start}
+.previous-month-launcher small{font-size:9px;color:var(--muted);font-weight:800;text-transform:uppercase;letter-spacing:.05em}
+.previous-month-launcher strong{font-size:13px;margin-top:1px}
+.previous-month-dialog{width:min(1180px,95vw);max-width:1180px}
+.previous-month-dialog::backdrop{background:#1119;backdrop-filter:blur(2px)}
+.previous-month-modal-inner{padding:0!important}
+.previous-month-popup{padding:22px;max-height:86vh;overflow:auto}
+.previous-month-popup-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding-bottom:15px;border-bottom:1px solid var(--line)}
+.previous-month-popup-head h2{font-size:25px;margin:2px 0 5px}
+.previous-month-popup-head p{margin:0}
+.previous-month-metrics{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin:16px 0}
+.previous-month-metrics article{border:1px solid var(--line);border-radius:11px;padding:13px;background:#fafafa}
+.previous-month-metrics small{display:block;color:var(--muted);font-size:9px;font-weight:850;text-transform:uppercase;letter-spacing:.04em}
+.previous-month-metrics strong{display:block;font-size:18px;margin:6px 0 3px}
+.previous-month-metrics span{font-size:10px;color:var(--muted)}
+.previous-month-metrics .up,.prev-up{color:#b3261e!important;font-weight:800}
+.previous-month-metrics .down,.prev-down{color:#08724e!important;font-weight:800}
+.previous-month-table-wrap{overflow:auto;border:1px solid var(--line);border-radius:11px}
+.previous-month-table{min-width:960px;margin:0}
+.previous-month-table th{font-size:10px;white-space:nowrap;background:#f4f4f4}
+.previous-month-table td{font-size:11px;white-space:nowrap}
+.previous-month-popup-foot{display:flex;align-items:center;justify-content:space-between;gap:15px;margin-top:15px}
+.previous-month-popup-foot>small{max-width:660px;color:var(--muted);line-height:1.4}
+@media(max-width:900px){.previous-month-metrics{grid-template-columns:repeat(2,1fr)}.previous-month-popup-foot{align-items:flex-start;flex-direction:column}}
+@media(max-width:560px){.previous-month-launcher{right:12px;bottom:12px;padding:8px 10px}.previous-month-launcher>div small{display:none}.previous-month-popup{padding:15px}.previous-month-metrics{grid-template-columns:1fr 1fr}.previous-month-popup-head h2{font-size:21px}}
+
+
+/* v5.3.23 — rateio 0 m³ e boletos A4 paisagem */
+.zero-minimum-card{margin:14px 0}
+.zero-minimum-toggle{display:flex;align-items:flex-start;gap:10px;border:1px solid var(--line);border-radius:10px;padding:12px;background:#fafafa;cursor:pointer}
+.zero-minimum-toggle input{margin-top:3px;transform:scale(1.15)}
+.zero-minimum-toggle span{display:flex;flex-direction:column;gap:3px}
+.zero-minimum-toggle small{color:var(--muted);line-height:1.35}
+.zero-minimum-summary{display:grid;grid-template-columns:repeat(5,1fr);gap:9px;margin:12px 0}
+.zero-minimum-summary>div{border:1px solid var(--line);border-radius:9px;padding:10px;background:#fff}
+.zero-minimum-summary small{display:block;color:var(--muted);font-size:9px;font-weight:850;text-transform:uppercase}
+.zero-minimum-summary strong{display:block;margin-top:5px;font-size:16px}
+.bill-zero-minimum-share{background:#fff7e6}
+.bill-zero-minimum-transfer{background:#edf8f2}
+@media(max-width:900px){.zero-minimum-summary{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:560px){.zero-minimum-summary{grid-template-columns:1fr 1fr}}
+@media print{
+  .bills-print-document .bill-page.bill-page-with-cuts{display:grid!important;grid-template-columns:50% 50%!important;grid-template-rows:50% 50%!important;width:281mm!important;height:194mm!important;max-width:281mm!important;max-height:194mm!important;padding:0!important;margin:0 auto!important;overflow:hidden!important}
+  .bills-print-document .bill-page-v5323 .bill-copy{width:100%!important;height:100%!important;max-height:97mm!important;min-height:0!important;overflow:hidden!important}
+}
+\n\n/* v5.3.24 — boleto paisagem: via do síndico compacta à esquerda e morador ampliada à direita */\n.bill-page.bill-page-with-cuts{\n  grid-template-columns:36% 64%!important;\n  grid-template-rows:50% 50%!important;\n}\n.bill-page-with-cuts .bill-cut-guide-v{left:36%!important}\n.bill-page-with-cuts .bill-copy-manager{padding:2.7mm 3mm 2.4mm!important}\n.bill-page-with-cuts .bill-copy-manager .bill-head strong{font-size:12px!important}\n.bill-page-with-cuts .bill-copy-manager .bill-head b{font-size:7px!important}\n.bill-page-with-cuts .bill-copy-manager .bill-party strong{font-size:8.2px!important}\n.bill-page-with-cuts .bill-copy-manager .bill-reading-grid{gap:1.2mm!important}\n.bill-page-with-cuts .bill-copy-manager .bill-reading-grid>div{padding:1.3mm!important}\n.bill-page-with-cuts .bill-copy-manager .bill-reading-grid span,\n.bill-page-with-cuts .bill-copy-manager .bill-reading-grid small{font-size:5.7px!important}\n.bill-page-with-cuts .bill-copy-manager .bill-reading-grid b{font-size:9.5px!important}\n.bill-page-with-cuts .bill-copy-manager .bill-charge-line{font-size:7px!important;min-height:3.5mm!important}\n.bill-page-with-cuts .bill-copy-manager .bill-total strong{font-size:10px!important}\n.bill-page-with-cuts .bill-copy-manager .bill-total b{font-size:11.5px!important}\n.bill-page-with-cuts .bill-copy-resident{padding:3.2mm 4.2mm 2.8mm!important}\n.bill-page-with-cuts .bill-copy-resident .bill-head strong{font-size:15px!important}\n.bill-page-with-cuts .bill-copy-resident .bill-reading-grid b{font-size:12px!important}\n.bill-page-with-cuts .bill-copy-resident .bill-total b{font-size:15px!important}\n.bill-pickup-receipt{margin-top:auto;border:1px solid #777;border-radius:5px;padding:1.6mm 2mm 1.4mm;min-height:17mm;display:flex;flex-direction:column;gap:1.2mm;background:#fff}\n.bill-pickup-receipt>strong{text-align:center;font-size:6.3px;letter-spacing:.03em}\n.bill-pickup-fields{display:grid;grid-template-columns:1.2fr .8fr;gap:1.3mm 2mm;font-size:6px;font-weight:800}\n.bill-pickup-fields span{display:flex;align-items:flex-end;gap:1mm;white-space:nowrap}\n.bill-pickup-fields i{display:block;flex:1;min-width:8mm;height:2.8mm;border-bottom:.7pt solid #222}\n.bill-pickup-fields .bill-pickup-sign{grid-column:1/-1}\n@media print{\n  .bills-print-document .bill-page.bill-page-with-cuts{grid-template-columns:36% 64%!important;grid-template-rows:50% 50%!important}\n  .bills-print-document .bill-page-with-cuts .bill-cut-guide-v{left:36%!important}\n}\n
+/* ===================== KR²MELO v5.3.25 — padrão exato do carnê A4 paisagem =====================
+   2 boletos por folha. Em cada boleto: via do Síndico estreita à esquerda e via do Morador ampla à direita. */
+.bill-page.bill-page-with-cuts{
+  grid-template-columns:26.5% 73.5%!important;
+  grid-template-rows:50% 50%!important;
+  gap:0!important;
+  padding:0!important;
+  border:1px solid #666!important;
+  background:#fff!important;
+}
+.bill-page-with-cuts .bill-cut-guide-v{left:26.5%!important}
+.bill-page-with-cuts .bill-cut-guide-h{top:50%!important}
+.bill-page-with-cuts>.bill-page-group-label{display:none!important}
+.bill-page-with-cuts .bill-copy-tag{display:none!important}
+.bill-page-with-cuts .bill-copy{
+  position:relative!important;
+  height:100%!important;
+  min-height:0!important;
+  max-height:none!important;
+  overflow:hidden!important;
+  border:0!important;
+  border-radius:0!important;
+  box-shadow:none!important;
+  background:#fff!important;
+  display:flex!important;
+  flex-direction:column!important;
+  padding-top:5.1mm!important;
+  padding-bottom:4.2mm!important;
+}
+.bill-page-with-cuts .bill-copy-manager{
+  padding-left:2.7mm!important;
+  padding-right:2.7mm!important;
+  border-right:.7pt solid #666!important;
+}
+.bill-page-with-cuts .bill-copy-resident{
+  padding-left:4mm!important;
+  padding-right:4mm!important;
+}
+.bill-page-with-cuts .bill-copy-manager:before,
+.bill-page-with-cuts .bill-copy-manager:after,
+.bill-page-with-cuts .bill-copy-resident:before,
+.bill-page-with-cuts .bill-copy-resident:after{
+  content:none!important;
+  display:none!important;
+}
+.bill-block-label{
+  position:absolute;
+  top:1.1mm;
+  left:2.7mm;
+  right:2.7mm;
+  height:2.4mm;
+  color:#f10!important;
+  font:900 5.4px/1 Arial,sans-serif;
+}
+.bill-copy-resident .bill-block-label{left:4mm;right:4mm}
+.bill-page-with-cuts .bill-head{
+  flex:0 0 auto!important;
+  min-height:9.6mm!important;
+  margin:0!important;
+  background:#e5e5e5!important;
+  border-top:1.6pt solid #f10!important;
+  border-bottom:.7pt solid #777!important;
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) auto!important;
+  align-items:center!important;
+  gap:2mm!important;
+  font-family:Arial,sans-serif!important;
+}
+.bill-page-with-cuts .bill-head>*{padding:1.6mm 2mm!important}
+.bill-page-with-cuts .bill-head strong{font-size:12.5px!important;line-height:1!important}
+.bill-page-with-cuts .bill-head b{font-size:7.2px!important;line-height:1.12!important;white-space:nowrap!important}
+.bill-copy-manager .bill-head{grid-template-columns:minmax(0,1fr) 25mm!important}
+.bill-copy-manager .bill-head strong{font-size:10.8px!important}
+.bill-copy-manager .bill-head b{font-size:6.3px!important;white-space:normal!important;text-align:center!important}
+.bill-page-with-cuts .bill-party{
+  flex:0 0 auto!important;
+  grid-template-columns:52px minmax(0,1fr)!important;
+  gap:.7mm 1.5mm!important;
+  padding:2mm 0 1.6mm!important;
+  border-bottom:.7pt solid #777!important;
+}
+.bill-page-with-cuts .bill-party span{font-size:5.6px!important}
+.bill-page-with-cuts .bill-party strong{font-size:8px!important;line-height:1.05!important}
+.bill-page-with-cuts .bill-party small{font-size:5.3px!important}
+.bill-copy-manager .bill-party{display:flex!important;flex-direction:column!important;gap:.7mm!important;padding:1.6mm 0 1.4mm!important}
+.bill-copy-manager .bill-party span{font-size:5px!important}
+.bill-copy-manager .bill-party strong{font-size:7px!important}
+.bill-copy-manager .bill-party small{font-size:4.8px!important}
+.bill-page-with-cuts .bill-reading-grid{
+  flex:0 0 auto!important;
+  display:grid!important;
+  grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  gap:2.2mm!important;
+  padding:2.4mm 0!important;
+}
+.bill-page-with-cuts .bill-reading-grid>div{
+  min-width:0!important;
+  min-height:15mm!important;
+  padding:1.7mm 2mm!important;
+  border:.7pt solid #777!important;
+  border-radius:1.6mm!important;
+  background:#f7f7f7!important;
+}
+.bill-page-with-cuts .bill-reading-grid span{font-size:5.6px!important}
+.bill-page-with-cuts .bill-reading-grid small{font-size:5.1px!important}
+.bill-page-with-cuts .bill-reading-grid b{font-size:10px!important;line-height:1!important}
+.bill-copy-manager .bill-reading-grid{
+  grid-template-columns:1fr!important;
+  gap:1mm!important;
+  padding:1.5mm 0!important;
+}
+.bill-copy-manager .bill-reading-grid>div{
+  min-height:9.2mm!important;
+  padding:1.05mm 1.3mm!important;
+  border-radius:1.2mm!important;
+  display:grid!important;
+  grid-template-columns:1fr auto!important;
+  grid-template-rows:auto auto!important;
+  align-items:end!important;
+}
+.bill-copy-manager .bill-reading-grid span{grid-column:1;font-size:4.8px!important}
+.bill-copy-manager .bill-reading-grid small{grid-column:1;font-size:4.4px!important}
+.bill-copy-manager .bill-reading-grid b{grid-column:2;grid-row:1/3;font-size:8.6px!important;align-self:end!important}
+.bill-page-with-cuts .bill-charge-list{flex:0 0 auto!important}
+.bill-page-with-cuts .bill-charge-line{
+  min-height:4.9mm!important;
+  padding:.8mm .4mm!important;
+  font-size:7.2px!important;
+  border-bottom:.55pt solid #999!important;
+}
+.bill-page-with-cuts .bill-charge-line b{font-size:7.6px!important}
+.bill-copy-manager .bill-charge-line{
+  min-height:3.75mm!important;
+  padding:.5mm .2mm!important;
+  font-size:5.5px!important;
+}
+.bill-copy-manager .bill-charge-line b{font-size:5.7px!important}
+.bill-page-with-cuts .bill-total{
+  flex:0 0 auto!important;
+  min-height:8.5mm!important;
+  margin:1.2mm 0 0!important;
+  padding:1.2mm 1.6mm!important;
+  background:#080808!important;
+  color:#fff!important;
+  display:grid!important;
+  grid-template-columns:auto 1fr auto!important;
+  align-items:center!important;
+}
+.bill-page-with-cuts .bill-total strong{font-size:9.5px!important}
+.bill-page-with-cuts .bill-total span{font-size:5.1px!important;text-align:center!important}
+.bill-page-with-cuts .bill-total b{font-size:13.2px!important}
+.bill-copy-manager .bill-total{min-height:7.4mm!important;padding:1mm 1.2mm!important}
+.bill-copy-manager .bill-total strong{font-size:7.5px!important}
+.bill-copy-manager .bill-total span{font-size:4.1px!important}
+.bill-copy-manager .bill-total b{font-size:9.2px!important}
+.bill-pickup-receipt{
+  margin-top:2mm!important;
+  min-height:18.5mm!important;
+  border:.7pt solid #888!important;
+  border-radius:1.2mm!important;
+  padding:1.25mm 1.5mm!important;
+  display:flex!important;
+  flex-direction:column!important;
+  gap:1mm!important;
+  background:#fff!important;
+}
+.bill-pickup-receipt>strong{
+  text-align:center!important;
+  font-size:5.2px!important;
+  line-height:1!important;
+  letter-spacing:.02em!important;
+}
+.bill-pickup-fields{
+  display:grid!important;
+  grid-template-columns:1fr 1fr!important;
+  gap:1.15mm 1.8mm!important;
+  font-size:4.7px!important;
+  font-weight:900!important;
+}
+.bill-pickup-fields span{display:flex!important;align-items:flex-end!important;gap:.7mm!important;white-space:nowrap!important}
+.bill-pickup-fields i{display:block!important;flex:1!important;min-width:5mm!important;height:2.6mm!important;border-bottom:.55pt solid #444!important}
+.bill-pickup-fields .bill-pickup-name{grid-column:1/-1!important}
+.bill-pickup-fields .bill-pickup-sign{grid-column:1/-1!important}
+.bill-page-with-cuts .bill-notes{
+  margin-top:4mm!important;
+  min-height:18mm!important;
+  grid-template-columns:26px minmax(0,1fr)!important;
+  border-top:.6pt solid #777!important;
+  border-bottom:.6pt solid #777!important;
+}
+.bill-page-with-cuts .bill-notes>strong{font-size:5.8px!important}
+.bill-page-with-cuts .bill-notes p{font-size:5.4px!important;line-height:1.2!important;padding:1.1mm 1.4mm!important}
+.bill-bottom-caption{
+  position:absolute!important;
+  left:2.7mm!important;
+  right:2.7mm!important;
+  bottom:1.25mm!important;
+  text-align:center!important;
+  font:900 4.6px/1 Arial,sans-serif!important;
+  color:#111!important;
+  white-space:nowrap!important;
+}
+.bill-copy-resident .bill-bottom-caption{left:4mm!important;right:4mm!important}
+
+@media print{
+  @page{size:A4 landscape;margin:8mm}
+  .bills-print-document .bill-page.bill-page-with-cuts{
+    width:281mm!important;
+    height:194mm!important;
+    max-width:281mm!important;
+    max-height:194mm!important;
+    grid-template-columns:26.5% 73.5%!important;
+    grid-template-rows:50% 50%!important;
+    gap:0!important;
+    padding:0!important;
+    margin:0 auto!important;
+  }
+  .bills-print-document .bill-page-with-cuts .bill-cut-guide-v{left:26.5%!important}
+}
+
+/* v5.3.26 — via do síndico: somente assinatura do morador no rodapé */
+.bill-copy-manager .bill-signature-resident{
+  margin-top:auto!important;
+  min-height:10mm!important;
+  padding:1.5mm 1.5mm 1.2mm!important;
+  display:flex!important;
+  flex-direction:column!important;
+  justify-content:flex-end!important;
+  align-items:stretch!important;
+  gap:1mm!important;
+}
+.bill-copy-manager .bill-signature-resident>div{
+  width:100%!important;
+  border-top:.65pt solid #333!important;
+}
+.bill-copy-manager .bill-signature-resident>small{
+  text-align:center!important;
+  font:900 5px/1 Arial,sans-serif!important;
+  letter-spacing:.02em!important;
+}
+
+/* KR2MELO v5.3.30 — competência inteligente, histórico editável e relatório do síndico em retrato */
+.reading-month-manager{margin-bottom:16px;border-left:4px solid var(--red)}
+.reading-month-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;align-items:end;margin-top:14px}
+.reading-month-grid>div:not(.reading-month-actions),.reading-month-grid>.field{min-height:76px;padding:12px;border:1px solid var(--line);border-radius:10px;background:#fafafa}
+.reading-month-grid small,.reading-month-grid .field span{display:block;color:var(--muted);font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px}
+.reading-month-grid strong{font-size:16px}.reading-month-grid input{width:100%}.reading-month-actions{display:flex;align-items:center;min-height:76px}
+.month-gap-alert{display:flex;gap:10px;align-items:flex-start;margin-top:12px;padding:11px 13px;border-radius:9px;font-size:12px}.month-gap-alert strong{white-space:nowrap}.month-gap-alert.ok{background:#eef8f0;border:1px solid #9fd4aa}.month-gap-alert.info{background:#eef5fb;border:1px solid #a8c9e6}.month-gap-alert.danger{background:#fff0ef;border:1px solid #efaaa5}
+.history-row-v51 .history-actions{display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end}
+@media(max-width:900px){.reading-month-grid{grid-template-columns:1fr 1fr}.month-gap-alert{display:block}.month-gap-alert strong{display:block;margin-bottom:4px}}
+@media(max-width:560px){.reading-month-grid{grid-template-columns:1fr}}
+
+/* Regra final do relatório mensal do síndico. Os boletos continuam usando sua janela de impressão própria com A4 landscape. */
+@media print{
+  @page{size:A4 portrait;margin:5mm}
+  body.printing-monthly-report{width:200mm!important;height:287mm!important;margin:0!important;padding:0!important}
+  body.printing-monthly-report .monthly-report-print-target{width:200mm!important;max-width:200mm!important;height:287mm!important;margin:0!important;padding:0!important}
+}
+
+/* KR2MELO v5.3.28 — lançamentos e ajustes simplificados */
+.adjustment-center-v5328 .adjustment-guide{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:0 0 14px;padding:12px;border:1px solid var(--line,#ddd);border-radius:12px;background:var(--soft,#f7f7f7)}
+.adjustment-center-v5328 .adjustment-guide>strong{grid-column:1/-1}.adjustment-center-v5328 .adjustment-guide span{font-size:.86rem;line-height:1.35}
+.unit-adjustment-list{display:grid;gap:14px}.unit-adjustment-card{border:1px solid var(--line,#ddd);border-radius:14px;padding:14px;background:var(--card,#fff)}
+.unit-adjustment-card>header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-bottom:10px;margin-bottom:12px;border-bottom:1px solid var(--line,#ddd)}
+.unit-adjustment-card>header>div{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.unit-adjustment-number{font-weight:800;font-size:1.05rem}.unit-adjustment-card>header>b{font-size:1.08rem}
+.unit-adjustment-grid{display:grid;grid-template-columns:1.15fr 1fr 1fr .8fr;gap:12px;align-items:start}.adjustment-box{border:1px solid var(--line,#ddd);border-radius:12px;padding:12px;display:grid;gap:9px;min-width:0}.adjustment-box label{display:grid;gap:5px;font-size:.78rem;font-weight:700}.adjustment-box input,.adjustment-box select,.adjustment-box textarea{width:100%;font-weight:500}.adjustment-box textarea{resize:vertical;min-height:58px}
+.adjustment-box-title{display:flex;align-items:flex-start;gap:8px}.adjustment-box-title>span{display:grid;place-items:center;min-width:26px;height:26px;border-radius:999px;border:1px solid currentColor;font-weight:800}.adjustment-box-title>div{display:grid;gap:2px}.adjustment-box-title small{font-size:.72rem;font-weight:500;opacity:.75;line-height:1.25}
+.discount-box{border-top:3px solid #c69400}.fine-box{border-top:3px solid #b52a2a}.note-box{border-top:3px solid #2b5fa8}.extra-box{border-top:3px solid #666}.adjustment-inline{display:grid;grid-template-columns:1.45fr .8fr;gap:8px}.adjustment-box details{border-top:1px dashed var(--line,#ddd);padding-top:7px}.adjustment-box summary{cursor:pointer;font-size:.78rem;font-weight:700}.adjustment-details{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:8px}
+.bill-total-discount{font-weight:700}
+@media(max-width:1250px){.unit-adjustment-grid{grid-template-columns:1fr 1fr}.adjustment-center-v5328 .adjustment-guide{grid-template-columns:1fr}}
+@media(max-width:760px){.unit-adjustment-grid{grid-template-columns:1fr}.adjustment-inline,.adjustment-details{grid-template-columns:1fr}.unit-adjustment-card>header{align-items:flex-start}}
+
+
+/* KR2MELO v5.3.30 — estabilidade visual dos lançamentos por apartamento */
+.adjustment-center-v5329 .unit-adjustment-card{overflow:visible;overflow-anchor:none}
+.adjustment-center-v5329 .adjustment-box{position:relative;z-index:1;overflow:visible}
+.adjustment-center-v5329 .adjustment-box:focus-within{z-index:3}
+.adjustment-center-v5329 [data-rule-field="value"]:disabled{opacity:.58;background:var(--soft,#f4f4f4);cursor:not-allowed}
+.adjustment-center-v5329 textarea,.adjustment-center-v5329 input,.adjustment-center-v5329 select{max-width:100%;box-sizing:border-box}
+.adjustment-center-v5329 .unit-adjustment-list{overflow:visible}
+
+
+/* KR2MELO v5.3.30 — isolamento estrutural do editor de lançamentos */
+.adjustment-center-v5328,.adjustment-center-v5329{contain:layout paint;overflow:hidden}
+.adjustment-center-v5328 .adjustment-center-body,.adjustment-center-v5328 .unit-adjustment-list,.adjustment-center-v5328 .unit-adjustment-card{position:relative;max-width:100%;min-width:0}
+.adjustment-center-v5328 .unit-adjustment-grid{width:100%;min-width:0}
+.adjustment-center-v5328 .adjustment-box{min-width:0;max-width:100%;overflow:hidden}
+.adjustment-center-v5328 .adjustment-box input,.adjustment-center-v5328 .adjustment-box select,.adjustment-center-v5328 .adjustment-box textarea{box-sizing:border-box;max-width:100%}
+.readings-main-table{position:relative;z-index:0;clear:both}
+.browser-reset-card{border-left:4px solid var(--red,#ff1100)}
+
+
+/* KR2MELO v5.3.31 — ponte segura entre Leituras do mês e Leitura in loco */
+.reading-bridge-v5331{margin:0 0 16px;border:1px solid rgba(17,17,17,.12);background:linear-gradient(180deg,#fff,#fafafa)}
+.reading-bridge-main{display:flex;align-items:flex-start;justify-content:space-between;gap:18px}
+.reading-bridge-main h3{margin:2px 0 6px}.reading-bridge-main p{margin:0;max-width:850px}
+.reading-bridge-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:14px 0}
+.reading-bridge-stats>div{padding:12px;border:1px solid rgba(17,17,17,.09);border-radius:10px;background:#fff}
+.reading-bridge-stats small{display:block;color:#666;margin-bottom:4px}.reading-bridge-stats strong{font-size:1.05rem}
+@media(max-width:780px){.reading-bridge-main{display:block}.reading-bridge-main .pill{display:inline-flex;margin-top:10px}.reading-bridge-stats{grid-template-columns:1fr}}
