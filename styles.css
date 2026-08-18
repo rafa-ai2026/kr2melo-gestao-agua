@@ -1469,3 +1469,7 @@
 .reading-bridge-stats>div{padding:12px;border:1px solid rgba(17,17,17,.09);border-radius:10px;background:#fff}
 .reading-bridge-stats small{display:block;color:#666;margin-bottom:4px}.reading-bridge-stats strong{font-size:1.05rem}
 @media(max-width:780px){.reading-bridge-main{display:block}.reading-bridge-main .pill{display:inline-flex;margin-top:10px}.reading-bridge-stats{grid-template-columns:1fr}}
+
+
+/* KR2MELO v5.3.32 — integridade de sincronização mobile */
+.reading-bridge-v5331 .pill.warn{background:#fff8e1;color:#795500;border-color:#f1d486}.reading-bridge-v5331 .pill.danger{background:#fff0ef;color:#a70f04;border-color:#ffc5c0}

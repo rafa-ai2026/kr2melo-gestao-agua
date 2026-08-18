@@ -2,7 +2,7 @@
   'use strict';
 
   const KEY = 'kr2melo.hidrometro.v1';
-  const APP_VERSION = '5.3.31';
+  const APP_VERSION = '5.3.32';
   const DEFAULT_TARIFF = { minimum: 80.84, minimumM3: 10, tier1: 8.37, tier1Limit: 20, tier2: 10.87, tier2Limit: 30 };
   const money = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
   const monthFmt = new Intl.DateTimeFormat('pt-BR', { month: 'long', year: 'numeric' });
@@ -195,6 +195,10 @@
       mobileDone: Boolean(u.mobileDone),
       mobileSavedAt: String(u.mobileSavedAt || ''),
       mobileReopened: Boolean(u.mobileReopened),
+      mobileSyncStatus: ['idle','local','pending','syncing','synced','conflict'].includes(u.mobileSyncStatus) ? u.mobileSyncStatus : (u.mobileDone ? 'local' : 'idle'),
+      mobileSyncAt: String(u.mobileSyncAt || ''),
+      mobileSyncOperationId: String(u.mobileSyncOperationId || ''),
+      mobileSyncConflict: u.mobileSyncConflict && typeof u.mobileSyncConflict === 'object' ? u.mobileSyncConflict : null,
       gps: u.gps || null,
       photoKey: String(u.photoKey || ''),
       photo: String(u.photo || ''),
@@ -652,7 +656,7 @@ Esta ação remove os apartamentos da competência atual. O histórico já fecha
     const oldBilling = deepClone(block.billing);
     block.units.forEach(unit => {
       if (unit.current !== '') unit.previous = n(unit.current);
-      unit.current = ''; unit.m3 = 0; unit.value = waterCost(0, block.tariff); unit.note = ''; unit.mobileDone = false; unit.mobileSavedAt = ''; unit.gps = null; unit.photoKey = ''; unit.photo = ''; unit.paid = false; unit.paymentDate = ''; unit.extraCharge = 0; unit.billingFine = 0;
+      unit.current = ''; unit.m3 = 0; unit.value = waterCost(0, block.tariff); unit.note = ''; unit.mobileDone = false; unit.mobileSavedAt = ''; unit.mobileSyncStatus = 'idle'; unit.mobileSyncAt = ''; unit.mobileSyncOperationId = ''; unit.mobileSyncConflict = null; unit.gps = null; unit.photoKey = ''; unit.photo = ''; unit.paid = false; unit.paymentDate = ''; unit.extraCharge = 0; unit.billingFine = 0;
     });
     block.month = nextMonth;
     block.billing = normalizeBilling({ ...oldBilling, dueDate: dateForMonth(nextMonth, dayOf(oldBilling.dueDate)), previousReadDate: oldBilling.currentReadDate || oldBilling.previousReadDate || '', currentReadDate: oldBilling.nextReadDate || addMonthToDate(oldBilling.currentReadDate) || dateForMonth(nextMonth, 1), nextReadDate: oldBilling.nextReadDate ? addMonthToDate(oldBilling.nextReadDate) : '' }, nextMonth);
@@ -3991,8 +3995,33 @@ Esta ação remove os apartamentos da competência atual. O histórico já fecha
     };
   }
 
-  function downloadFullBrowserBackupV5330() {
+  async function readOfflineIndexedDbBackupV5332() {
+    if (!('indexedDB' in window)) return null;
+    return await new Promise(resolve => {
+      const request = indexedDB.open('kr2melo-offline-v5332');
+      request.onerror = () => resolve(null);
+      request.onsuccess = () => {
+        const db = request.result;
+        const names = Array.from(db.objectStoreNames || []);
+        if (!names.length) { db.close(); resolve({ database: 'kr2melo-offline-v5332', stores: {} }); return; }
+        const stores = {}; let pending = names.length;
+        names.forEach(name => {
+          try {
+            const tx = db.transaction(name, 'readonly');
+            const req = tx.objectStore(name).getAll();
+            req.onsuccess = () => { stores[name] = req.result || []; if (--pending === 0) { db.close(); resolve({ database: 'kr2melo-offline-v5332', stores }); } };
+            req.onerror = () => { stores[name] = []; if (--pending === 0) { db.close(); resolve({ database: 'kr2melo-offline-v5332', stores }); } };
+          } catch { stores[name] = []; if (--pending === 0) { db.close(); resolve({ database: 'kr2melo-offline-v5332', stores }); } }
+        });
+      };
+      request.onupgradeneeded = () => {};
+    });
+  }
+
+  async function downloadFullBrowserBackupV5330() {
     const payload = fullBrowserBackupPayloadV5330();
+    payload.schema = 2;
+    payload.offlineIndexedDB = await readOfflineIndexedDbBackupV5332();
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -4033,8 +4062,8 @@ Esta ação remove os apartamentos da competência atual. O histórico já fecha
   function requestBrowserResetV5330() {
     openModal(`<h2>BKP total + reset seguro do navegador</h2><p>Use esta opção quando a interface ficar sobreposta, carregar uma versão antiga ou apresentar comportamento estranho.</p><div class="info-box"><strong>1.</strong> Primeiro será baixado automaticamente um <b>BKP total</b> do KR²MELO.</div><div class="info-box"><strong>2.</strong> Depois serão apagados somente cache, Service Worker e preferências temporárias da interface.</div><div class="info-box"><strong>3.</strong> Condomínios, leituras, histórico mensal, boletos, recibos e configurações principais permanecem no sistema.</div><div class="warning-box"><strong>Importante:</strong> sites não têm permissão para apagar o histórico geral de navegação do Chrome/Edge. Este botão reseta o armazenamento técnico do KR²MELO que pode manter arquivos antigos.</div><div class="field full"><label>Digite <strong>RESETAR NAVEGADOR</strong> para confirmar</label><input name="confirmation" autocomplete="off" required></div>`, 'Gerar BKP e resetar', async data => {
       if (String(data.confirmation || '').trim().toUpperCase() !== 'RESETAR NAVEGADOR') return toast('Confirmação incorreta. Nada foi alterado.', true);
-      downloadFullBrowserBackupV5330();
-      toast('BKP total baixado. Limpando cache do KR²MELO...');
+      await downloadFullBrowserBackupV5330();
+      toast('BKP total baixado, incluindo a fila offline. Limpando cache do KR²MELO...');
       await new Promise(resolve => setTimeout(resolve, 900));
       await clearKr2BrowserRuntimeV5330();
       const base = `${location.pathname}${location.search ? location.search.replace(/([?&])kr2reset=\d+(&|$)/, '$1').replace(/[?&]$/, '') : ''}`;
@@ -4060,7 +4089,7 @@ Esta ação remove os apartamentos da competência atual. O histórico já fecha
   // ===================== KR2MELO v5.3.31 — Integridade Leituras do mês ↔ Leitura in loco =====================
   const READING_SIGNAL_KEY_V5331 = `${KEY}.readingSignal.v5331`;
   const READING_JOURNAL_KEY_V5331 = `${KEY}.mobileJournal.v5331`;
-  const READING_FIELDS_V5331 = ['current','m3','value','note','mobileDone','mobileSavedAt','mobileReopened','readingType','operationalStatus','estimatedReason','changeLog'];
+  const READING_FIELDS_V5331 = ['current','m3','value','note','mobileDone','mobileSavedAt','mobileReopened','readingType','operationalStatus','estimatedReason','changeLog','mobileSyncStatus','mobileSyncAt','mobileSyncOperationId','mobileSyncConflict'];
 
   function rawPersistedStateV5331() {
     try { const parsed = JSON.parse(localStorage.getItem(KEY)); return parsed && Array.isArray(parsed.blocks) ? parsed : null; }
@@ -4131,7 +4160,11 @@ Esta ação remove os apartamentos da competência atual. O histórico já fecha
     const withReading = block.units.filter(unit => unit.current !== '' && unit.current !== null && unit.current !== undefined).length;
     const last = block.units.map(unit => unit.mobileSavedAt).filter(Boolean).sort().pop();
     const lastText = last ? auditDate(last) : 'nenhuma leitura salva ainda';
-    return `<section class="card reading-bridge-v5331 no-print"><div class="reading-bridge-main"><div><p class="eyebrow">PONTE DE DADOS</p><h3>Leituras do mês ↔ Leitura in loco</h3><p>Os dois módulos usam o mesmo banco local. Leituras mais novas são mescladas antes de qualquer gravação para evitar que uma tela sobrescreva a outra.</p></div><span class="pill ok">Proteção ativa</span></div><div class="reading-bridge-stats"><div><small>Leituras registradas</small><strong>${withReading}/${block.units.length}</strong></div><div><small>Conferidas no mobile</small><strong>${completed}</strong></div><div><small>Último salvamento in loco</small><strong>${esc(lastText)}</strong></div></div><div class="button-row"><a class="secondary" href="./mobile.html" style="text-decoration:none;display:inline-flex;align-items:center">📱 Abrir Leitura in loco</a><button class="secondary" type="button" data-refresh-inloco>↻ Atualizar dados in loco</button></div></section>`;
+    const pendingSync = block.units.filter(unit => ['pending','syncing','local'].includes(unit.mobileSyncStatus)).length;
+    const conflicts = block.units.filter(unit => unit.mobileSyncStatus === 'conflict').length;
+    const protectionClass = conflicts ? 'danger' : (pendingSync ? 'warn' : 'ok');
+    const protectionText = conflicts ? `${conflicts} conflito(s)` : (pendingSync ? `${pendingSync} aguardando nuvem` : 'Sincronização em dia');
+    return `<section class="card reading-bridge-v5331 no-print"><div class="reading-bridge-main"><div><p class="eyebrow">PONTE DE DADOS</p><h3>Leituras do mês ↔ Leitura in loco</h3><p>Leituras do celular são protegidas localmente e, quando a nuvem está configurada, sincronizadas sem substituir silenciosamente uma leitura mais nova.</p></div><span class="pill ${protectionClass}">${esc(protectionText)}</span></div><div class="reading-bridge-stats"><div><small>Leituras registradas</small><strong>${withReading}/${block.units.length}</strong></div><div><small>Conferidas no mobile</small><strong>${completed}</strong></div><div><small>Pendentes / conflitos</small><strong>${pendingSync} / ${conflicts}</strong></div><div><small>Último salvamento in loco</small><strong>${esc(lastText)}</strong></div></div><div class="button-row"><a class="secondary" href="./mobile.html" style="text-decoration:none;display:inline-flex;align-items:center">📱 Abrir Leitura in loco</a><button class="secondary" type="button" data-refresh-inloco>↻ Atualizar dados in loco</button></div></section>`;
   }
   const renderReadingsV5331Base = renderReadings;
   renderReadings = function(block) { return `${readingBridgeCardV5331(block)}${renderReadingsV5331Base(block)}`; };
@@ -4163,7 +4196,15 @@ Esta ação remove os apartamentos da competência atual. O histórico já fecha
   executeMonthlyClose = function(block) {
     // Última barreira contra fechar o mês com uma leitura que acabou de ser salva em outra aba.
     refreshReadingsFromStorageV5331(false);
-    return executeMonthlyCloseV5331Base(selected() || block);
+    const active = selected() || block;
+    const syncProblems = (active?.units || []).filter(unit => ['local','pending','syncing','conflict'].includes(unit.mobileSyncStatus));
+    if (syncProblems.length) {
+      const conflicts = syncProblems.filter(unit => unit.mobileSyncStatus === 'conflict').length;
+      const pending = syncProblems.length - conflicts;
+      toast(`Fechamento bloqueado: ${pending} leitura(s) aguardando sincronização${conflicts ? ` e ${conflicts} conflito(s)` : ''}. Sincronize a Leitura in loco antes de fechar.`, true);
+      return;
+    }
+    return executeMonthlyCloseV5331Base(active);
   };
 
   window.addEventListener('storage', event => {

@@ -1,0 +1,11 @@
+KR²MELO v5.3.32 — Leitura in loco Offline-First
+
+- IndexedDB como segunda camada durável no celular.
+- Diário local e rascunho continuam ativos.
+- Fila de sincronização persistente: Local / Pendente / Sincronizando / Sincronizado / Conflito.
+- Retomada automática ao voltar a internet.
+- Mesclagem por apartamento antes de enviar ao Supabase.
+- Conflitos preservam as duas versões e exigem decisão explícita.
+- Solicitação de armazenamento persistente do navegador.
+- Fechamento bloqueado quando a cópia conhecida possui pendências ou conflitos.
+- Impressão dos boletos não alterada.

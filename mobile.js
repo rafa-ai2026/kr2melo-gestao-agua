@@ -1,7 +1,7 @@
 (() => {
   'use strict';
   const KEY = 'kr2melo.hidrometro.v1';
-  const APP_VERSION = '5.3.23';
+  const APP_VERSION = '5.3.32';
   const $ = (selector, parent = document) => parent.querySelector(selector);
   const monthFmt = new Intl.DateTimeFormat('pt-BR', { month: 'long', year: 'numeric' });
   const n = value => Number(value) || 0;
@@ -515,7 +515,7 @@
   const MOBILE_DRAFT_KEY_V5331 = `${KEY}.mobileDrafts.v5331`;
   const MOBILE_SIGNAL_KEY_V5331 = `${KEY}.readingSignal.v5331`;
   const MOBILE_JOURNAL_KEY_V5331 = `${KEY}.mobileJournal.v5331`;
-  const MOBILE_READING_FIELDS_V5331 = ['current','m3','value','note','mobileDone','mobileSavedAt','mobileReopened','readingType','operationalStatus','estimatedReason','changeLog'];
+  const MOBILE_READING_FIELDS_V5331 = ['current','m3','value','note','mobileDone','mobileSavedAt','mobileReopened','readingType','operationalStatus','estimatedReason','changeLog','mobileSyncStatus','mobileSyncAt','mobileSyncOperationId','mobileSyncConflict'];
   const MOBILE_IDENTITY_FIELDS_V5331 = ['number','resident','previous'];
 
   function readPersistedMobileStateV5331() {
@@ -757,6 +757,291 @@
   document.addEventListener('visibilitychange', () => {
     if (!document.hidden) syncFromMainStateV5331({ render: true });
   });
+
+
+  // ===================== KR2MELO v5.3.32 — Offline-first / IndexedDB / fila segura =====================
+  const OFFLINE_DB_V5332 = 'kr2melo-offline-v5332';
+  const OFFLINE_DB_VERSION_V5332 = 1;
+  const OFFLINE_OP_STORE_V5332 = 'readingOps';
+  const OFFLINE_SNAPSHOT_STORE_V5332 = 'snapshots';
+  const CLOUD_READING_FIELDS_V5332 = ['current','m3','value','note','mobileDone','mobileSavedAt','mobileReopened','readingType','operationalStatus','estimatedReason','changeLog'];
+  let syncRunningV5332 = false;
+
+  function opIdV5332() {
+    return `op-${Date.now()}-${Math.random().toString(16).slice(2)}-${Math.random().toString(16).slice(2)}`;
+  }
+  function openOfflineDbV5332() {
+    return new Promise((resolve, reject) => {
+      if (!('indexedDB' in window)) return reject(new Error('IndexedDB indisponível neste navegador.'));
+      const req = indexedDB.open(OFFLINE_DB_V5332, OFFLINE_DB_VERSION_V5332);
+      req.onupgradeneeded = () => {
+        const db = req.result;
+        if (!db.objectStoreNames.contains(OFFLINE_OP_STORE_V5332)) {
+          const store = db.createObjectStore(OFFLINE_OP_STORE_V5332, { keyPath: 'id' });
+          store.createIndex('status', 'status', { unique: false });
+          store.createIndex('blockMonth', ['blockId','month'], { unique: false });
+        }
+        if (!db.objectStoreNames.contains(OFFLINE_SNAPSHOT_STORE_V5332)) db.createObjectStore(OFFLINE_SNAPSHOT_STORE_V5332, { keyPath: 'id' });
+      };
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => reject(req.error || new Error('Falha ao abrir armazenamento offline.'));
+    });
+  }
+  async function idbPutV5332(storeName, value) {
+    const db = await openOfflineDbV5332();
+    try {
+      await new Promise((resolve, reject) => {
+        const tx = db.transaction(storeName, 'readwrite');
+        tx.objectStore(storeName).put(value);
+        tx.oncomplete = () => resolve(); tx.onerror = () => reject(tx.error); tx.onabort = () => reject(tx.error);
+      });
+    } finally { db.close(); }
+    return value;
+  }
+  async function idbGetAllV5332(storeName) {
+    const db = await openOfflineDbV5332();
+    try {
+      return await new Promise((resolve, reject) => {
+        const tx = db.transaction(storeName, 'readonly');
+        const req = tx.objectStore(storeName).getAll();
+        req.onsuccess = () => resolve(Array.isArray(req.result) ? req.result : []);
+        req.onerror = () => reject(req.error);
+      });
+    } finally { db.close(); }
+  }
+  async function idbDeleteV5332(storeName, id) {
+    const db = await openOfflineDbV5332();
+    try {
+      await new Promise((resolve, reject) => {
+        const tx = db.transaction(storeName, 'readwrite'); tx.objectStore(storeName).delete(id);
+        tx.oncomplete = () => resolve(); tx.onerror = () => reject(tx.error); tx.onabort = () => reject(tx.error);
+      });
+    } finally { db.close(); }
+  }
+  async function requestPersistentStorageV5332() {
+    try {
+      if (!navigator.storage?.persist) return false;
+      const already = await navigator.storage.persisted?.();
+      if (already) return true;
+      return Boolean(await navigator.storage.persist());
+    } catch { return false; }
+  }
+  function snapshotReadingFieldsV5332(unit) {
+    const fields = {};
+    CLOUD_READING_FIELDS_V5332.forEach(field => { fields[field] = JSON.parse(JSON.stringify(unit[field] ?? null)); });
+    return fields;
+  }
+  function persistStateDirectV5332() {
+    try { state.version = APP_VERSION; localStorage.setItem(KEY, JSON.stringify(state)); return true; } catch { return false; }
+  }
+  function findUnitByOpV5332(container, op) {
+    const block = container?.blocks?.find(item => String(item.id) === String(op.blockId) && String(item.month) === String(op.month));
+    const unit = block?.units?.find(item => String(item.id) === String(op.unitId));
+    return { block, unit };
+  }
+  async function queueUnitForCloudV5332(blockId, unitId) {
+    const block = state.blocks.find(item => String(item.id) === String(blockId));
+    const unit = block?.units?.find(item => String(item.id) === String(unitId));
+    if (!block || !unit || !unit.mobileDone) return null;
+    const op = {
+      id: opIdV5332(), blockId: block.id, unitId: unit.id, unitNumber: unit.number, month: block.month,
+      at: unit.mobileSavedAt || new Date().toISOString(), createdAt: new Date().toISOString(), status: 'pending',
+      attempts: 0, fields: snapshotReadingFieldsV5332(unit), remoteFields: null, lastError: ''
+    };
+    // Segunda cópia durável independente do localStorage.
+    await idbPutV5332(OFFLINE_OP_STORE_V5332, op);
+    await idbPutV5332(OFFLINE_SNAPSHOT_STORE_V5332, { id: `${block.id}:${unit.id}:${op.at}`, blockId: block.id, unitId: unit.id, month: block.month, at: op.at, fields: op.fields });
+    unit.mobileSyncStatus = window.KR2Sync?.connected?.() ? 'pending' : 'local';
+    unit.mobileSyncOperationId = op.id;
+    unit.mobileSyncAt = '';
+    unit.mobileSyncConflict = null;
+    persistStateDirectV5332();
+    render();
+    if (navigator.onLine && window.KR2Sync?.connected?.()) processOfflineQueueV5332();
+    return op;
+  }
+  function fieldsDifferV5332(a = {}, b = {}) {
+    return CLOUD_READING_FIELDS_V5332.some(field => JSON.stringify(a[field] ?? null) !== JSON.stringify(b[field] ?? null));
+  }
+  function applyFieldsV5332(unit, fields = {}) {
+    CLOUD_READING_FIELDS_V5332.forEach(field => { if (field in fields) unit[field] = JSON.parse(JSON.stringify(fields[field])); });
+  }
+  async function pendingOpsV5332() {
+    const all = await idbGetAllV5332(OFFLINE_OP_STORE_V5332);
+    return all.filter(op => ['pending','syncing','conflict'].includes(op.status));
+  }
+  async function markOpsSyncedV5332(ops, syncedAt) {
+    for (const op of ops) {
+      op.status = 'synced'; op.syncedAt = syncedAt; op.lastError = '';
+      await idbPutV5332(OFFLINE_OP_STORE_V5332, op);
+      const { unit } = findUnitByOpV5332(state, op);
+      if (unit && String(unit.mobileSyncOperationId || '') === String(op.id)) {
+        unit.mobileSyncStatus = 'synced'; unit.mobileSyncAt = syncedAt; unit.mobileSyncConflict = null;
+      }
+    }
+    persistStateDirectV5332();
+  }
+  async function markOpConflictV5332(op, remoteUnit) {
+    op.status = 'conflict'; op.remoteFields = snapshotReadingFieldsV5332(remoteUnit); op.lastError = 'Leitura mais nova encontrada na nuvem.';
+    await idbPutV5332(OFFLINE_OP_STORE_V5332, op);
+    const { unit } = findUnitByOpV5332(state, op);
+    if (unit) {
+      unit.mobileSyncStatus = 'conflict'; unit.mobileSyncConflict = { opId: op.id, remoteAt: remoteUnit.mobileSavedAt || '', remoteFields: op.remoteFields };
+    }
+    persistStateDirectV5332();
+  }
+  async function processOfflineQueueV5332(options = {}) {
+    if (syncRunningV5332) return;
+    if (!navigator.onLine || !window.KR2Sync?.connected?.()) { render(); return; }
+    syncRunningV5332 = true;
+    try {
+      let ops = (await pendingOpsV5332()).filter(op => op.status !== 'conflict' || op.forceLocal === true);
+      if (!ops.length) { if (options.message) toast('Tudo já está sincronizado.'); return; }
+      for (const op of ops) { op.status = 'syncing'; op.attempts = Number(op.attempts || 0) + 1; await idbPutV5332(OFFLINE_OP_STORE_V5332, op); const { unit } = findUnitByOpV5332(state, op); if (unit) unit.mobileSyncStatus = 'syncing'; }
+      persistStateDirectV5332(); render();
+
+      let remote = await window.KR2Sync.pullState();
+      remote = remote && Array.isArray(remote.blocks) ? normalizeMobileState(remote) : normalizeMobileState(JSON.parse(JSON.stringify(state)));
+      const safeOps = [];
+      for (const op of ops) {
+        const { unit: remoteUnit } = findUnitByOpV5332(remote, op);
+        if (!remoteUnit) {
+          const localBlock = state.blocks.find(item => String(item.id) === String(op.blockId));
+          let targetBlock = remote.blocks.find(item => String(item.id) === String(op.blockId));
+          if (!targetBlock && localBlock) { targetBlock = JSON.parse(JSON.stringify(localBlock)); remote.blocks.push(targetBlock); }
+          const localUnit = localBlock?.units?.find(item => String(item.id) === String(op.unitId));
+          if (targetBlock && localUnit && !targetBlock.units.some(item => String(item.id) === String(op.unitId))) targetBlock.units.push(JSON.parse(JSON.stringify(localUnit)));
+          safeOps.push(op); continue;
+        }
+        const remoteAt = Date.parse(remoteUnit.mobileSavedAt || '') || 0;
+        const localAt = Date.parse(op.at || '') || 0;
+        if (!op.forceLocal && remoteAt > localAt && fieldsDifferV5332(remoteUnit, op.fields)) {
+          await markOpConflictV5332(op, remoteUnit);
+          continue;
+        }
+        applyFieldsV5332(remoteUnit, op.fields);
+        remoteUnit.mobileSyncStatus = 'synced'; remoteUnit.mobileSyncAt = new Date().toISOString(); remoteUnit.mobileSyncOperationId = op.id; remoteUnit.mobileSyncConflict = null;
+        safeOps.push(op);
+      }
+      if (safeOps.length) {
+        try { await window.KR2Sync.pushState(remote); }
+        catch (error) {
+          if (error?.code === 'KR2_SYNC_CONFLICT') {
+            safeOps.forEach(op => { op.status = 'pending'; });
+            for (const op of safeOps) await idbPutV5332(OFFLINE_OP_STORE_V5332, op);
+            if (!options.retry) {
+              syncRunningV5332 = false;
+              return processOfflineQueueV5332({ ...options, retry: true });
+            }
+          }
+          throw error;
+        }
+        await markOpsSyncedV5332(safeOps, new Date().toISOString());
+      }
+      if (options.message) toast(safeOps.length ? `${safeOps.length} leitura(s) sincronizada(s).` : 'Há conflito que precisa ser revisado.', !safeOps.length);
+    } catch (error) {
+      const ops = await pendingOpsV5332().catch(() => []);
+      for (const op of ops.filter(item => item.status === 'syncing')) { op.status = 'pending'; op.lastError = String(error?.message || error); await idbPutV5332(OFFLINE_OP_STORE_V5332, op); const { unit } = findUnitByOpV5332(state, op); if (unit) unit.mobileSyncStatus = 'pending'; }
+      persistStateDirectV5332();
+      if (options.message) toast(`Dados continuam seguros no celular. Sincronização pendente: ${error?.message || 'sem conexão'}`, true);
+    } finally { syncRunningV5332 = false; render(); }
+  }
+  function syncStatusLabelV5332(unit) {
+    const status = unit?.mobileSyncStatus || (unit?.mobileDone ? 'local' : 'idle');
+    if (!unit?.mobileDone) return { cls: 'warn', text: 'Leitura pendente' };
+    if (status === 'synced') return { cls: 'ok', text: '✓ Sincronizado' };
+    if (status === 'conflict') return { cls: 'danger', text: '⚠ Conflito' };
+    if (status === 'syncing') return { cls: 'warn', text: '↑ Sincronizando' };
+    if (status === 'pending') return { cls: 'warn', text: '↑ Aguardando nuvem' };
+    return { cls: 'ok', text: '● Salvo no aparelho' };
+  }
+  function offlineSummaryMarkupV5332(block) {
+    const units = block?.units || [];
+    const synced = units.filter(u => u.mobileDone && u.mobileSyncStatus === 'synced').length;
+    const pending = units.filter(u => u.mobileDone && ['local','pending','syncing'].includes(u.mobileSyncStatus)).length;
+    const conflicts = units.filter(u => u.mobileSyncStatus === 'conflict').length;
+    const online = navigator.onLine;
+    const cloud = Boolean(window.KR2Sync?.connected?.());
+    return `<section class="card offline-first-v5332"><div class="offline-first-head"><div><strong>Proteção offline-first</strong><small>IndexedDB + diário local + fila de sincronização</small></div><span class="pill ${conflicts ? 'danger' : (online ? 'ok' : 'warn')}">${conflicts ? 'Conflito' : (online ? 'Online' : 'Sem internet')}</span></div><div class="offline-first-stats"><span><b>${synced}</b><small>Sincronizados</small></span><span><b>${pending}</b><small>Seguros no celular</small></span><span><b>${conflicts}</b><small>Conflitos</small></span></div><div class="row"><button class="secondary" id="syncQueueNowV5332" type="button" ${!cloud ? 'disabled' : ''}>↻ Sincronizar agora</button><small>${cloud ? 'Nuvem conectada' : 'Conecte o Supabase no painel para sincronizar entre celular e computador'}</small></div></section>`;
+  }
+  const renderV5332Base = render;
+  render = function() {
+    renderV5332Base();
+    const block = currentBlock(), unit = currentUnit();
+    const bridge = document.querySelector('.sync-bridge-mobile-v5331');
+    if (bridge && block && !document.querySelector('.offline-first-v5332')) bridge.insertAdjacentHTML('afterend', offlineSummaryMarkupV5332(block));
+    if (unit) {
+      const status = syncStatusLabelV5332(unit);
+      const savedLine = document.querySelector('.reading-card .saved-line');
+      const overview = document.querySelector('.reading-card .unit-overview');
+      if (overview && !overview.querySelector('.sync-status-v5332')) overview.insertAdjacentHTML('beforeend', `<span class="pill ${status.cls} sync-status-v5332">${status.text}</span>`);
+      if (unit.mobileSyncStatus === 'conflict' && overview && !document.querySelector('.conflict-actions-v5332')) {
+        overview.insertAdjacentHTML('afterend', `<div class="alert danger conflict-actions-v5332"><strong>Conflito protegido</strong><span>A nuvem possui uma leitura mais nova. Nenhum valor foi apagado.</span><div class="row"><button class="secondary" id="useCloudV5332" type="button">Usar nuvem</button><button class="primary" id="keepPhoneV5332" type="button">Manter celular</button></div></div>`);
+      }
+      if (savedLine && unit.mobileSyncAt) savedLine.insertAdjacentHTML('beforeend', ` · nuvem ${esc(savedAtLabel(unit.mobileSyncAt))}`);
+    }
+  };
+  const bindV5332Base = bind;
+  bind = function() {
+    bindV5332Base();
+    const syncBtn = $('#syncQueueNowV5332'); if (syncBtn) syncBtn.onclick = () => processOfflineQueueV5332({ message: true });
+    const keep = $('#keepPhoneV5332'); if (keep) keep.onclick = async () => {
+      const unit = currentUnit(); const opId = unit?.mobileSyncOperationId; if (!opId) return;
+      const ops = await idbGetAllV5332(OFFLINE_OP_STORE_V5332); const op = ops.find(item => item.id === opId); if (!op) return;
+      if (!confirm('Manter a leitura deste celular e substituir a leitura conflitante na nuvem? A cópia da nuvem continuará registrada no histórico de conflito local.')) return;
+      op.forceLocal = true; op.status = 'pending'; await idbPutV5332(OFFLINE_OP_STORE_V5332, op); unit.mobileSyncStatus = 'pending'; persistStateDirectV5332(); processOfflineQueueV5332({ message: true });
+    };
+    const useCloud = $('#useCloudV5332'); if (useCloud) useCloud.onclick = async () => {
+      const block = currentBlock(), unit = currentUnit(); const opId = unit?.mobileSyncOperationId; if (!block || !unit || !opId) return;
+      const ops = await idbGetAllV5332(OFFLINE_OP_STORE_V5332); const op = ops.find(item => item.id === opId); if (!op?.remoteFields) return;
+      if (!confirm('Usar a leitura da nuvem neste apartamento? A leitura do celular continuará preservada no diário offline.')) return;
+      applyFieldsV5332(unit, op.remoteFields); unit.mobileSyncStatus = 'synced'; unit.mobileSyncAt = new Date().toISOString(); unit.mobileSyncConflict = null; op.status = 'resolved-cloud'; await idbPutV5332(OFFLINE_OP_STORE_V5332, op); persistStateDirectV5332(); render(); toast('Leitura da nuvem aplicada. A cópia local anterior foi preservada no diário.');
+    };
+  };
+
+  async function protectSavedUnitV5332(blockId, unitId) {
+    try {
+      await requestPersistentStorageV5332();
+      await queueUnitForCloudV5332(blockId, unitId);
+    } catch (error) {
+      // O diário v5.3.31 e o localStorage continuam como duas camadas mesmo se IndexedDB falhar.
+      console.error('Falha na camada IndexedDB', error);
+      toast('Leitura salva, mas a camada extra IndexedDB falhou. Faça um BKP antes de continuar.', true);
+    }
+  }
+  const saveReadingV5332Base = saveReading;
+  saveReading = async function() {
+    const block = currentBlock(), unit = currentUnit(); if (!block || !unit) return;
+    const blockId = block.id, unitId = unit.id, beforeAt = unit.mobileSavedAt;
+    await saveReadingV5332Base();
+    const savedBlock = state.blocks.find(item => String(item.id) === String(blockId));
+    const savedUnit = savedBlock?.units?.find(item => String(item.id) === String(unitId));
+    if (savedUnit?.mobileDone && savedUnit.mobileSavedAt && savedUnit.mobileSavedAt !== beforeAt) await protectSavedUnitV5332(blockId, unitId);
+  };
+  const createAverageReadingV5332Base = createAverageReading;
+  createAverageReading = function() {
+    const block = currentBlock(), unit = currentUnit(); if (!block || !unit) return;
+    const blockId = block.id, unitId = unit.id, beforeAt = unit.mobileSavedAt;
+    const result = createAverageReadingV5332Base();
+    const savedUnit = state.blocks.find(item => String(item.id) === String(blockId))?.units?.find(item => String(item.id) === String(unitId));
+    if (savedUnit?.mobileDone && savedUnit.mobileSavedAt && savedUnit.mobileSavedAt !== beforeAt) protectSavedUnitV5332(blockId, unitId);
+    return result;
+  };
+  const markNoAccessV5332Base = markNoAccess;
+  markNoAccess = function() {
+    const block = currentBlock(), unit = currentUnit(); if (!block || !unit) return;
+    const blockId = block.id, unitId = unit.id, beforeAt = unit.mobileSavedAt;
+    const result = markNoAccessV5332Base();
+    const savedUnit = state.blocks.find(item => String(item.id) === String(blockId))?.units?.find(item => String(item.id) === String(unitId));
+    if (savedUnit?.mobileDone && savedUnit.mobileSavedAt && savedUnit.mobileSavedAt !== beforeAt) protectSavedUnitV5332(blockId, unitId);
+    return result;
+  };
+
+  window.addEventListener('online', () => { toast('Internet disponível. Retomando sincronização…'); processOfflineQueueV5332(); });
+  window.addEventListener('offline', () => { toast('Sem internet. As leituras continuarão salvas no celular.'); render(); });
+  document.addEventListener('kr2sync:session', () => processOfflineQueueV5332());
+  document.addEventListener('kr2sync:push', () => render());
+  setTimeout(() => { if (navigator.onLine && window.KR2Sync?.connected?.()) processOfflineQueueV5332(); }, 900);
 
   async function bootstrapCloudMobile() {
     if (!window.KR2Sync?.connected?.() || state.blocks.length) return;

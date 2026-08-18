@@ -100,3 +100,11 @@ button{border:0;padding:15px 16px;font-weight:900;cursor:pointer}
 .sync-bridge-mobile-v5331{display:flex;align-items:center;justify-content:space-between;gap:12px;border:1px solid rgba(17,17,17,.12)}
 .sync-bridge-mobile-v5331 div{display:grid;gap:2px}.sync-bridge-mobile-v5331 small{color:#666}
 .draft-pill-v5331{margin-left:auto;white-space:nowrap}
+
+
+/* KR2MELO v5.3.32 — offline-first / IndexedDB */
+.offline-first-v5332{border:1px solid rgba(17,17,17,.10);box-shadow:0 12px 30px rgba(17,17,17,.06)}
+.offline-first-head{display:flex;justify-content:space-between;gap:12px;align-items:center}.offline-first-head>div{display:grid;gap:3px}.offline-first-head small{color:var(--muted)}
+.offline-first-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0}.offline-first-stats span{padding:10px;border:1px solid var(--line);border-radius:12px;text-align:center;display:grid;gap:2px}.offline-first-stats b{font-size:1.25rem}.offline-first-stats small{color:var(--muted);font-size:.72rem}
+.sync-status-v5332{margin-left:auto}.conflict-actions-v5332{display:grid;gap:8px;margin:10px 0}.conflict-actions-v5332 span{font-size:.84rem}.pill.danger{background:#fff0ef;color:#a70f04;border-color:#ffc5c0}
+@media(max-width:520px){.offline-first-stats{grid-template-columns:1fr 1fr 1fr}.offline-first-v5332 .row{align-items:stretch;flex-direction:column}.sync-status-v5332{margin-left:0}}
